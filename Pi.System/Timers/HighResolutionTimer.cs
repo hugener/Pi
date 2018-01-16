@@ -20,6 +20,7 @@ namespace Pi.Timers
         private Action action;
 
         private Thread thread;
+        private CancellationTokenSource cancellationTokenSource;
 
         private static readonly int nanoSleepOffset = Calibrate();
 
@@ -135,6 +136,7 @@ namespace Pi.Timers
                     return;
                 
                 delay = startDelay;
+                cancellationTokenSource = new CancellationTokenSource();
                 thread = new Thread(ThreadProcess);
                 thread.Start();
             }
@@ -151,8 +153,14 @@ namespace Pi.Timers
                     return;
 
                 if (thread != Thread.CurrentThread)
-                    thread.Abort();
+                {
+                    cancellationTokenSource.Cancel();
+                    thread.Join();
+                }
+
                 thread = null;
+                cancellationTokenSource?.Dispose();
+                cancellationTokenSource = null;
             }
         }
 
@@ -185,11 +193,20 @@ namespace Pi.Timers
         private void ThreadProcess()
         {
             var thisThread = thread;
-
+            var cancellationToken = cancellationTokenSource.Token;
             Sleep(delay);
-            while (thread == thisThread)
+            while (thread == thisThread && !cancellationToken.IsCancellationRequested)
             {
-                (Action ?? NoOp)();
+                var action = Action;
+                if (action != null)
+                {
+                    action();
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        return;
+                    }
+                }
+
                 Sleep(interval);
             }
         }
