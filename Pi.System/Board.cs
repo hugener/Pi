@@ -1,11 +1,8 @@
-#region References
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-
-#endregion
+using Pi.System.Threading;
 
 namespace Pi
 {
@@ -13,42 +10,43 @@ namespace Pi
     /// Represents the Raspberry Pi mainboard.
     /// </summary>
     /// <remarks>
-    /// Version and revisions are based on <see cref="http://raspberryalphaomega.org.uk/2013/02/06/automatic-raspberry-pi-board-revision-detection-model-a-b1-and-b2/"/>.
-    /// <see cref="http://www.raspberrypi-spy.co.uk/2012/09/checking-your-raspberry-pi-board-version/"/> for information.
+    /// Version and revisions are based on <see href="http://raspberryalphaomega.org.uk/2013/02/06/automatic-raspberry-pi-board-revision-detection-model-a-b1-and-b2/"/>.
+    /// <see href="http://www.raspberrypi-spy.co.uk/2012/09/checking-your-raspberry-pi-board-version/"/> for information.
     /// </remarks>
     public class Board
     {
-        #region Fields
-
         private static readonly Lazy<Board> board = new Lazy<Board>(LoadBoard);
-        
         private readonly Dictionary<string, string> settings;
         private readonly Lazy<Model> model;
+        private readonly Lazy<string> processorName;
+        private readonly Lazy<Processor> processor;
         private readonly Lazy<ConnectorPinout> connectorPinout;
-
-        #endregion
-
-        #region Instance Management
+        private readonly Lazy<IThreadFactory> threadFactory;
 
         private Board(Dictionary<string, string> settings)
         {
-            model = new Lazy<Model>(LoadModel);
-            connectorPinout = new Lazy<ConnectorPinout>(LoadConnectorPinout);
-            
+            this.model = new Lazy<Model>(this.LoadModel);
+            this.processorName = new Lazy<string>(() =>
+                this.settings.TryGetValue("Hardware", out var hardware) ? hardware : null);
+            this.processor = new Lazy<Processor>(() =>
+                Enum.TryParse(this.ProcessorName, true, out Processor processor) ? processor : Processor.Unknown);
+            this.connectorPinout = new Lazy<ConnectorPinout>(this.LoadConnectorPinout);
+            this.threadFactory = new Lazy<IThreadFactory>(() => new ThreadFactory(this, true));
             this.settings = settings;
         }
 
-        #endregion
-
-        #region Properties
+        /// <summary>
+        /// Gets the thread factory.
+        /// </summary>
+        /// <value>
+        /// The thread factory.
+        /// </value>
+        public IThreadFactory ThreadFactory => this.threadFactory.Value;
 
         /// <summary>
         /// Gets the current mainboard configuration.
         /// </summary>
-        public static Board Current
-        {
-            get { return board.Value; }
-        }
+        public static Board Current => board.Value;
 
         /// <summary>
         /// Gets a value indicating whether this instance is a Raspberry Pi.
@@ -56,13 +54,7 @@ namespace Pi
         /// <value>
         /// 	<c>true</c> if this instance is a Raspberry Pi; otherwise, <c>false</c>.
         /// </value>
-        public bool IsRaspberryPi
-        {
-            get
-            {
-                return Processor != Processor.Unknown;
-            }
-        }
+        public bool IsRaspberryPi => this.Processor != Processor.Unknown;
 
         /// <summary>
         /// Gets the processor name.
@@ -70,14 +62,7 @@ namespace Pi
         /// <value>
         /// The name of the processor.
         /// </value>
-        public string ProcessorName
-        {
-            get
-            {
-                string hardware;
-                return settings.TryGetValue("Hardware", out hardware) ? hardware : null;
-            }
-        }
+        public string ProcessorName => this.processorName.Value;
 
         /// <summary>
         /// Gets the processor.
@@ -85,14 +70,7 @@ namespace Pi
         /// <value>
         /// The processor.
         /// </value>
-        public Processor Processor
-        {
-            get
-            {
-                Processor processor;
-                return Enum.TryParse(ProcessorName, true, out processor) ? processor : Processor.Unknown;
-            }
-        }
+        public Processor Processor => this.processor.Value;
 
         /// <summary>
         /// Gets the board firmware version.
@@ -101,12 +79,12 @@ namespace Pi
         {
             get
             {
-                string revision;
-                int firmware;
-                if (settings.TryGetValue("Revision", out revision) 
-                    && !string.IsNullOrEmpty(revision) 
-                    && int.TryParse(revision, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out firmware))
+                if (this.settings.TryGetValue("Revision", out var revision) && 
+                    !string.IsNullOrEmpty(revision) &&
+                    int.TryParse(revision, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var firmware))
+                {
                     return firmware;
+                }
 
                 return 0;
             }
@@ -117,11 +95,12 @@ namespace Pi
         /// </summary>
         public string SerialNumber
         {
-            get { 
-                string serial;
-                if (settings.TryGetValue("Serial", out serial) 
-                    && !string.IsNullOrEmpty(serial))
+            get
+            { 
+                if (this.settings.TryGetValue("Serial", out var serial) && !string.IsNullOrEmpty(serial))
+                {
                     return serial;
+                }
 
                 return null;
             }
@@ -137,7 +116,7 @@ namespace Pi
         {
             get
             {
-                var firmware = Firmware;
+                var firmware = this.Firmware;
                 return (firmware & 0xFFFF0000) != 0;
             }
         }
@@ -148,10 +127,7 @@ namespace Pi
         /// <value>
         /// The model.
         /// </value>
-        public Model Model
-        {
-            get { return model.Value; }
-        }
+        public Model Model => this.model.Value;
 
         /// <summary>
         /// Gets the connector revision.
@@ -159,15 +135,8 @@ namespace Pi
         /// <value>
         /// The connector revision.
         /// </value>
-        /// <remarks>See <see cref="http://raspi.tv/2014/rpi-gpio-quick-reference-updated-for-raspberry-pi-b"/> for more information.</remarks>
-        public ConnectorPinout ConnectorPinout
-        {
-            get { return connectorPinout.Value; }
-        }
-
-        #endregion
-
-        #region Private Helpers
+        /// <remarks>See <see href="http://raspi.tv/2014/rpi-gpio-quick-reference-updated-for-raspberry-pi-b"/> for more information.</remarks>
+        public ConnectorPinout ConnectorPinout => this.connectorPinout.Value;
 
         private static Board LoadBoard()
         {
@@ -206,7 +175,7 @@ namespace Pi
 
         private Model LoadModel()
         {
-            var firmware = Firmware;
+            var firmware = this.Firmware;
             switch (firmware & 0xFFFF)
             {
                 case 0x2:
@@ -251,9 +220,10 @@ namespace Pi
             }
         }
 
+
         private ConnectorPinout LoadConnectorPinout()
         {
-            switch (Model)
+            switch (this.Model)
             {
                 case Model.BRev1:
                     return ConnectorPinout.Rev1;
@@ -274,7 +244,5 @@ namespace Pi
                     return ConnectorPinout.Unknown;
             }
         }
-
-        #endregion
     }
 }

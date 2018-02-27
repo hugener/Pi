@@ -1,14 +1,11 @@
-#region References
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using Pi.IO.Interop;
+using Pi.System.Threading;
 using Pi.Timers;
-
-#endregion
 
 namespace Pi.IO.GeneralPurpose
 {
@@ -17,13 +14,7 @@ namespace Pi.IO.GeneralPurpose
     /// </summary>
     public class GpioConnectionDriver : IGpioConnectionDriver
     {
-        #region Fields
-
-        private const string gpioPath = "/sys/class/gpio";
-
-        private readonly IntPtr gpioAddress;
-        private readonly Dictionary<ProcessorPin, PinResistor> pinResistors = new Dictionary<ProcessorPin, PinResistor>();
-        private readonly Dictionary<ProcessorPin, PinPoll> pinPolls = new Dictionary<ProcessorPin, PinPoll>();
+        private const string GpioPath = "/sys/class/gpio";
 
         /// <summary>
         /// The default timeout (5 seconds).
@@ -35,18 +26,21 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         public static readonly TimeSpan MinimumTimeout = TimeSpan.FromMilliseconds(1);
 
-        private static readonly TimeSpan resistorSetDelay = TimeSpanUtility.FromMicroseconds(5);
+        private static readonly TimeSpan ResistorSetDelay = TimeSpanUtility.FromMicroseconds(5);
 
-        #endregion
-
-        #region Instance Management
+        private readonly IntPtr gpioAddress;
+        private readonly Dictionary<ProcessorPin, PinResistor> pinResistors = new Dictionary<ProcessorPin, PinResistor>();
+        private readonly Dictionary<ProcessorPin, PinPoll> pinPolls = new Dictionary<ProcessorPin, PinPoll>();
+        private readonly IThread thread;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GpioConnectionDriver"/> class.
         /// </summary>
-        public GpioConnectionDriver() {
+        public GpioConnectionDriver(IThreadFactory threadFactory = null)
+        {
+            this.thread = ThreadFactory.EnsureThreadFactory(threadFactory).Create();
             using (var memoryFile = UnixFile.Open("/dev/mem", UnixFileMode.ReadWrite | UnixFileMode.Synchronized)) {
-                gpioAddress = MemoryMap.Create(
+                this.gpioAddress = MemoryMap.Create(
                     IntPtr.Zero, 
                     Interop.BCM2835_BLOCK_SIZE,
                     MemoryProtection.ReadWrite,
@@ -57,17 +51,13 @@ namespace Pi.IO.GeneralPurpose
         }
 
         /// <summary>
-        /// Releases unmanaged resources and performs other cleanup operations before the
-        /// <see cref="GpioConnectionDriver"/> is reclaimed by garbage collection.
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        ~GpioConnectionDriver()
+        public void Dispose()
         {
-            MemoryMap.Close(gpioAddress, Interop.BCM2835_BLOCK_SIZE);
+            MemoryMap.Close(this.gpioAddress, Interop.BCM2835_BLOCK_SIZE);
+            this.thread.Dispose();
         }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Gets driver capabilities.
@@ -95,33 +85,40 @@ namespace Pi.IO.GeneralPurpose
         public void Allocate(ProcessorPin pin, PinDirection direction)
         {
             var gpioId = string.Format("gpio{0}", (int)pin);
-            if (Directory.Exists(Path.Combine(gpioPath, gpioId)))
+            if (Directory.Exists(Path.Combine(GpioPath, gpioId)))
             {
                 // Reinitialize pin virtual file
-                using (var streamWriter = new StreamWriter(Path.Combine(gpioPath, "unexport"), false))
+                using (var streamWriter = new StreamWriter(Path.Combine(GpioPath, "unexport"), false))
+                {
                     streamWriter.Write((int) pin);
+                }
             }
 
             // Export pin for file mode
-            using (var streamWriter = new StreamWriter(Path.Combine(gpioPath, "export"), false))
+            using (var streamWriter = new StreamWriter(Path.Combine(GpioPath, "export"), false))
+            {
                 streamWriter.Write((int)pin);
+            }
 
             // Set the direction on the pin and update the exported list
-            SetPinMode(pin, direction == PinDirection.Input ? Interop.BCM2835_GPIO_FSEL_INPT : Interop.BCM2835_GPIO_FSEL_OUTP);
+            this.SetPinMode(pin, direction == PinDirection.Input ? Interop.BCM2835_GPIO_FSEL_INPT : Interop.BCM2835_GPIO_FSEL_OUTP);
 
             // Set direction in pin virtual file
             var filePath = Path.Combine(gpioId, "direction");
-            using (var streamWriter = new StreamWriter(Path.Combine(gpioPath, filePath), false))
+            using (var streamWriter = new StreamWriter(Path.Combine(GpioPath, filePath), false))
+            {
                 streamWriter.Write(direction == PinDirection.Input ? "in" : "out");
+            }
 
             if (direction == PinDirection.Input)
             {
-                PinResistor pinResistor;
-                if (!pinResistors.TryGetValue(pin, out pinResistor) || pinResistor != PinResistor.None)
-                    SetPinResistor(pin, PinResistor.None);
+                if (!this.pinResistors.TryGetValue(pin, out var pinResistor) || pinResistor != PinResistor.None)
+                {
+                    this.SetPinResistor(pin, PinResistor.None);
+                }
 
-                SetPinDetectedEdges(pin, PinDetectedEdges.Both);
-                InitializePoll(pin);
+                this.SetPinDetectedEdges(pin, PinDetectedEdges.Both);
+                this.InitializePoll(pin);
             }
         }
 
@@ -167,14 +164,14 @@ namespace Pi.IO.GeneralPurpose
                     throw new ArgumentOutOfRangeException("resistor", resistor, string.Format(CultureInfo.InvariantCulture, "{0} is not a valid value for pin resistor", resistor));
             }
 
-            WriteResistor(pud);
-            HighResolutionTimer.Sleep(resistorSetDelay);
-            SetPinResistorClock(pin, true);
-            HighResolutionTimer.Sleep(resistorSetDelay);
-            WriteResistor(Interop.BCM2835_GPIO_PUD_OFF);
-            SetPinResistorClock(pin, false);
+            this.WriteResistor(pud);
+            this.thread.Sleep(ResistorSetDelay);
+            this.SetPinResistorClock(pin, true);
+            this.thread.Sleep(ResistorSetDelay);
+            this.WriteResistor(Interop.BCM2835_GPIO_PUD_OFF);
+            this.SetPinResistorClock(pin, false);
 
-            pinResistors[pin] = PinResistor.None;
+            this.pinResistors[pin] = PinResistor.None;
         }
 
         /// <summary>
@@ -185,9 +182,11 @@ namespace Pi.IO.GeneralPurpose
         /// <remarks>By default, both edges may be detected on input pins.</remarks>
         public void SetPinDetectedEdges(ProcessorPin pin, PinDetectedEdges edges)
         {
-            var edgePath = Path.Combine(gpioPath, string.Format("gpio{0}/edge", (int)pin));
+            var edgePath = Path.Combine(GpioPath, string.Format("gpio{0}/edge", (int)pin));
             using (var streamWriter = new StreamWriter(edgePath, false))
+            {
                 streamWriter.Write(ToString(edges));
+            }
         }
 
         /// <summary>
@@ -201,9 +200,11 @@ namespace Pi.IO.GeneralPurpose
         /// </remarks>
         public void Wait(ProcessorPin pin, bool waitForUp = true, TimeSpan timeout = new TimeSpan())
         {
-            var pinPoll = pinPolls[pin];
-            if (Read(pin) == waitForUp)
+            var pinPoll = this.pinPolls[pin];
+            if (this.Read(pin) == waitForUp)
+            {
                 return;
+            }
 
             var actualTimeout = GetActualTimeout(timeout);
 
@@ -213,13 +214,21 @@ namespace Pi.IO.GeneralPurpose
                 var waitResult = Interop.epoll_wait(pinPoll.PollDescriptor, pinPoll.OutEventPtr, 1, (int)actualTimeout.TotalMilliseconds);
                 if (waitResult > 0)
                 {
-                    if (Read(pin) == waitForUp)
+                    if (this.Read(pin) == waitForUp)
+                    {
                         break;
+                    }
                 }
                 else if (waitResult == 0)
-                    throw new TimeoutException(string.Format(CultureInfo.InvariantCulture, "Operation timed out after waiting {0}ms for the pin {1} to be {2}", actualTimeout, pin, (waitForUp ? "up" : "down")));
+                {
+                    throw new TimeoutException(string.Format(CultureInfo.InvariantCulture,
+                        "Operation timed out after waiting {0}ms for the pin {1} to be {2}", actualTimeout, pin,
+                        (waitForUp ? "up" : "down")));
+                }
                 else
+                {
                     throw new IOException("Call to epoll_wait API failed");
+                }
             }
         }
 
@@ -229,11 +238,13 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="pin">The pin.</param>
         public void Release(ProcessorPin pin)
         {
-            UninitializePoll(pin);
-            using (var streamWriter = new StreamWriter(Path.Combine(gpioPath, "unexport"), false))
+            this.UninitializePoll(pin);
+            using (var streamWriter = new StreamWriter(Path.Combine(GpioPath, "unexport"), false))
+            {
                 streamWriter.Write((int)pin);
+            }
 
-            SetPinMode(pin, Interop.BCM2835_GPIO_FSEL_INPT);
+            this.SetPinMode(pin, Interop.BCM2835_GPIO_FSEL_INPT);
         }
 
         /// <summary>
@@ -246,7 +257,7 @@ namespace Pi.IO.GeneralPurpose
             int shift;
             var offset = Math.DivRem((int)pin, 32, out shift);
 
-            var pinGroupAddress = gpioAddress + (int)((value ? Interop.BCM2835_GPSET0 : Interop.BCM2835_GPCLR0) + offset);
+            var pinGroupAddress = this.gpioAddress + (int)((value ? Interop.BCM2835_GPSET0 : Interop.BCM2835_GPCLR0) + offset);
             SafeWriteUInt32(pinGroupAddress, (uint)1 << shift);
         }
 
@@ -262,7 +273,7 @@ namespace Pi.IO.GeneralPurpose
             int shift;
             var offset = Math.DivRem((int)pin, 32, out shift);
 
-            var pinGroupAddress = gpioAddress + (int)(Interop.BCM2835_GPLEV0 + offset);
+            var pinGroupAddress = this.gpioAddress + (int)(Interop.BCM2835_GPLEV0 + offset);
             var value = SafeReadUInt32(pinGroupAddress);
 
             return (value & (1 << shift)) != 0;
@@ -277,15 +288,11 @@ namespace Pi.IO.GeneralPurpose
         /// </returns>
         public ProcessorPins Read(ProcessorPins pins)
         {
-            var pinGroupAddress = gpioAddress + (int)(Interop.BCM2835_GPLEV0 + (uint)0 * 4);
+            var pinGroupAddress = this.gpioAddress + (int)(Interop.BCM2835_GPLEV0 + (uint)0 * 4);
             var value = SafeReadUInt32(pinGroupAddress);
 
             return (ProcessorPins)((uint)pins & value);
         }
-
-        #endregion
-
-        #region Private Methods
 
         private static uint GetProcessorBaseAddress(Processor processor)
         {
@@ -306,29 +313,37 @@ namespace Pi.IO.GeneralPurpose
         private static TimeSpan GetActualTimeout(TimeSpan timeout)
         {
             if (timeout > TimeSpan.Zero)
+            {
                 return timeout;
-            
+            }
+
             if (timeout < TimeSpan.Zero)
+            {
                 return MinimumTimeout;
+            }
             
             return DefaultTimeout;
         }
 
         private void InitializePoll(ProcessorPin pin)
         {
-            lock (pinPolls)
+            lock (this.pinPolls)
             {
                 PinPoll poll;
-                if (pinPolls.TryGetValue(pin, out poll))
+                if (this.pinPolls.TryGetValue(pin, out poll))
+                {
                     return;
+                }
 
                 var pinPoll = new PinPoll();
 
                 pinPoll.PollDescriptor = Interop.epoll_create(1);
                 if (pinPoll.PollDescriptor < 0)
+                {
                     throw new IOException("Call to epoll_create(1) API failed with the following return value: " + pinPoll.PollDescriptor);
+                }
 
-                var valuePath = Path.Combine(gpioPath, string.Format("gpio{0}/value", (int)pin));
+                var valuePath = Path.Combine(GpioPath, string.Format("gpio{0}/value", (int)pin));
                 
                 pinPoll.FileDescriptor = UnixFile.OpenFileDescriptor(valuePath, UnixFileMode.ReadOnly | UnixFileMode.NonBlocking);
 
@@ -343,19 +358,21 @@ namespace Pi.IO.GeneralPurpose
 
                 var controlResult = Interop.epoll_ctl(pinPoll.PollDescriptor, Interop.EPOLL_CTL_ADD, pinPoll.FileDescriptor, pinPoll.InEventPtr);
                 if (controlResult != 0)
+                {
                     throw new IOException("Call to epoll_ctl(EPOLL_CTL_ADD) API failed with the following return value: " + controlResult);
+                }
 
                 pinPoll.OutEventPtr = Marshal.AllocHGlobal(64);
-                pinPolls[pin] = pinPoll;
+                this.pinPolls[pin] = pinPoll;
             }
         }
 
         private void UninitializePoll(ProcessorPin pin)
         {
             PinPoll poll;
-            if (pinPolls.TryGetValue(pin, out poll))
+            if (this.pinPolls.TryGetValue(pin, out poll))
             {
-                pinPolls.Remove(pin);
+                this.pinPolls.Remove(pin);
 
                 var controlResult = poll.InEventPtr != IntPtr.Zero ? Interop.epoll_ctl(poll.PollDescriptor, Interop.EPOLL_CTL_DEL, poll.FileDescriptor, poll.InEventPtr) : 0;
 
@@ -366,7 +383,9 @@ namespace Pi.IO.GeneralPurpose
                 UnixFile.CloseFileDescriptor(poll.FileDescriptor);
 
                 if (controlResult != 0)
+                {
                     throw new IOException("Call to epoll_ctl(EPOLL_CTL_DEL) API failed with the following return value: " + controlResult);
+                }
             }
         }
 
@@ -392,20 +411,20 @@ namespace Pi.IO.GeneralPurpose
             int shift;
             var offset = Math.DivRem((int)pin, 32, out shift);
 
-            var clockAddress = gpioAddress + (int)(Interop.BCM2835_GPPUDCLK0 + offset);
+            var clockAddress = this.gpioAddress + (int)(Interop.BCM2835_GPPUDCLK0 + offset);
             SafeWriteUInt32(clockAddress, (uint)(on ? 1 : 0) << shift);
         }
 
         private void WriteResistor(uint resistor)
         {
-            var resistorPin = gpioAddress + (int)Interop.BCM2835_GPPUD;
+            var resistorPin = this.gpioAddress + (int)Interop.BCM2835_GPPUD;
             SafeWriteUInt32(resistorPin, resistor);
         }
 
         private void SetPinMode(ProcessorPin pin, uint mode)
         {
             // Function selects are 10 pins per 32 bit word, 3 bits per pin
-            var pinModeAddress = gpioAddress + (int)(Interop.BCM2835_GPFSEL0 + 4 * ((int)pin / 10));
+            var pinModeAddress = this.gpioAddress + (int)(Interop.BCM2835_GPFSEL0 + 4 * ((int)pin / 10));
 
             var shift = 3 * ((int)pin % 10);
             var mask = Interop.BCM2835_GPIO_FSEL_MASK << shift;
@@ -462,7 +481,5 @@ namespace Pi.IO.GeneralPurpose
             public IntPtr InEventPtr;
             public IntPtr OutEventPtr;
         }
-
-        #endregion
     }
 }

@@ -5,10 +5,8 @@ namespace Pi.IO.GeneralPurpose
     /// <summary>
     /// Provides an interface for connection drivers.
     /// </summary>
-    public interface IGpioConnectionDriver
+    public interface IGpioConnectionDriver : IDisposable
     {
-        #region Methods
-
         /// <summary>
         /// Gets driver capabilities.
         /// </summary>
@@ -71,7 +69,5 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="pins">The pins.</param>
         /// <returns>The pins status.</returns>
         ProcessorPins Read(ProcessorPins pins);
-        
-        #endregion
     }
 }

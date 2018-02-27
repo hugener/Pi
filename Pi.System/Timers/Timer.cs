@@ -1,10 +1,3 @@
-#region References
-
-using System;
-using System.Threading;
-
-#endregion
-
 namespace Pi.Timers
 {
     /// <summary>
@@ -12,8 +5,6 @@ namespace Pi.Timers
     /// </summary>
     public static class Timer
     {
-        #region Methods
-
         /// <summary>
         /// Creates a timer.
         /// </summary>
@@ -29,20 +20,12 @@ namespace Pi.Timers
         }
 
         /// <summary>
-        /// Sleeps during the specified time.
+        /// Disposes the specified timer.
         /// </summary>
-        /// <param name="time">The time.</param>
-        public static void Sleep(TimeSpan time)
+        /// <param name="timer">The timer.</param>
+        public static void Dispose(ITimer timer)
         {
-            if (time.TotalMilliseconds < 0)
-                return;
-
-            if (Board.Current.IsRaspberryPi)
-                HighResolutionTimer.Sleep(time);
-            else
-                Thread.Sleep(time);
+            timer.Dispose();
         }
-
-        #endregion
     }
 }

@@ -1,10 +1,7 @@
-﻿#region References
-
-using System;
+﻿using System;
 using Pi.IO.InterIntegratedCircuit;
+using Pi.System.Threading;
 using Pi.Timers;
-
-#endregion
 
 namespace Pi.IO.Components.Sensors.Pressure.Bmp085
 {
@@ -13,9 +10,8 @@ namespace Pi.IO.Components.Sensors.Pressure.Bmp085
     /// </summary>
     public class Bmp085I2cConnection
     {
-        #region Fields
-
         private readonly I2cDeviceConnection connection;
+        private readonly IThread thread;
         private Bmp085Precision precision = Bmp085Precision.Standard;
 
         private short ac1;
@@ -36,35 +32,25 @@ namespace Pi.IO.Components.Sensors.Pressure.Bmp085
         private static readonly TimeSpan highestDelay = TimeSpan.FromMilliseconds(26);
         private static readonly TimeSpan defaultDelay = TimeSpan.FromMilliseconds(8);
 
-        #endregion
-
-        #region Instance Management
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="Bmp085I2cConnection"/> class.
+        /// Initializes a new instance of the <see cref="Bmp085I2cConnection" /> class.
         /// </summary>
         /// <param name="connection">The connection.</param>
-        public Bmp085I2cConnection(I2cDeviceConnection connection)
+        /// <param name="thread">The thread.</param>
+        public Bmp085I2cConnection(I2cDeviceConnection connection, IThread thread)
         {
             this.connection = connection;
-            Initialize();
+            this.thread = thread;
+            this.Initialize();
         }
-
-        #endregion
-
-        #region Properties
 
         public const int DefaultAddress = 0x77;
 
         public Bmp085Precision Precision
         {
-            get { return precision; }
-            set { precision = value; }
+            get => this.precision;
+            set => this.precision = value;
         }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Gets the pressure.
@@ -72,7 +58,7 @@ namespace Pi.IO.Components.Sensors.Pressure.Bmp085
         /// <returns>The pressure.</returns>
         public UnitsNet.Pressure GetPressure()
         {
-            return GetData().Pressure;
+            return this.GetData().Pressure;
         }
 
         /// <summary>
@@ -82,8 +68,8 @@ namespace Pi.IO.Components.Sensors.Pressure.Bmp085
         public UnitsNet.Temperature GetTemperature()
         {
             // Do not use GetData here since it would imply useless I/O and computation.
-            var rawTemperature = GetRawTemperature();
-            var b5 = ComputeB5(rawTemperature);
+            var rawTemperature = this.GetRawTemperature();
+            var b5 = this.ComputeB5(rawTemperature);
 
             return UnitsNet.Temperature.FromDegreesCelsius((double)((b5 + 8) >> 4) / 10);
         }
@@ -94,31 +80,37 @@ namespace Pi.IO.Components.Sensors.Pressure.Bmp085
         /// <returns>The data.</returns>
         public Bmp085Data GetData()
         {
-            var rawTemperature = GetRawTemperature();
-            var rawPressure = GetRawPressure();
+            var rawTemperature = this.GetRawTemperature();
+            var rawPressure = this.GetRawPressure();
 
-            var b5 = ComputeB5(rawTemperature);
+            var b5 = this.ComputeB5(rawTemperature);
 
             // do pressure calcs
             var b6 = b5 - 4000;
-            var x1 = (b2*((b6*b6) >> 12)) >> 11;
-            var x2 = (ac2*b6) >> 11;
+            var x1 = (this.b2*((b6*b6) >> 12)) >> 11;
+            var x2 = (this.ac2*b6) >> 11;
             var x3 = x1 + x2;
-            var b3 = (((ac1*4 + x3) << (int) precision) + 2)/4;
+            var b3 = (((this.ac1*4 + x3) << (int) this.precision) + 2)/4;
 
-            x1 = (ac3*b6) >> 13;
-            x2 = (b1*((b6*b6) >> 12)) >> 16;
+            x1 = (this.ac3*b6) >> 13;
+            x2 = (this.b1*((b6*b6) >> 12)) >> 16;
             x3 = ((x1 + x2) + 2) >> 2;
-            var b4 = (ac4*(uint) (x3 + 32768)) >> 15;
-            var b7 = (uint) ((rawPressure - b3)*(uint) (50000UL >> (int) precision));
+            var b4 = (this.ac4*(uint) (x3 + 32768)) >> 15;
+            var b7 = (uint) ((rawPressure - b3)*(uint) (50000UL >> (int) this.precision));
 
             int p;
             if (b4 == 0)
+            {
                 p = int.MaxValue;
+            }
             else if (b7 < 0x80000000)
-                p = (int) ((b7*2)/b4);
+            {
+                p = (int) ((b7 * 2) / b4);
+            }
             else
+            {
                 p = (int) ((b7/b4)*2);
+            }
 
             x1 = (p >> 8)*(p >> 8);
             x1 = (x1*3038) >> 16;
@@ -130,10 +122,6 @@ namespace Pi.IO.Components.Sensors.Pressure.Bmp085
                 Temperature = UnitsNet.Temperature.FromDegreesCelsius((double)((b5 + 8) >> 4) / 10)
             };
         }
-
-        #endregion
-
-        #region Private Helpers
 
         private static class Interop
         {
@@ -158,92 +146,98 @@ namespace Pi.IO.Components.Sensors.Pressure.Bmp085
 
         private void Initialize()
         {
-            if (precision > Bmp085Precision.Highest)
-                precision = Bmp085Precision.Highest;
+            if (this.precision > Bmp085Precision.Highest)
+            {
+                this.precision = Bmp085Precision.Highest;
+            }
 
-            if (ReadByte(0xD0) != 0x55)
+            if (this.ReadByte(0xD0) != 0x55)
+            {
                 throw new InvalidOperationException("Device is not a BMP085 barometer");
+            }
 
             /* read calibration data */
-            ac1 = ReadInt16(Interop.CAL_AC1);
-            ac2 = ReadInt16(Interop.CAL_AC2);
-            ac3 = ReadInt16(Interop.CAL_AC3);
-            ac4 = ReadUInt16(Interop.CAL_AC4);
-            ac5 = ReadUInt16(Interop.CAL_AC5);
-            ac6 = ReadUInt16(Interop.CAL_AC6);
-            
-            b1 = ReadInt16(Interop.CAL_B1);
-            b2 = ReadInt16(Interop.CAL_B2);
-            
-            mb = ReadInt16(Interop.CAL_MB);
-            mc = ReadInt16(Interop.CAL_MC);
-            md = ReadInt16(Interop.CAL_MD);
+            this.ac1 = this.ReadInt16(Interop.CAL_AC1);
+            this.ac2 = this.ReadInt16(Interop.CAL_AC2);
+            this.ac3 = this.ReadInt16(Interop.CAL_AC3);
+            this.ac4 = this.ReadUInt16(Interop.CAL_AC4);
+            this.ac5 = this.ReadUInt16(Interop.CAL_AC5);
+            this.ac6 = this.ReadUInt16(Interop.CAL_AC6);
+
+            this.b1 = this.ReadInt16(Interop.CAL_B1);
+            this.b2 = this.ReadInt16(Interop.CAL_B2);
+
+            this.mb = this.ReadInt16(Interop.CAL_MB);
+            this.mc = this.ReadInt16(Interop.CAL_MC);
+            this.md = this.ReadInt16(Interop.CAL_MD);
         }
 
         private ushort GetRawTemperature()
         {
-            WriteByte(Interop.CONTROL, Interop.READTEMPCMD);
-            HighResolutionTimer.Sleep(lowDelay);
+            this.WriteByte(Interop.CONTROL, Interop.READTEMPCMD);
+            this.thread.Sleep(lowDelay);
 
-            return ReadUInt16(Interop.TEMPDATA);
+            return this.ReadUInt16(Interop.TEMPDATA);
         }
 
         private uint GetRawPressure()
         {
-            WriteByte(Interop.CONTROL, (byte)(Interop.READPRESSURECMD + ((int)precision << 6)));
+            this.WriteByte(Interop.CONTROL, (byte)(Interop.READPRESSURECMD + ((int) this.precision << 6)));
 
-            switch (precision)
+            switch (this.precision)
             {
                 case Bmp085Precision.Low:
-                    HighResolutionTimer.Sleep(lowDelay);
+                    this.thread.Sleep(lowDelay);
                     break;
 
                 case Bmp085Precision.High:
-                    HighResolutionTimer.Sleep(highDelay);
+                    this.thread.Sleep(highDelay);
                     break;
 
                 case Bmp085Precision.Highest:
-                    HighResolutionTimer.Sleep(highestDelay);
+                    this.thread.Sleep(highestDelay);
                     break;
 
                 default:
-                    HighResolutionTimer.Sleep(defaultDelay);
+                    this.thread.Sleep(defaultDelay);
                     break;
             }
 
-            var msb = ReadByte(Interop.PRESSUREDATA);
-            var lsb = ReadByte(Interop.PRESSUREDATA + 1);
-            var xlsb = ReadByte(Interop.PRESSUREDATA + 2);
-            var raw = ((msb << 16) + (lsb << 8) + xlsb) >> (8 - (int) precision);
+            var msb = this.ReadByte(Interop.PRESSUREDATA);
+            var lsb = this.ReadByte(Interop.PRESSUREDATA + 1);
+            var xlsb = this.ReadByte(Interop.PRESSUREDATA + 2);
+            var raw = ((msb << 16) + (lsb << 8) + xlsb) >> (8 - (int) this.precision);
             
             return (uint)raw;
         }
 
         private int ComputeB5(int ut)
         {
-            var x1 = (ut - ac6)*ac5 >> 15;
+            var x1 = (ut - this.ac6)* this.ac5 >> 15;
 
-            if (x1 + md == 0) 
+            if (x1 + this.md == 0)
+            {
                 return int.MaxValue;
+            }
             
-            var x2 = (mc << 11)/(x1 + md);
+            var x2 = (this.mc << 11)/(x1 + this.md);
             return x1 + x2;
         }
 
         private byte ReadByte(byte address)
         {
-            return ReadBytes(address, 1)[0];
+            return this.ReadBytes(address, 1)[0];
         }
 
         private byte[] ReadBytes(byte address, int byteCount)
         {
-            connection.WriteByte(address);
-            return connection.Read(byteCount);
+            this.connection.WriteByte(address);
+            return this.connection.Read(byteCount);
         }
 
         private ushort ReadUInt16(byte address)
         {
-            var bytes = ReadBytes(address, 2);
+            var bytes = this.ReadBytes(address, 2);
             unchecked
             {
                 return (ushort)((bytes[0] << 8) + bytes[1]);
@@ -252,7 +246,7 @@ namespace Pi.IO.Components.Sensors.Pressure.Bmp085
 
         private short ReadInt16(byte address)
         {
-            var bytes = ReadBytes(address, 2);
+            var bytes = this.ReadBytes(address, 2);
             unchecked
             {
                 return (short)((bytes[0] << 8) + bytes[1]);
@@ -261,9 +255,7 @@ namespace Pi.IO.Components.Sensors.Pressure.Bmp085
 
         private void WriteByte(byte address, byte data)
         {
-            connection.Write(address, data);
+            this.connection.Write(address, data);
         }
-
-        #endregion
     }
 }

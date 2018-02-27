@@ -1,8 +1,5 @@
-#region References
-
 using System.Collections.Generic;
-
-#endregion
+using Pi.System.Threading;
 
 namespace Pi.IO.GeneralPurpose.Behaviors
 {
@@ -11,27 +8,19 @@ namespace Pi.IO.GeneralPurpose.Behaviors
     /// </summary>
     public class ChaserBehavior : PinsBehavior
     {
-        #region Fields
-
         private bool wayOut;
         private bool roundTrip;
 
-        #endregion
-
-        #region Instance Management
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="ChaserBehavior"/> class.
+        /// Initializes a new instance of the <see cref="ChaserBehavior" /> class.
         /// </summary>
         /// <param name="configurations">The configurations.</param>
-        public ChaserBehavior(IEnumerable<PinConfiguration> configurations) : base(configurations)
+        /// <param name="threadFactory">The thread factory.</param>
+        public ChaserBehavior(IEnumerable<PinConfiguration> configurations, IThreadFactory threadFactory = null) 
+            : base(configurations, ThreadFactory.EnsureThreadFactory(threadFactory))
         {
-            Width = 1;
+            this.Width = 1;
         }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         /// Gets or sets a value indicating whether to roundtrip.
@@ -41,11 +30,11 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// </value>
         public bool RoundTrip
         {
-            get { return roundTrip; }
+            get => this.roundTrip;
             set
             {
-                roundTrip = value;
-                wayOut = true;
+                this.roundTrip = value;
+                this.wayOut = true;
             }
         }
 
@@ -65,10 +54,6 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// </value>
         public int Width { get; set; }
 
-        #endregion
-
-        #region Protected Methods
-
         /// <summary>
         /// Gets the first step.
         /// </summary>
@@ -77,8 +62,8 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// </returns>
         protected override int GetFirstStep()
         {
-            wayOut = true;
-            return WidthBefore;
+            this.wayOut = true;
+            return this.WidthBefore;
         }
 
         /// <summary>
@@ -87,18 +72,22 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// <param name="step">The step.</param>
         protected override void ProcessStep(int step)
         {
-            var minEnabledStep = step - WidthBefore;
-            var maxEnabledStep = step + WidthAfter;
+            var minEnabledStep = step - this.WidthBefore;
+            var maxEnabledStep = step + this.WidthAfter;
 
-            for (var i = 0; i < Configurations.Length; i++)
+            for (var i = 0; i < this.Configurations.Length; i++)
             {
-                var configuration = Configurations[i];
-                if (!Overflow)
-                    Connection[configuration] = (i >= minEnabledStep && i <= maxEnabledStep);
+                var configuration = this.Configurations[i];
+                if (!this.Overflow)
+                {
+                    this.Connection[configuration] = (i >= minEnabledStep && i <= maxEnabledStep);
+                }
                 else
-                    Connection[configuration] = (i >= minEnabledStep && i <= maxEnabledStep)
-                                                || (maxEnabledStep >= Configurations.Length && i <= maxEnabledStep%Configurations.Length)
-                                                || (minEnabledStep < 0 && i >= minEnabledStep + Configurations.Length);
+                {
+                    this.Connection[configuration] = (i >= minEnabledStep && i <= maxEnabledStep) || 
+                        (maxEnabledStep >= this.Configurations.Length && i <= maxEnabledStep% this.Configurations.Length) ||
+                        (minEnabledStep < 0 && i >= minEnabledStep + this.Configurations.Length);
+                }
             }
         }
 
@@ -111,36 +100,46 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// </returns>
         protected override bool TryGetNextStep(ref int step)
         {
-            if (wayOut)
+            if (this.wayOut)
             {
-                if (step == MaximumStep)
+                if (step == this.MaximumStep)
                 {
-                    if (RoundTrip)
+                    if (this.RoundTrip)
                     {
-                        wayOut = false;
+                        this.wayOut = false;
                         step--;
                     }
-                    else if (Loop)
-                        step = MinimumStep;
+                    else if (this.Loop)
+                    {
+                        step = this.MinimumStep;
+                    }
                     else
+                    {
                         return false;
+                    }
                 }
                 else
+                {
                     step++;
+                }
             }
             else
             {
-                if (step == MinimumStep)
+                if (step == this.MinimumStep)
                 {
-                    if (Loop && RoundTrip)
+                    if (this.Loop && this.RoundTrip)
                     {
-                        wayOut = true;
+                        this.wayOut = true;
                         step++;
                     }
-                    else if (Loop)
-                        step = MaximumStep;
+                    else if (this.Loop)
+                    {
+                        step = this.MaximumStep;
+                    }
                     else
+                    {
                         return false;
+                    }
                 }
                 else step--;
             }
@@ -148,35 +147,14 @@ namespace Pi.IO.GeneralPurpose.Behaviors
             return true;
         }
 
-        #endregion
+        private bool Overflow => this.Loop && !this.RoundTrip;
 
-        #region Private Helpers
+        private int MinimumStep => this.Overflow ? 0 : this.WidthBefore;
 
-        private bool Overflow
-        {
-            get { return Loop && !RoundTrip; }
-        }
+        private int MaximumStep => this.Configurations.Length - 1 - (this.Overflow ? 0 : this.WidthAfter);
 
-        private int MinimumStep
-        {
-            get { return Overflow ? 0 : WidthBefore; }
-        }
+        private int WidthBefore => (this.Width%2) == 1 ? (this.Width - 1)/2 : this.Width/2;
 
-        private int MaximumStep
-        {
-            get { return Configurations.Length - 1 - (Overflow ? 0 : WidthAfter); }
-        }
-
-        private int WidthBefore
-        {
-            get { return (Width%2) == 1 ? (Width - 1)/2 : Width/2; }
-        }
-
-        private int WidthAfter
-        {
-            get { return (Width%2) == 1 ? (Width - 1)/2 : Width/2 - 1; }
-        }
-
-        #endregion
+        private int WidthAfter => (this.Width%2) == 1 ? (this.Width - 1)/2 : this.Width/2 - 1;
     }
 }

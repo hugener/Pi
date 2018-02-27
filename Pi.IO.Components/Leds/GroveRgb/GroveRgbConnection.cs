@@ -1,39 +1,39 @@
-﻿#region References
-
-using System;
+﻿using System;
 using Pi.Timers;
 using System.Collections.Generic;
-
-#endregion
+using Pi.System.Threading;
 
 namespace Pi.IO.Components.Leds.GroveRgb
 {
     /// <summary>
     /// Represents a connection with Grove Chainable RGB Led modules.
-    /// <see cref="http://www.seeedstudio.com/wiki/Grove_-_Chainable_RGB_LED" />
+    /// <see href="http://www.seeedstudio.com/wiki/Grove_-_Chainable_RGB_LED" />
     /// </summary>
     public class GroveRgbConnection: IDisposable
     {
-        #region Fields
+        private static readonly TimeSpan Delay = TimeSpanUtility.FromMicroseconds(20);
+        private readonly IThread thread;
+        private readonly IOutputBinaryPin dataPin;
+        private readonly IOutputBinaryPin clockPin;
+        private readonly List<RgbColor> ledColors;
 
-        private static readonly TimeSpan delay = TimeSpanUtility.FromMicroseconds(20);
-
-        readonly IOutputBinaryPin dataPin;
-        readonly IOutputBinaryPin clockPin;
-        readonly List<RgbColor> ledColors;
-
-        #endregion
-
-        #region Instance Management
-
-        public GroveRgbConnection(IOutputBinaryPin dataPin, IOutputBinaryPin clockPin, int ledCount)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GroveRgbConnection"/> class.
+        /// </summary>
+        /// <param name="dataPin">The data pin.</param>
+        /// <param name="clockPin">The clock pin.</param>
+        /// <param name="ledCount">The led count.</param>
+        /// <param name="threadFactory">The thread factory.</param>
+        public GroveRgbConnection(IOutputBinaryPin dataPin, IOutputBinaryPin clockPin, int ledCount, IThreadFactory threadFactory = null)
         {
-            ledColors = new List<RgbColor>();
+            this.thread = ThreadFactory.EnsureThreadFactory(threadFactory).Create();
+            this.ledColors = new List<RgbColor>();
             for (int i = 0; i < ledCount; i++)
             {
                 // Initialize all leds with white color
-                ledColors.Add(new RgbColor());
+                this.ledColors.Add(new RgbColor());
             }
+
             this.dataPin = dataPin;
             this.clockPin = clockPin;
         }
@@ -43,12 +43,8 @@ namespace Pi.IO.Components.Leds.GroveRgb
         /// </summary>
         void IDisposable.Dispose()
         {
-            Close();
+            this.Close();
         }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Sets the color of a led.
@@ -58,49 +54,66 @@ namespace Pi.IO.Components.Leds.GroveRgb
         public void SetColor (int ledNumber, RgbColor color)
         {
             // Send data frame prefix (32x "0")
-            SendByte(0x00);
-            SendByte(0x00);
-            SendByte(0x00);
-            SendByte(0x00);
+            this.SendByte(0x00);
+            this.SendByte(0x00);
+            this.SendByte(0x00);
+            this.SendByte(0x00);
 
             // Send color data for each one of the leds
-            for (int i = 0; i < ledColors.Count; i++)
+            for (int i = 0; i < this.ledColors.Count; i++)
             {
                 if (i == ledNumber)
                 {
-                    ledColors [i].Red = color.Red;
-                    ledColors [i].Green = color.Green;
-                    ledColors [i].Blue = color.Blue;
+                    this.ledColors [i].Red = color.Red;
+                    this.ledColors [i].Green = color.Green;
+                    this.ledColors [i].Blue = color.Blue;
                 }
 
                 // Start by sending a byte with the format "1 1 /B7 /B6 /G7 /G6 /R7 /R6"
                 byte prefix = Convert.ToByte("11000000", 2);
                 if ((color.Blue & 0x80) == 0)
+                {
                     prefix |= Convert.ToByte("00100000", 2);
-                if ((color.Blue & 0x40) == 0)
-                    prefix |= Convert.ToByte("00010000", 2);
-                if ((color.Green & 0x80) == 0)
-                    prefix |= Convert.ToByte("00001000", 2);
-                if ((color.Green & 0x40) == 0)
-                    prefix |= Convert.ToByte("00000100", 2);
-                if ((color.Red & 0x80) == 0)
-                    prefix |= Convert.ToByte("00000010", 2);
-                if ((color.Red & 0x40) == 0)
-                    prefix |= Convert.ToByte("00000001", 2);
+                }
 
-                SendByte(prefix);
+                if ((color.Blue & 0x40) == 0)
+                {
+                    prefix |= Convert.ToByte("00010000", 2);
+                }
+
+                if ((color.Green & 0x80) == 0)
+                {
+                    prefix |= Convert.ToByte("00001000", 2);
+                }
+
+                if ((color.Green & 0x40) == 0)
+                {
+                    prefix |= Convert.ToByte("00000100", 2);
+                }
+
+                if ((color.Red & 0x80) == 0)
+                {
+                    prefix |= Convert.ToByte("00000010", 2);
+                }
+
+                if ((color.Red & 0x40) == 0)
+                {
+                    prefix |= Convert.ToByte("00000001", 2);
+                }
+
+                this.SendByte(prefix);
 
                 // Now must send the 3 colors
-                SendByte(ledColors [i].Blue);
-                SendByte(ledColors [i].Green);
-                SendByte(ledColors [i].Red);
+                this.SendByte(this.ledColors [i].Blue);
+                this.SendByte(this.ledColors [i].Green);
+                this.SendByte(this.ledColors [i].Red);
             }
 
             // Terminate data frame (32x "0")
-            SendByte(0x00);
-            SendByte(0x00);
-            SendByte(0x00);
-            SendByte(0x00);
+            this.SendByte(0x00);
+            this.SendByte(0x00);
+            this.SendByte(0x00);
+            this.SendByte(0x00);
         }
 
         /// <summary>
@@ -108,13 +121,10 @@ namespace Pi.IO.Components.Leds.GroveRgb
         /// </summary>
         public void Close()
         {
-            dataPin.Dispose();
-            clockPin.Dispose();
+            this.dataPin.Dispose();
+            this.clockPin.Dispose();
+            this.thread.Dispose();
         }
-
-        #endregion
-
-        #region Private Helpers
 
         private void SendByte(byte data)
         {
@@ -122,20 +132,18 @@ namespace Pi.IO.Components.Leds.GroveRgb
             for (byte i = 0; i < 8; i++)
             {
                 // If MSB is 1, write one and clock it, else write 0 and clock
-                dataPin.Write((data & 0x80) != 0);
+                this.dataPin.Write((data & 0x80) != 0);
 
                 // clk():
-                clockPin.Write(false);
-                HighResolutionTimer.Sleep(delay);
-                clockPin.Write(true);
-                HighResolutionTimer.Sleep(delay);
+                this.clockPin.Write(false);
+                this.thread.Sleep(Delay);
+                this.clockPin.Write(true);
+                this.thread.Sleep(Delay);
 
                 // Advance to the next bit to send
                 data <<= 1;
             }
         }
-
-        #endregion
     }
 }
 

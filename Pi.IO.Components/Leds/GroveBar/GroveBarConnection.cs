@@ -1,10 +1,7 @@
-#region References
-
 using System;
 using Pi.Timers;
 using System.Text;
-
-#endregion
+using Pi.System.Threading;
 
 namespace Pi.IO.Components.Leds.GroveBar
 {
@@ -14,24 +11,20 @@ namespace Pi.IO.Components.Leds.GroveBar
     /// </summary>
     public class GroveBarConnection : IDisposable
     {
-        #region Fields
-
         private const uint CommandMode = 0x0000;
-        private static readonly TimeSpan delay = TimeSpan.FromTicks(1);
+        private static readonly TimeSpan Delay = TimeSpan.FromTicks(1);
 
         private readonly IOutputBinaryPin dataPin;
         private readonly IInputOutputBinaryPin clockPin;
+        private readonly IThread thread;
         private string currentLedsStatus = "0000000000";
 
-        #endregion
-
-        #region Instance Management
-
-        public GroveBarConnection(IOutputBinaryPin dataPin, IInputOutputBinaryPin clockPin)
+        public GroveBarConnection(IOutputBinaryPin dataPin, IInputOutputBinaryPin clockPin, IThreadFactory threadFactory = null)
         {
             this.dataPin = dataPin;
             this.clockPin = clockPin;
-            Initialize();
+            this.thread = ThreadFactory.EnsureThreadFactory(threadFactory).Create();
+            this.Initialize();
         }
 
         /// <summary>
@@ -39,12 +32,8 @@ namespace Pi.IO.Components.Leds.GroveBar
         /// </summary>
         void IDisposable.Dispose()
         {
-            Close();
+            this.Close();
         }
-
-        #endregion
-                
-        #region Methods
 
         /// <summary>
         /// Sets status of leds from a binary string eg: "0010101011", where "0" is off and "1" is on
@@ -52,16 +41,17 @@ namespace Pi.IO.Components.Leds.GroveBar
         /// <param name="ledsString">Leds string.</param>
         public void SetFromString(string ledsString)
         {
-            currentLedsStatus = ledsString;
-            SendData(CommandMode);
+            this.currentLedsStatus = ledsString;
+            this.SendData(CommandMode);
             var indexBits = (uint)Convert.ToInt32(ledsString, 2);
             for (int i = 0; i < 12; i++)
             {
                 var state = (uint)((indexBits & 0x0001) > 0 ? 0x00FF : 0x0000);
-                SendData(state);
+                this.SendData(state);
                 indexBits = indexBits >> 1;
             }
-            LatchData();
+
+            this.LatchData();
         }
 
         /// <summary>
@@ -75,14 +65,16 @@ namespace Pi.IO.Components.Leds.GroveBar
             {
                 status[i] = '1';
             }
-            currentLedsStatus = status.ToString();
-            SendData(CommandMode);
+
+            this.currentLedsStatus = status.ToString();
+            this.SendData(CommandMode);
             for (int i = 0; i < 12; i++)
             {
                 var state = (uint)((i < level) ? 0x00FF : 0x0000);
-                SendData(state);
+                this.SendData(state);
             }
-            LatchData();
+
+            this.LatchData();
         }
 
         /// <summary>
@@ -91,10 +83,10 @@ namespace Pi.IO.Components.Leds.GroveBar
         /// <param name="position">Position.</param>
         public void On(int position)
         {
-            var status = new StringBuilder(currentLedsStatus);
+            var status = new StringBuilder(this.currentLedsStatus);
             status[position] = '1';
-            currentLedsStatus = status.ToString();
-            SetFromString(currentLedsStatus);
+            this.currentLedsStatus = status.ToString();
+            this.SetFromString(this.currentLedsStatus);
         }
         
         /// <summary>
@@ -103,10 +95,10 @@ namespace Pi.IO.Components.Leds.GroveBar
         /// <param name="position">Position.</param>
         public void Off(int position)
         {
-            var status = new StringBuilder(currentLedsStatus);
+            var status = new StringBuilder(this.currentLedsStatus);
             status[position] = '0';
-            currentLedsStatus = status.ToString();
-            SetFromString(currentLedsStatus);
+            this.currentLedsStatus = status.ToString();
+            this.SetFromString(this.currentLedsStatus);
         }
 
         /// <summary>
@@ -114,8 +106,8 @@ namespace Pi.IO.Components.Leds.GroveBar
         /// </summary>
         public void AllOn()
         {
-            currentLedsStatus = new string('1', 10);
-            SetFromString(currentLedsStatus);
+            this.currentLedsStatus = new string('1', 10);
+            this.SetFromString(this.currentLedsStatus);
         }
         
         /// <summary>
@@ -123,8 +115,8 @@ namespace Pi.IO.Components.Leds.GroveBar
         /// </summary>
         public void AllOff()
         {
-            currentLedsStatus = new string('0', 10);
-            SetFromString(currentLedsStatus);
+            this.currentLedsStatus = new string('0', 10);
+            this.SetFromString(this.currentLedsStatus);
         }
 
         /// <summary>
@@ -132,22 +124,19 @@ namespace Pi.IO.Components.Leds.GroveBar
         /// </summary>
         public void Close()
         {
-            dataPin.Dispose();
-            clockPin.Dispose();
+            this.dataPin.Dispose();
+            this.clockPin.Dispose();
+            this.thread.Dispose();
         }
-
-        #endregion
-
-        #region Private Helpers
 
         private void Initialize()
         {
-            dataPin.Write(false);
-            HighResolutionTimer.Sleep(delay);
+            this.dataPin.Write(false);
+            this.thread.Sleep(Delay);
             for(int i = 0; i < 4; i++)
             {
-                dataPin.Write(true);
-                dataPin.Write(false);
+                this.dataPin.Write(true);
+                this.dataPin.Write(false);
             }
 
         }
@@ -158,25 +147,23 @@ namespace Pi.IO.Components.Leds.GroveBar
             for(int i = 0; i < 16; i++)
             {
                 bool state = ((data & 0x8000) > 0);
-                dataPin.Write(state);
-                state = !clockPin.Read();
-                clockPin.Write(state);
+                this.dataPin.Write(state);
+                state = !this.clockPin.Read();
+                this.clockPin.Write(state);
                 data <<= 1;
             }
         }
 
         private void LatchData()
         {
-            dataPin.Write(false);
-            HighResolutionTimer.Sleep(delay);
+            this.dataPin.Write(false);
+            this.thread.Sleep(Delay);
             for(int i = 0; i < 4; i++)
             {
-                dataPin.Write(true);
-                dataPin.Write(false);
+                this.dataPin.Write(true);
+                this.dataPin.Write(false);
             }
         }
-
-        #endregion
     }
 }
 

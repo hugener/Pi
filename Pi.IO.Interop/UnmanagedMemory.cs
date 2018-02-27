@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace Pi.IO.Interop
@@ -24,7 +23,7 @@ namespace Pi.IO.Interop
         /// </summary>
         /// <param name="memoryPointer">Unmanaged memory address</param>
         /// <param name="length">Size in bytes</param>
-        /// <param name="owner">If <c>true</c> the memory will be released if the user calls <see cref="Dispose"/>.</param>
+        /// <param name="owner">If <c>true</c> the memory will be released if the user calls <see cref="Dispose()"/>.</param>
         public UnmanagedMemory(IntPtr memoryPointer, int length, bool owner) {
             this.memoryPointer = memoryPointer;
             this.length = length;
@@ -41,6 +40,9 @@ namespace Pi.IO.Interop
             owner = true;
         }
 
+        /// <summary>
+        /// Finalizes an instance of the <see cref="UnmanagedMemory"/> class.
+        /// </summary>
         ~UnmanagedMemory() {
             Dispose(false);
         }

@@ -1,8 +1,4 @@
-#region References
-
 using System;
-
-#endregion
 
 namespace Pi.IO
 {
@@ -11,14 +7,10 @@ namespace Pi.IO
     /// </summary>
     public interface IOutputBinaryPin : IDisposable
     {
-        #region Methods
-
         /// <summary>
         /// Writes the value of the pin.
         /// </summary>
         /// <param name="state">if set to <c>true</c>, pin is set to high state.</param>
         void Write(bool state);
-
-        #endregion
     }
 }

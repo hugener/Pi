@@ -14,7 +14,7 @@ namespace Pi.Timers
         /// <returns></returns>
         public static TimeSpan FromMicroseconds(double microseconds)
         {
-            return TimeSpan.FromTicks((long)(microseconds/10));
+            return TimeSpan.FromTicks((long)(microseconds * 10));
         }
     }
 }

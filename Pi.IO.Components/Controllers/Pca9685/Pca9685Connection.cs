@@ -1,12 +1,8 @@
-﻿#region References
-
-using System;
+﻿using System;
 using Common.Logging;
 using Pi.IO.InterIntegratedCircuit;
-using Pi.Timers;
+using Pi.System.Threading;
 using UnitsNet;
-
-#endregion
 
 namespace Pi.IO.Components.Controllers.Pca9685
 {
@@ -18,32 +14,25 @@ namespace Pi.IO.Components.Controllers.Pca9685
     /// </summary>
     public class Pca9685Connection : IPwmDevice
     {
-        #region Fields
+        private static readonly ILog Log = LogManager.GetLogger<Pca9685Connection>();
+        private static readonly TimeSpan Delay = TimeSpan.FromMilliseconds(5);
 
         private readonly I2cDeviceConnection connection;
-        
-        private static readonly ILog log = LogManager.GetLogger<Pca9685Connection>();
-        private static readonly TimeSpan delay = TimeSpan.FromMilliseconds(5);
-        
-        #endregion
-        
-        #region Instance Management
+        private readonly IThread thread;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Pca9685Connection"/> class.
+        /// Initializes a new instance of the <see cref="Pca9685Connection" /> class.
         /// </summary>
         /// <param name="connection">The I2C connection.</param>
-        public Pca9685Connection(I2cDeviceConnection connection)
+        /// <param name="threadFactory">The thread factory.</param>
+        public Pca9685Connection(I2cDeviceConnection connection, IThreadFactory threadFactory = null)
         {
             this.connection = connection;
+            this.thread = ThreadFactory.EnsureThreadFactory(threadFactory).Create();
 
-            log.Info(m => m("Resetting PCA9685"));
-            WriteRegister(Register.MODE1, 0x00);
+            Log.Info(m => m("Resetting PCA9685"));
+            this.WriteRegister(Register.MODE1, 0x00);
         }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Sets the PWM update rate.
@@ -58,25 +47,25 @@ namespace Pi.IO.Components.Controllers.Pca9685
 
             preScale -= 1.0m;
 
-            log.Trace(m => m("Setting PWM frequency to {0} Hz", frequency));
-            log.Trace(m => m("Estimated pre-maximum: {0}", preScale));
+            Log.Trace(m => m("Setting PWM frequency to {0} Hz", frequency));
+            Log.Trace(m => m("Estimated pre-maximum: {0}", preScale));
 
             var prescale = Math.Floor(preScale + 0.5m);
 
-            log.Trace(m => m("Final pre-maximum: {0}", prescale));
+            Log.Trace(m => m("Final pre-maximum: {0}", prescale));
 
-            var oldmode = ReadRegister(Register.MODE1);
+            var oldmode = this.ReadRegister(Register.MODE1);
             var newmode = (byte) ((oldmode & 0x7F) | 0x10); // sleep
 
 
-            WriteRegister(Register.MODE1, newmode); // go to sleep
+            this.WriteRegister(Register.MODE1, newmode); // go to sleep
 
-            WriteRegister(Register.PRESCALE, (byte) Math.Floor(prescale));
-            WriteRegister(Register.MODE1, oldmode);
+            this.WriteRegister(Register.PRESCALE, (byte) Math.Floor(prescale));
+            this.WriteRegister(Register.MODE1, oldmode);
 
-            Timer.Sleep(delay);
+            this.thread.Sleep(Delay);
 
-            WriteRegister(Register.MODE1, oldmode | 0x80);
+            this.WriteRegister(Register.MODE1, oldmode | 0x80);
         }
 
         /// <summary>
@@ -87,10 +76,10 @@ namespace Pi.IO.Components.Controllers.Pca9685
         /// <param name="off">The off values.</param>
         public void SetPwm(PwmChannel channel, int on, int off)
         {
-            WriteRegister(Register.LED0_ON_L + 4*(int) channel, on & 0xFF);
-            WriteRegister(Register.LED0_ON_H + 4*(int) channel, on >> 8);
-            WriteRegister(Register.LED0_OFF_L + 4*(int) channel, off & 0xFF);
-            WriteRegister(Register.LED0_OFF_H + 4*(int) channel, off >> 8);
+            this.WriteRegister(Register.LED0_ON_L + 4*(int) channel, on & 0xFF);
+            this.WriteRegister(Register.LED0_ON_H + 4*(int) channel, on >> 8);
+            this.WriteRegister(Register.LED0_OFF_L + 4*(int) channel, off & 0xFF);
+            this.WriteRegister(Register.LED0_OFF_H + 4*(int) channel, off >> 8);
         }
 
         /// <summary>
@@ -101,14 +90,20 @@ namespace Pi.IO.Components.Controllers.Pca9685
         public void SetFull(PwmChannel channel, bool fullOn)
         {
             if (fullOn)
-                SetFullOn(channel);
+            {
+                this.SetFullOn(channel);
+            }
             else
-                SetFullOff(channel);
+            {
+                this.SetFullOff(channel);
+            }
         }
 
-        #endregion
-
-        #region Private Helpers
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            this.thread.Dispose();
+        }
 
         private enum Register
         {
@@ -129,33 +124,31 @@ namespace Pi.IO.Components.Controllers.Pca9685
 
         private void SetFullOn(PwmChannel channel)
         {
-            WriteRegister(Register.LED0_ON_H + 4*(int) channel, 0x10);
-            WriteRegister(Register.LED0_OFF_H + 4*(int) channel, 0x00);
+            this.WriteRegister(Register.LED0_ON_H + 4*(int) channel, 0x10);
+            this.WriteRegister(Register.LED0_OFF_H + 4*(int) channel, 0x00);
         }
 
         private void SetFullOff(PwmChannel channel)
         {
-            WriteRegister(Register.LED0_ON_H + 4*(int) channel, 0x00);
-            WriteRegister(Register.LED0_OFF_H + 4*(int) channel, 0x10);
+            this.WriteRegister(Register.LED0_ON_H + 4*(int) channel, 0x00);
+            this.WriteRegister(Register.LED0_OFF_H + 4*(int) channel, 0x10);
         }
 
         private void WriteRegister(Register register, byte data)
         {
-            connection.Write(new[] {(byte) register, data});
+            this.connection.Write(new[] {(byte) register, data});
         }
 
         private void WriteRegister(Register register, int data)
         {
-            WriteRegister(register, (byte) data);
+            this.WriteRegister(register, (byte) data);
         }
 
         private byte ReadRegister(Register register)
         {
-            connection.Write((byte) register);
-            var value = connection.ReadByte();
+            this.connection.Write((byte) register);
+            var value = this.connection.ReadByte();
             return value;
         }
-
-        #endregion
     }
 }

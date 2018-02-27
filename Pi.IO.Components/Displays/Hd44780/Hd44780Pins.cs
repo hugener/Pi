@@ -1,104 +1,86 @@
-#region References
-
 using System;
-using System.Collections.Generic;
 using System.Linq;
-
-#endregion
+using Pi.IO.GeneralPurpose;
 
 namespace Pi.IO.Components.Displays.Hd44780
 {
     /// <summary>
     /// Represents the pins of a HD44780 LCD display.
     /// </summary>
-    public class Hd44780Pins : IDisposable
+    internal class Hd44780Pins : IDisposable
     {
-        #region Instance Management
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="Hd44780Pins"/> class.
+        /// Initializes a new instance of the <see cref="Hd44780Pins" /> class.
         /// </summary>
+        /// <param name="gpioConnectionDriver">The gpio connection driver.</param>
         /// <param name="registerSelect">The register select.</param>
         /// <param name="clock">The clock.</param>
+        /// <param name="backlight">The backlight.</param>
+        /// <param name="readWrite">The read write.</param>
         /// <param name="data">The data.</param>
-        public Hd44780Pins(IOutputBinaryPin registerSelect, IOutputBinaryPin clock, IEnumerable<IOutputBinaryPin> data)
-            : this(registerSelect, clock, data.ToArray())
+        public Hd44780Pins(
+            IGpioConnectionDriver gpioConnectionDriver,
+            ConnectorPin registerSelect, 
+            ConnectorPin clock, 
+            ConnectorPin? backlight,
+            ConnectorPin? readWrite, 
+            params ConnectorPin[] data)
         {
-        }
+            this.RegisterSelect = gpioConnectionDriver.Out(registerSelect);
+            this.Clock = gpioConnectionDriver.Out(clock);
+            if (backlight != null)
+            {
+                this.Backlight = gpioConnectionDriver.Out(backlight.Value);
+            }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Hd44780Pins"/> class.
-        /// </summary>
-        /// <param name="registerSelect">The register select.</param>
-        /// <param name="clock">The clock.</param>
-        /// <param name="data">The data.</param>
-        public Hd44780Pins(IOutputBinaryPin registerSelect, IOutputBinaryPin clock, params IOutputBinaryPin[] data)
-        {
-            RegisterSelect = registerSelect;
-            Clock = clock;
-            Data = data;
+            if (readWrite != null)
+            {
+                this.ReadWrite = gpioConnectionDriver.Out(readWrite.Value);
+            }
+
+            this.Data = data.Select(gpioConnectionDriver.Out).ToArray();
         }
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        void IDisposable.Dispose()
+        public void Dispose()
         {
-            Close();
-        }
+            this.RegisterSelect.Dispose();
+            this.Clock.Dispose();
 
-        #endregion
-        
-        #region Properties
+            this.Backlight?.Dispose();
+            this.ReadWrite?.Dispose();
+
+            foreach (var dataPin in this.Data)
+            {
+                dataPin.Dispose();
+            }
+        }
 
         /// <summary>
         /// The register select (RS) pin.
         /// </summary>
-        public IOutputBinaryPin RegisterSelect { get; private set; }
+        public IOutputBinaryPin RegisterSelect { get; }
 
         /// <summary>
         /// The clock (EN) pin.
         /// </summary>
-        public IOutputBinaryPin Clock { get; private set; }
+        public IOutputBinaryPin Clock { get; }
 
         /// <summary>
         /// The backlight pin.
         /// </summary>
-        public IOutputBinaryPin Backlight;
+        public IOutputBinaryPin Backlight { get; }
 
         /// <summary>
         /// The read write (RW) pin.
         /// </summary>
-        public IOutputBinaryPin ReadWrite;
+        public IOutputBinaryPin ReadWrite { get; }
 
         /// <summary>
         /// The data pins.
         /// </summary>
-        public IOutputBinaryPin[] Data { get; private set; }
-
-        #endregion
-
-        #region Methods
-
-        /// <summary>
-        /// Closes this instance.
-        /// </summary>
-        public void Close()
-        {
-
-            RegisterSelect.Dispose();
-            Clock.Dispose();
-
-            if (Backlight != null)
-                Backlight.Dispose();
-            if (ReadWrite != null)
-                ReadWrite.Dispose();
-
-            foreach (var dataPin in Data)
-                dataPin.Dispose();
-        }
-
-        #endregion
-
+        public IOutputBinaryPin[] Data { get; }
     }
 }

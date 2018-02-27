@@ -1,7 +1,7 @@
-﻿namespace Pi.IO.InterIntegratedCircuit
-{
-    using System;
+﻿using System;
 
+namespace Pi.IO.InterIntegratedCircuit
+{
     /// <summary>
     /// Defines an I2C data transaction.
     /// </summary>
@@ -13,17 +13,12 @@
         /// <param name="actions">The actions which should be performed within the transaction.</param>
         public I2cTransaction(params I2cAction[] actions)
         {
-            if (actions == null)
-            {
-                throw new ArgumentNullException("actions");    
-            }
-
-            Actions = actions;
+            this.Actions = actions ?? throw new ArgumentNullException("actions");
         }
 
         /// <summary>
         /// Gets the actions.
         /// </summary>
-        public I2cAction[] Actions { get; private set; }
+        public I2cAction[] Actions { get; }
     }
 }

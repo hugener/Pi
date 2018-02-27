@@ -1,11 +1,12 @@
-﻿using UnitsNet;
+﻿using System;
+using UnitsNet;
 
 namespace Pi.IO.Components.Controllers.Pca9685
 {
     /// <summary>
     /// Provides an interface for PWM devices.
     /// </summary>
-    public interface IPwmDevice
+    public interface IPwmDevice : IDisposable
     {
         #region Methods
 

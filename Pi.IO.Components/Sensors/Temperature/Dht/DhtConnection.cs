@@ -1,12 +1,8 @@
-﻿#region References
-
-using System;
+﻿using System;
 using System.Globalization;
 using Common.Logging;
 using Pi.IO.GeneralPurpose;
-using Pi.Timers;
-
-#endregion
+using Pi.System.Threading;
 
 namespace Pi.IO.Components.Sensors.Temperature.Dht
 {
@@ -15,57 +11,58 @@ namespace Pi.IO.Components.Sensors.Temperature.Dht
     /// </summary>
     /// <remarks>
     /// Requires a fast input/output switch (such as <see cref="MemoryGpioConnectionDriver"/>).
-    /// Based on <see href="https://www.virtuabotix.com/virtuabotix-dht22-pinout-coding-guide/"/>, <see cref="https://github.com/RobTillaart/Arduino/tree/master/libraries/DHTlib"/>
-    /// Datasheet : <see cref="http://www.micropik.com/PDF/dht11.pdf"/>.
+    /// Based on <see href="https://www.virtuabotix.com/virtuabotix-dht22-pinout-coding-guide/"/>, <see href="https://github.com/RobTillaart/Arduino/tree/master/libraries/DHTlib"/>
+    /// Datasheet : <see href="http://www.micropik.com/PDF/dht11.pdf"/>.
     /// </remarks>
     public abstract class DhtConnection : IDisposable
     {
-        #region Fields
+        private static readonly TimeSpan Timeout = TimeSpan.FromMilliseconds(100);
+        private static readonly TimeSpan BitSetUptime = new TimeSpan(10 * (26 + 70) / 2); // 26µs for "0", 70µs for "1"
 
         private readonly IInputOutputBinaryPin pin;
+        private readonly IThread thread;
         private TimeSpan samplingInterval;
-        
         private DateTime previousRead;
         private bool started;
 
-        private static readonly TimeSpan timeout = TimeSpan.FromMilliseconds(100);
-        private static readonly TimeSpan bitSetUptime = new TimeSpan(10 * (26 +70) / 2); // 26µs for "0", 70µs for "1"
 
-        #endregion
-
-        #region Instance Management
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DhtConnection" /> class.
         /// </summary>
         /// <param name="pin">The pin.</param>
         /// <param name="autoStart">if set to <c>true</c>, DHT is automatically started. Default value is <c>true</c>.</param>
-        protected DhtConnection(IInputOutputBinaryPin pin, bool autoStart = true)
+        /// <param name="threadFactory">The thread factory.</param>
+        protected DhtConnection(IInputOutputBinaryPin pin, bool autoStart = true, IThreadFactory threadFactory = null)
         {
+            this.thread = ThreadFactory.EnsureThreadFactory(threadFactory).Create();
             this.pin = pin;
 
             if (autoStart)
-                Start();
+            {
+                this.Start();
+            }
             else
-                Stop(); 
+            {
+                this.Stop();
+            } 
         }
 
+        /// <summary>
+        /// Finalizes an instance of the <see cref="DhtConnection"/> class.
+        /// </summary>
         ~DhtConnection()
         {
-            Close();
+            this.Close();
         }
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public void Dispose()
+        void IDisposable.Dispose()
         {
-            Close();
+            this.Close();
         }
-        
-        #endregion
-
-        #region Properties
 
         /// <summary>
         /// Gets or sets the sampling interval.
@@ -75,22 +72,18 @@ namespace Pi.IO.Components.Sensors.Temperature.Dht
         /// </value>
         public TimeSpan SamplingInterval
         {
-            get { return samplingInterval != TimeSpan.Zero ? samplingInterval : DefaultSamplingInterval; }
-            set { samplingInterval = value; }
+            get => this.samplingInterval != TimeSpan.Zero ? this.samplingInterval : this.DefaultSamplingInterval;
+            set => this.samplingInterval = value;
         }
-
-        #endregion
-
-        #region Method
 
         /// <summary>
         /// Starts the DHT sensor. If not called, sensor will be automatically enabled before getting data.
         /// </summary>
         public void Start()
         {
-            started = true;
-            pin.Write(true);
-            previousRead = DateTime.UtcNow;
+            this.started = true;
+            this.pin.Write(true);
+            this.previousRead = DateTime.UtcNow;
         }
 
         /// <summary>
@@ -98,8 +91,8 @@ namespace Pi.IO.Components.Sensors.Temperature.Dht
         /// </summary>
         public void Stop()
         {
-            pin.Write(false);
-            started = false;
+            this.pin.Write(false);
+            this.started = false;
         }
 
         /// <summary>
@@ -108,10 +101,10 @@ namespace Pi.IO.Components.Sensors.Temperature.Dht
         /// <returns>The DHT data.</returns>
         public DhtData GetData()
         {
-            if (!started)
+            if (!this.started)
             {
-                pin.Write(true);
-                previousRead = DateTime.UtcNow;
+                this.pin.Write(true);
+                this.previousRead = DateTime.UtcNow;
             }
 
             DhtData data = null;
@@ -120,7 +113,7 @@ namespace Pi.IO.Components.Sensors.Temperature.Dht
             {
                 try
                 {
-                    data = TryGetData();
+                    data = this.TryGetData();
                     data.AttemptCount = tryCount;
                 }
                 catch(Exception ex)
@@ -133,8 +126,10 @@ namespace Pi.IO.Components.Sensors.Temperature.Dht
                 }
             }
 
-            if (!started)
-                pin.Write(false);
+            if (!this.started)
+            {
+                this.pin.Write(false);
+            }
         
             return data;
         }
@@ -145,58 +140,75 @@ namespace Pi.IO.Components.Sensors.Temperature.Dht
         public void Close()
         {
             GC.SuppressFinalize(this);
-            pin.Dispose();
+            this.pin.Dispose();
+            this.thread.Dispose();
         }
 
-        #endregion
-
-        #region Protected Methods
-
+        /// <summary>
+        /// Gets the DHT data.
+        /// </summary>
+        /// <param name="temperatureValue">The temperature value.</param>
+        /// <param name="humidityValue">The humidity value.</param>
+        /// <returns></returns>
         protected abstract DhtData GetDhtData(int temperatureValue, int humidityValue);
 
+        /// <summary>
+        /// Gets the default sampling interval.
+        /// </summary>
+        /// <value>
+        /// The default sampling interval.
+        /// </value>
         protected abstract TimeSpan DefaultSamplingInterval { get; }
 
+        /// <summary>
+        /// Gets the wakeup interval.
+        /// </summary>
+        /// <value>
+        /// The wakeup interval.
+        /// </value>
         protected abstract TimeSpan WakeupInterval { get; }
-
-        #endregion
-
-        #region Private Helpers
 
         private DhtData TryGetData()
         {
             // Prepare buffer
             var data = new byte[5];
             for (var i = 0; i < 5; i++)
+            {
                 data[i] = 0;
+            }
 
-            var remainingSamplingInterval = SamplingInterval - (DateTime.UtcNow - previousRead);
+            var remainingSamplingInterval = this.SamplingInterval - (DateTime.UtcNow - this.previousRead);
             if (remainingSamplingInterval > TimeSpan.Zero)
-                HighResolutionTimer.Sleep(remainingSamplingInterval);
+            {
+                this.thread.Sleep(remainingSamplingInterval);
+            }
 
             // Prepare for reading
             try
             {
                 // Measure required by host : pull down then pull up
-                pin.Write(false);
-                HighResolutionTimer.Sleep(WakeupInterval);
-                pin.Write(true);
+                this.pin.Write(false);
+                this.thread.Sleep(this.WakeupInterval);
+                this.pin.Write(true);
 
                 // Read acknowledgement from DHT
-                pin.Wait(true, timeout);
-                pin.Wait(false, timeout);
+                this.pin.Wait(true, Timeout);
+                this.pin.Wait(false, Timeout);
 
                 // Read 40 bits output, or time-out
                 var cnt = 7;
                 var idx = 0;
                 for (var i = 0; i < 40; i++)
                 {
-                    pin.Wait(true, timeout);
+                    this.pin.Wait(true, Timeout);
                     var start = DateTime.UtcNow;
-                    pin.Wait(false, timeout);
+                    this.pin.Wait(false, Timeout);
 
                     // Determine whether bit is "1" or "0"
-                    if (DateTime.UtcNow - start > bitSetUptime)
+                    if (DateTime.UtcNow - start > BitSetUptime)
+                    {
                         data[idx] |= (byte)(1 << cnt);
+                    }
 
                     if (cnt == 0)
                     {
@@ -210,13 +222,15 @@ namespace Pi.IO.Components.Sensors.Temperature.Dht
             finally
             {
                 // Prepare for next reading
-                previousRead = DateTime.UtcNow;
-                pin.Write(true);
+                this.previousRead = DateTime.UtcNow;
+                this.pin.Write(true);
             }
 
             var checkSum = data[0] + data[1] + data[2] + data[3];
             if ((checkSum & 0xff) != data[4])
+            {
                 throw new InvalidChecksumException("Invalid checksum on DHT data", data[4], (checkSum & 0xff));
+            }
 
             var sign = 1;
             if ((data[2] & 0x80) != 0) // negative temperature
@@ -228,9 +242,7 @@ namespace Pi.IO.Components.Sensors.Temperature.Dht
             var humidity = (data[0] << 8) + data[1];
             var temperature = sign * ((data[2] << 8) + data[3]);
 
-            return GetDhtData(temperature, humidity);
+            return this.GetDhtData(temperature, humidity);
         }
-
-        #endregion
     }
 }

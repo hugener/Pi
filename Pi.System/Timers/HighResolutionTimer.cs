@@ -1,10 +1,8 @@
-#region References
-
 using System;
-using System.Linq;
+using System.Collections.Concurrent;
 using System.Threading;
-
-#endregion
+using System.Threading.Tasks;
+using Pi.System.Threading;
 
 namespace Pi.Timers
 {
@@ -13,33 +11,26 @@ namespace Pi.Timers
     /// </summary>
     public class HighResolutionTimer : ITimer
     {
-        #region Fields
-
+        private readonly ManualResetEventSlim timerRunningEvent = new ManualResetEventSlim(false);
+        private readonly ManualResetEventSlim timerStoppedEvent = new ManualResetEventSlim(false);
+        private readonly AutoResetEvent sleepAutoResetEvent = new AutoResetEvent(false);
+        private readonly Thread timerThread;
+        private readonly Thread timerActionThread;
+        private readonly CancellationTokenSource disposeCancellationTokenSource = new CancellationTokenSource();
+        private readonly BlockingCollection<Action> timerActions = new BlockingCollection<Action>(new ConcurrentQueue<Action>());
         private TimeSpan delay;
-        private TimeSpan interval;
-        private Action action;
-
-        private Thread thread;
-        private CancellationTokenSource cancellationTokenSource;
-
-        private static readonly int nanoSleepOffset = Calibrate();
-
-        #endregion
-
-        #region Instance Management
+        private EventHandler tick;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HighResolutionTimer"/> class.
+        /// Initializes a new instance of the <see cref="HighResolutionTimer" /> class.
         /// </summary>
-        public HighResolutionTimer()
+        internal HighResolutionTimer()
         {
-            if (!Board.Current.IsRaspberryPi)
-                throw new NotSupportedException("Cannot use HighResolutionTimer on a platform different than Raspberry Pi");
+            this.timerThread = new Thread(this.Timer);
+            this.timerActionThread = new Thread(this.TimerControl);
+            this.timerThread.Start();
+            this.timerActionThread.Start();
         }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         /// Gets or sets the interval.
@@ -47,17 +38,7 @@ namespace Pi.Timers
         /// <value>
         /// The interval.
         /// </value>
-        public TimeSpan Interval
-        {
-            get { return interval; }
-            set
-            {
-                if (value.TotalMilliseconds > uint.MaxValue/1000)
-                    throw new ArgumentOutOfRangeException("value", interval, "Interval must be lower than or equal to uint.MaxValue / 1000");
-
-                interval = value;
-            }
-        }
+        public TimeSpan Interval { get; set; }
 
         /// <summary>
         /// Gets or sets the action.
@@ -65,61 +46,19 @@ namespace Pi.Timers
         /// <value>
         /// The action.
         /// </value>
-        public Action Action
+        public event EventHandler Tick
         {
-            get { return action; }
-            set
+            add
             {
-                if (value == null)
-                    Stop();
-
-                action = value;
+                this.tick += value;
+                this.StopIfHandlerEmpty();
+            }
+            remove
+            {
+                this.tick -= value;
+                this.StopIfHandlerEmpty();
             }
         }
-
-        #endregion
-
-        #region Methods
-
-        /// <summary>
-        /// Sleeps the specified delay.
-        /// </summary>
-        /// <param name="delay">The delay.</param>
-        public static void Sleep(TimeSpan delay)
-        {
-            // Based on [BCM2835 C library](http://www.open.com.au/mikem/bcm2835/)
-
-            // Calling nanosleep() takes at least 100-200 us, so use it for
-            // long waits and use a busy wait on the hires timer for the rest.
-            var start = DateTime.UtcNow.Ticks;
-
-            var millisecondDelay = (decimal)delay.TotalMilliseconds;
-            if (millisecondDelay >= 100)
-            {
-                // Do not use high resolution timer for long interval (>= 100ms)
-                Thread.Sleep(delay);
-            }
-            else if (millisecondDelay > 0.450m)
-            {
-                var t1 = new Interop.timespec();
-                var t2 = new Interop.timespec();
-
-                // Use nanosleep if interval is higher than 450µs
-                t1.tv_sec = (IntPtr)0;
-                t1.tv_nsec = (IntPtr)((long) (millisecondDelay * 1000000) - nanoSleepOffset);
-
-                Interop.nanosleep(ref t1, ref t2);
-            }
-            else
-            {
-                while (true)
-                {
-                    if ((DateTime.UtcNow.Ticks - start) * 0.0001m >= millisecondDelay)
-                        break;
-                }
-            }
-        }
-
 
         /// <summary>
         /// Starts this instance.
@@ -127,19 +66,7 @@ namespace Pi.Timers
         /// <param name="startDelay">The delay before the first occurence, in milliseconds.</param>
         public void Start(TimeSpan startDelay)
         {
-            if (startDelay.TotalMilliseconds > uint.MaxValue/1000)
-                throw new ArgumentOutOfRangeException("startDelay", startDelay, "Delay must be lower than or equal to uint.MaxValue / 1000");
-
-            lock (this)
-            {
-                if (thread != null) 
-                    return;
-                
-                delay = startDelay;
-                cancellationTokenSource = new CancellationTokenSource();
-                thread = new Thread(ThreadProcess);
-                thread.Start();
-            }
+            this.timerActions.Add(() => this.StartTimer(startDelay));
         }
 
         /// <summary>
@@ -147,72 +74,131 @@ namespace Pi.Timers
         /// </summary>
         public void Stop()
         {
-            lock (this)
-            {
-                if (thread == null) 
-                    return;
-
-                if (thread != Thread.CurrentThread)
-                {
-                    cancellationTokenSource.Cancel();
-                    thread.Join();
-                }
-
-                thread = null;
-                cancellationTokenSource?.Dispose();
-                cancellationTokenSource = null;
-            }
+            this.timerActions.Add(this.StopTimer);
         }
 
-        #endregion
-
-        #region Private Helpers
-
-        private static int Calibrate()
+        /// <inheritdoc />
+        public void Dispose()
         {
-            const int referenceCount = 1000;
-            return Enumerable.Range(0, referenceCount)
-                .Aggregate(
-                    (long) 0,
-                    (a, i) =>
-                        {
-                            var t1 = new Interop.timespec();
-                            var t2 = new Interop.timespec();
-
-                            t1.tv_sec = (IntPtr) 0;
-                            t1.tv_nsec = (IntPtr) 1000000;
-
-                            var start = DateTime.UtcNow.Ticks;
-                            Interop.nanosleep(ref t1, ref t2);
-
-                            return a + ((DateTime.UtcNow.Ticks - start) * 100 - 1000000);
-                        },
-                    a => (int)(a / referenceCount));
+            this.disposeCancellationTokenSource?.Cancel();
+            this.sleepAutoResetEvent.Set();
+            Task.Run(() =>
+            {
+                this.timerThread.Join();
+                this.timerActionThread.Join();
+                this.disposeCancellationTokenSource.Dispose();
+                this.timerRunningEvent.Dispose();
+                this.timerStoppedEvent.Dispose();
+                this.sleepAutoResetEvent.Dispose();
+                this.tick = null;
+            });
         }
 
-        private void ThreadProcess()
+        private void Timer()
         {
-            var thisThread = thread;
-            var cancellationToken = cancellationTokenSource.Token;
-            Sleep(delay);
-            while (thread == thisThread && !cancellationToken.IsCancellationRequested)
+            var disposeCancellationToken = this.disposeCancellationTokenSource.Token;
+            try
             {
-                var action = Action;
-                if (action != null)
+                while (this.SetStoppedAndWaitForStart(disposeCancellationToken))
                 {
-                    action();
-                    if (cancellationToken.IsCancellationRequested)
+                    var lastActionTime = DateTime.Now;
+                    if (!this.timerRunningEvent.IsSet)
                     {
-                        return;
+                        continue;
+                    }
+
+                    var beginDelay = DateTime.Now;
+                    if (!PiThread.Sleep(this.delay, this.sleepAutoResetEvent))
+                    {
+                        disposeCancellationToken.ThrowIfCancellationRequested();
+                        continue;
+                    }
+
+                    while (true)
+                    {
+                        if (!this.timerRunningEvent.IsSet)
+                        {
+                            break;
+                        }
+
+                        disposeCancellationToken.ThrowIfCancellationRequested();
+
+                        this.tick?.Invoke(this, EventArgs.Empty);
+
+                        if (!this.timerRunningEvent.IsSet)
+                        {
+                            break;
+                        }
+
+                        disposeCancellationToken.ThrowIfCancellationRequested();
+
+                        if (this.Interval == Timeout.InfiniteTimeSpan)
+                        {
+                            this.timerRunningEvent.Reset();
+                            break;
+                        }
+
+                        var interval = DateTime.Now;
+                        if (!PiThread.Sleep(this.Interval, this.sleepAutoResetEvent))
+                        {
+                            disposeCancellationToken.ThrowIfCancellationRequested();
+                            break;
+                        }
                     }
                 }
-
-                Sleep(interval);
+            }
+            catch (OperationCanceledException)
+            {
             }
         }
 
-        private void NoOp(){}
+        private void TimerControl()
+        {
+            var cancellationToken = this.disposeCancellationTokenSource.Token;
+            try
+            {
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    var timerAction = this.timerActions.Take(cancellationToken);
+                    timerAction();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
 
-        #endregion
+        private void StartTimer(TimeSpan startDelay)
+        {
+            if (this.timerRunningEvent.IsSet)
+            { 
+                return;
+            }
+
+            this.delay = startDelay;
+            this.sleepAutoResetEvent.Reset();
+            this.timerRunningEvent.Set();
+        }
+
+        private void StopTimer()
+        {
+            this.sleepAutoResetEvent.Set();
+            this.timerRunningEvent.Reset();
+            this.timerStoppedEvent.Wait(this.disposeCancellationTokenSource.Token);
+        }
+
+        private bool SetStoppedAndWaitForStart(CancellationToken disposeCancellationToken)
+        {
+            this.timerStoppedEvent.Set();
+            return this.timerRunningEvent.Wait(Timeout.InfiniteTimeSpan, disposeCancellationToken);
+        }
+
+        private void StopIfHandlerEmpty()
+        {
+            if (this.tick == null)
+            {
+                this.Stop();
+            }
+        }
     }
 }

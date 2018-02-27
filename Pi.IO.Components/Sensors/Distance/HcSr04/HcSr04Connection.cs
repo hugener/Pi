@@ -1,10 +1,7 @@
-#region References
-
 using System;
+using Pi.System.Threading;
 using Pi.Timers;
 using UnitsNet;
-
-#endregion
 
 namespace Pi.IO.Components.Sensors.Distance.HcSr04
 {
@@ -12,38 +9,41 @@ namespace Pi.IO.Components.Sensors.Distance.HcSr04
     /// Represents a connection to HC-SR04 distance sensor.
     /// </summary>
     /// <remarks>
-    ///     <see cref="https://docs.google.com/document/d/1Y-yZnNhMYy7rwhAgyL_pfa39RsB-x2qR4vP8saG73rE/edit"/> for hardware specification and 
-    ///     <see cref="http://www.raspberrypi-spy.co.uk/2012/12/ultrasonic-distance-measurement-using-python-part-1/"/> for implementation details.
+    ///     <see href="https://docs.google.com/document/d/1Y-yZnNhMYy7rwhAgyL_pfa39RsB-x2qR4vP8saG73rE/edit"/> for hardware specification and 
+    ///     <see href="http://www.raspberrypi-spy.co.uk/2012/12/ultrasonic-distance-measurement-using-python-part-1/"/> for implementation details.
     /// </remarks>
     public class HcSr04Connection : IDisposable
     {
-        #region Fields
+        /// <summary>
+        /// The default timeout (50ms).
+        /// </summary>
+        /// <remarks>Maximum time (if no obstacle) is 38ms.</remarks>
+        public static readonly TimeSpan DefaultTimeout = TimeSpan.FromMilliseconds(50);
 
         private static readonly TimeSpan triggerTime = TimeSpanUtility.FromMicroseconds(10);
         private static readonly TimeSpan echoUpTimeout = TimeSpan.FromMilliseconds(500);
 
         private readonly IOutputBinaryPin triggerPin;
         private readonly IInputBinaryPin echoPin;
-
-        #endregion
-
-        #region Instance Management
+        private readonly IThread thread;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HcSr04Connection"/> class.
+        /// Initializes a new instance of the <see cref="HcSr04Connection" /> class.
         /// </summary>
         /// <param name="triggerPin">The trigger pin.</param>
         /// <param name="echoPin">The echo pin.</param>
-        public HcSr04Connection(IOutputBinaryPin triggerPin, IInputBinaryPin echoPin)
+        /// <param name="threadFactory">The thread factory.</param>
+        public HcSr04Connection(IOutputBinaryPin triggerPin, IInputBinaryPin echoPin, IThreadFactory threadFactory = null)
         {
             this.triggerPin = triggerPin;
             this.echoPin = echoPin;
+            this.thread = ThreadFactory.EnsureThreadFactory(threadFactory).Create();
 
-            Timeout = DefaultTimeout;
+            this.Timeout = DefaultTimeout;
 
             try
             {
-                GetDistance();
+                this.GetDistance();
             } catch {}
         }
 
@@ -52,18 +52,9 @@ namespace Pi.IO.Components.Sensors.Distance.HcSr04
         /// </summary>
         void IDisposable.Dispose()
         {
-            Close();
+            this.Close();
+            this.thread.Dispose();
         }
-
-        #endregion
-
-        #region Properties
-
-        /// <summary>
-        /// The default timeout (50ms).
-        /// </summary>
-        /// <remarks>Maximum time (if no obstacle) is 38ms.</remarks>
-        public static readonly TimeSpan DefaultTimeout = TimeSpan.FromMilliseconds(50);
 
         /// <summary>
         /// Gets or sets the timeout for distance measure.
@@ -73,21 +64,17 @@ namespace Pi.IO.Components.Sensors.Distance.HcSr04
         /// </value>
         public TimeSpan Timeout { get; set; }
 
-        #endregion
-
-        #region Methods
-
         /// <summary>
         /// Gets the distance.
         /// </summary>
         /// <returns>The distance.</returns>
         public Length GetDistance()
         {
-            triggerPin.Write(true);
-            Timer.Sleep(triggerTime);
-            triggerPin.Write(false);
+            this.triggerPin.Write(true);
+            this.thread.Sleep(triggerTime);
+            this.triggerPin.Write(false);
 
-            var upTime = echoPin.Time(true, echoUpTimeout, Timeout);
+            var upTime = this.echoPin.Time(true, echoUpTimeout, this.Timeout);
             return Units.Velocity.Sound.ToDistance(upTime) / 2;
         }
 
@@ -96,10 +83,8 @@ namespace Pi.IO.Components.Sensors.Distance.HcSr04
         /// </summary>
         public void Close()
         {
-            triggerPin.Dispose();
-            echoPin.Dispose();
+            this.triggerPin.Dispose();
+            this.echoPin.Dispose();
         }
-
-        #endregion
     }
 }

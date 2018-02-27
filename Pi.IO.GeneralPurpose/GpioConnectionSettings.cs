@@ -1,10 +1,6 @@
-#region References
-
 using System;
 using System.Configuration;
 using Pi.IO.GeneralPurpose.Configuration;
-
-#endregion
 
 namespace Pi.IO.GeneralPurpose
 {
@@ -13,40 +9,23 @@ namespace Pi.IO.GeneralPurpose
     /// </summary>
     public class GpioConnectionSettings
     {
-        #region Fields
-
-        private IGpioConnectionDriver driver;
-
         private TimeSpan blinkDuration;
         private TimeSpan pollInterval;
-
-        #endregion
-
-        #region Instance Management
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GpioConnectionSettings"/> class.
         /// </summary>
         public GpioConnectionSettings()
         {
-            Driver = DefaultDriver;
-            BlinkDuration = DefaultBlinkDuration;
-            PollInterval = DefaultPollInterval;
-            Opened = true;
+            this.BlinkDuration = DefaultBlinkDuration;
+            this.PollInterval = DefaultPollInterval;
+            this.Opened = true;
         }
-
-        #endregion
-        
-        #region Constants
 
         /// <summary>
         /// Gets the default blink duration.
         /// </summary>
         public static readonly TimeSpan DefaultBlinkDuration = TimeSpan.FromMilliseconds(250);
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="GpioConnectionSettings"/> is opened on initialization.
@@ -64,20 +43,8 @@ namespace Pi.IO.GeneralPurpose
         /// </value>
         public TimeSpan BlinkDuration
         {
-            get { return blinkDuration; }
-            set { blinkDuration = value >= TimeSpan.Zero ? value : DefaultBlinkDuration; }
-        }
-
-        /// <summary>
-        /// Gets or sets the driver.
-        /// </summary>
-        /// <value>
-        /// The driver.
-        /// </value>
-        public IGpioConnectionDriver Driver
-        {
-            get { return driver; }
-            set { driver = value ?? DefaultDriver; }
+            get => this.blinkDuration;
+            set => this.blinkDuration = value >= TimeSpan.Zero ? value : DefaultBlinkDuration;
         }
 
         /// <summary>
@@ -88,8 +55,8 @@ namespace Pi.IO.GeneralPurpose
         /// </value>
         public TimeSpan PollInterval
         {
-            get { return pollInterval; }
-            set { pollInterval = value >= TimeSpan.Zero ? value : DefaultPollInterval; }
+            get => this.pollInterval;
+            set => this.pollInterval = value >= TimeSpan.Zero ? value : DefaultPollInterval;
         }
 
         /// <summary>
@@ -134,42 +101,5 @@ namespace Pi.IO.GeneralPurpose
                 return Board.Current.ConnectorPinout;
             }
         }
-
-        /// <summary>
-        /// Gets the default driver.
-        /// </summary>
-        public static IGpioConnectionDriver DefaultDriver
-        {
-            get
-            {
-                var configurationSection = ConfigurationManager.GetSection("gpioConnection") as GpioConnectionConfigurationSection;
-                return (configurationSection != null && !String.IsNullOrEmpty(configurationSection.DriverTypeName))
-                    ? (IGpioConnectionDriver) Activator.CreateInstance(Type.GetType(configurationSection.DriverTypeName, true))
-                    : GetBestDriver(Board.Current.IsRaspberryPi ? GpioConnectionDriverCapabilities.None : GpioConnectionDriverCapabilities.CanWorkOnThirdPartyComputers);
-            }
-        }
-
-        #endregion
-
-        #region Methods
-
-        /// <summary>
-        /// Gets the best driver for the specified capabilities.
-        /// </summary>
-        /// <param name="capabilities">The capabilities.</param>
-        /// <returns>The best driver, if found; otherwise, <c>null</c>.</returns>
-        public static IGpioConnectionDriver GetBestDriver(GpioConnectionDriverCapabilities capabilities)
-        {
-            if ((GpioConnectionDriver.GetCapabilities() & capabilities) == capabilities)
-                return new GpioConnectionDriver();
-            if ((MemoryGpioConnectionDriver.GetCapabilities() & capabilities) == capabilities)
-                return new MemoryGpioConnectionDriver();
-            if ((FileGpioConnectionDriver.GetCapabilities() & capabilities) == capabilities)
-                return new FileGpioConnectionDriver();
-
-            return null;
-        }
-
-        #endregion
     }
 }

@@ -1,19 +1,27 @@
-﻿namespace Pi.IO.InterIntegratedCircuit
-{
-    using System;
+﻿using System;
 
+namespace Pi.IO.InterIntegratedCircuit
+{
+    /// <summary>
+    /// Abstract i2c action.
+    /// </summary>
     public abstract class I2cAction
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="I2cAction" /> class.
+        /// </summary>
+        /// <param name="buffer">The buffer.</param>
         protected I2cAction(byte[] buffer)
         {
-            if (buffer == null)
-            {
-                throw new ArgumentNullException("buffer");
-            }
-
-            Buffer = buffer;
+            this.Buffer = buffer ?? throw new ArgumentNullException("buffer");
         }
 
-        public byte[] Buffer { get; private set; }
+        /// <summary>
+        /// Gets the buffer.
+        /// </summary>
+        /// <value>
+        /// The buffer.
+        /// </value>
+        public byte[] Buffer { get; }
     }
 }

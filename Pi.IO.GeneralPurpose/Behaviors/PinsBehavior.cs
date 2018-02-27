@@ -1,49 +1,39 @@
-﻿#region References
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Pi.System.Threading;
 using Pi.Timers;
-
-#endregion
 
 namespace Pi.IO.GeneralPurpose.Behaviors
 {
     /// <summary>
     /// Represents the pins behavior base class.
     /// </summary>
-    public abstract class PinsBehavior
+    public abstract class PinsBehavior : IDisposable
     {
-        #region Fields
-
         private readonly ITimer timer;
+        private readonly IThread thread;
         private int currentStep;
 
-        #endregion
-
-        #region Instance Management
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="PinsBehavior"/> class.
+        /// Initializes a new instance of the <see cref="PinsBehavior" /> class.
         /// </summary>
         /// <param name="configurations">The configurations.</param>
-        protected PinsBehavior(IEnumerable<PinConfiguration> configurations)
+        /// <param name="threadFactory">The thread factory.</param>
+        protected PinsBehavior(IEnumerable<PinConfiguration> configurations, IThreadFactory threadFactory)
         {
-            Configurations = configurations.ToArray();
+            this.Configurations = configurations.ToArray();
+            this.thread = threadFactory.Create();
 
-            timer = Timer.Create();
-            timer.Interval = TimeSpan.FromMilliseconds(250);
-            timer.Action = OnTimer;
+            this.timer = Timer.Create();
+            this.timer.Interval = TimeSpan.FromMilliseconds(250);
+            this.timer.Tick += this.OnTimer;
         }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         /// Gets the configurations.
         /// </summary>
-        public PinConfiguration[] Configurations { get; private set; }
+        public PinConfiguration[] Configurations { get; }
 
         /// <summary>
         /// Gets or sets the interval.
@@ -53,13 +43,16 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// </value>
         public TimeSpan Interval
         {
-            get { return timer.Interval; }
-            set { timer.Interval = value; }
+            get => this.timer.Interval;
+            set => this.timer.Interval = value;
         }
 
-        #endregion
-
-        #region Protected Methods
+        /// <inheritdoc />
+        public void Dispose()
+        {
+            Timer.Dispose(this.timer);
+            this.thread.Dispose();
+        }
 
         /// <summary>
         /// Gets the connection.
@@ -85,42 +78,36 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// <returns><c>true</c> if the behavior may continue; otherwise behavior will be stopped.</returns>
         protected abstract bool TryGetNextStep(ref int step);
 
-        #endregion
-
-        #region Internal Methods
-
         internal void Start(GpioConnection connection)
         {
-            Connection = connection;
-            foreach (var pinConfiguration in Configurations)
+            this.Connection = connection;
+            foreach (var pinConfiguration in this.Configurations)
+            {
                 connection[pinConfiguration] = false;
+            }
 
-            currentStep = GetFirstStep();
-            timer.Start(TimeSpan.Zero);
+            this.currentStep = this.GetFirstStep();
+            this.timer.Start(TimeSpan.Zero);
         }
 
         internal void Stop()
         {
-            timer.Stop();
+            this.timer.Stop();
 
-            foreach (var pinConfiguration in Configurations)
-                Connection[pinConfiguration] = false;
-        }
-
-        #endregion
-
-        #region Private Helpers
-
-        private void OnTimer()
-        {
-            ProcessStep(currentStep);
-            if (!TryGetNextStep(ref currentStep))
+            foreach (var pinConfiguration in this.Configurations)
             {
-                Timer.Sleep(Interval);
-                Stop();
+                this.Connection[pinConfiguration] = false;
             }
         }
 
-        #endregion
+        private void OnTimer(object sender, EventArgs e)
+        {
+            this.ProcessStep(this.currentStep);
+            if (!this.TryGetNextStep(ref this.currentStep))
+            {
+                this.thread.Sleep(this.Interval);
+                this.Stop();
+            }
+        }
     }
 }

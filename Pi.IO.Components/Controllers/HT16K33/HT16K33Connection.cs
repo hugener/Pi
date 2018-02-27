@@ -21,37 +21,41 @@ namespace Pi.IO.Components.Controllers.HT16K33
     /// </summary>
 	public class HT16K33Connection //: IPwmDevice
     {
+        public enum Flash : byte
+        {
+            Off = 0x00,
+            On = 0x01,
+            TwoHZ = 0x02,
+            OneHZ = 0x04,
+            HalfHZ = 0x06,
+        }
 
+        public enum Command : byte
+        {
+            DisplayDataAddress = 0x00,
+            System_Setup = 0x20,
+            KeyDataAddressPointer = 0x40,
+            INTFlagAddressPointer = 0x60,
+            Flash = 0x80,
+            RowIntSet = 0xA0,
+            DimmingSet = 0xE0,
+            TestMode = 0xD9,
+        }
 
-    public enum Flash : byte
-    {
-		Off 		= 0x00,
-		On		 	= 0x01,
-		TwoHZ 		= 0x02,
-		OneHZ 		= 0x04,
-		HalfHZ 		= 0x06,
-    }
+        const byte DEFAULT_ADDRESS = 0x70;
+        const byte HT16K33_Oscillator = 0x01;
+        const byte HT16K33_DisplayOn = 0x01;
 
-	public enum Command : byte
-    {
-    	DisplayDataAddress		= 0x00,
-		System_Setup			= 0x20,
-		KeyDataAddressPointer	= 0x40,
-		INTFlagAddressPointer	= 0x60,
-		Flash			 		= 0x80,
-		RowIntSet				= 0xA0,
-		DimmingSet				= 0xE0,
-		TestMode				= 0xD9,
-    }
+        private readonly I2cDeviceConnection connection;
+        private static readonly ILog log = LogManager.GetLogger<HT16K33Connection>();
 
-		const byte DEFAULT_ADDRESS			= 0x70;
-		const byte HT16K33_Oscillator		= 0x01;
-		const byte HT16K33_DisplayOn		= 0x01;
-
-        private readonly I2cDeviceConnection connection;       
-		private static readonly ILog log = LogManager.GetLogger<HT16K33Connection>();
-
-        public byte[] LEDBuffer {get; private set;}  //Max 16 rows, 8 bits (leds)
+        /// <summary>
+        /// Gets the led buffer.
+        /// </summary>
+        /// <value>
+        /// The led buffer.
+        /// </value>
+        public byte[] LEDBuffer { get; private set; }  //Max 16 rows, 8 bits (leds)
 
 
         /// <summary>
@@ -62,96 +66,100 @@ namespace Pi.IO.Components.Controllers.HT16K33
         /// <param name="RowCount">Rows in use (1 to 16) </param>
 		public HT16K33Connection(I2cDeviceConnection connection, int RowCount)
         {
-			LEDBuffer = new byte[RowCount];
+            LEDBuffer = new byte[RowCount];
             this.connection = connection;
-			
-			log.Info(m => m("Resetting HT16K33"));
 
-			connection.Write((byte)Command.System_Setup | (byte)HT16K33_Oscillator); //Turn on the oscillator.
-			connection.Write((byte)Command.Flash | (byte)HT16K33_DisplayOn | (byte)Flash.Off);
-			connection.Write((byte)Command.DimmingSet | (byte)15);
+            log.Info(m => m("Resetting HT16K33"));
 
-		//	connection.Write(SetupSequence);
+            connection.Write((byte)Command.System_Setup | (byte)HT16K33_Oscillator); //Turn on the oscillator.
+            connection.Write((byte)Command.Flash | (byte)HT16K33_DisplayOn | (byte)Flash.Off);
+            connection.Write((byte)Command.DimmingSet | (byte)15);
+
+            //	connection.Write(SetupSequence);
         }
 
 
-		/// <summary>
-		/// Flash display at specified frequency.
-		/// </summary>
-		/// <param name="">.</param>
-		public void SetFlash(Flash frequency)
-		{
-			connection.WriteByte((byte)((byte)Command.Flash | HT16K33_DisplayOn | (byte)frequency));
-		}
+        /// <summary>
+        /// Flash display at specified frequency.
+        /// </summary>
+        /// <param name="frequency">The frequency.</param>
+        public void SetFlash(Flash frequency)
+        {
+            connection.WriteByte((byte)((byte)Command.Flash | HT16K33_DisplayOn | (byte)frequency));
+        }
 
-		/// <summary>
-		/// Set brightness of entire display to specified value (0 to 15).
-		/// </summary>
-		/// <param name="">.</param>
-		public void SetBrightness(uint brightness)
-		{
-			if (brightness > 15) brightness = 15;
-					connection.WriteByte((byte)((byte)Command.DimmingSet | (byte)brightness));
-		}
+        /// <summary>
+        /// Set brightness of entire display to specified value (0 to 15).
+        /// </summary>
+        /// <param name="brightness">The brightness.</param>
+        public void SetBrightness(uint brightness)
+        {
+            if (brightness > 15) brightness = 15;
+            connection.WriteByte((byte)((byte)Command.DimmingSet | (byte)brightness));
+        }
 
-		/// <summary>
-		/// Sets specified LED (0-[row-count] rows, 0 to 7 leds)
-		/// </summary>
-		/// <param name="">.</param>
-		public void SetLed(uint row, uint led, bool OutputOn)
-		{
-			if (row >= LEDBuffer.Length) throw new Exception("Row out of range");
-			if (led > 7) throw new Exception("LED out of range 0 to 7");
+        /// <summary>
+        /// Sets specified LED (0-[row-count] rows, 0 to 7 leds)
+        /// </summary>
+        /// <param name="row">The row.</param>
+        /// <param name="led">The led.</param>
+        /// <param name="OutputOn">if set to <c>true</c> [output on].</param>
+        /// <exception cref="Exception">
+        /// Row out of range
+        /// or
+        /// LED out of range 0 to 7
+        /// </exception>
+        public void SetLed(uint row, uint led, bool OutputOn)
+        {
+            if (row >= LEDBuffer.Length) throw new Exception("Row out of range");
+            if (led > 7) throw new Exception("LED out of range 0 to 7");
 
-			if (OutputOn)
-			{	
-				LEDBuffer[row] |= (byte)(1 << (int)led); //Turn on the speciried LED (set bit to one).			
-			}
-			else
-			{
-				LEDBuffer[row] &= (byte)~(1 << (int)led);  //Turn off the specified LED (set bit to zero).
-			}
-			connection.Write(new byte[] {(byte)row, LEDBuffer[row]});
-		}
+            if (OutputOn)
+            {
+                LEDBuffer[row] |= (byte)(1 << (int)led); //Turn on the speciried LED (set bit to one).			
+            }
+            else
+            {
+                LEDBuffer[row] &= (byte)~(1 << (int)led);  //Turn off the specified LED (set bit to zero).
+            }
+            connection.Write(new byte[] { (byte)row, LEDBuffer[row] });
+        }
 
-			
-		/// <summary>
-		/// Write display buffer to display hardware.
-		/// </summary>
-		/// <param name="">.</param>
-		public void WriteDisplayBuffer()
-		{
-			for (int i = 0; i < LEDBuffer.Length;i++)
-			{
-				connection.Write((byte)i,LEDBuffer[i]);
-			}
-		}
 
-		/// <summary>
-		/// Clear contents of display buffer.
-		/// </summary>
-		/// <param name="">.</param>
-		public void Clear()
-		{
-			for (int i = 0; i < LEDBuffer.Length;i++)
-			{
-				LEDBuffer[i] = 0;
-			}
-			WriteDisplayBuffer();
-		}
+        /// <summary>
+        /// Write display buffer to display hardware.
+        /// </summary>
+        public void WriteDisplayBuffer()
+        {
+            for (int i = 0; i < LEDBuffer.Length; i++)
+            {
+                connection.Write((byte)i, LEDBuffer[i]);
+            }
+        }
 
-		/// <summary>
-		/// Set all LEDs On.
-		/// </summary>
-		/// <param name="">.</param>
-		public void SetAllOn()
-		{
-			for (int i = 0; i < LEDBuffer.Length;i++)
-			{
-				LEDBuffer[i] = 1;
-			}
-			WriteDisplayBuffer();
-		}
+        /// <summary>
+        /// Clear contents of display buffer.
+        /// </summary>
+        public void Clear()
+        {
+            for (int i = 0; i < LEDBuffer.Length; i++)
+            {
+                LEDBuffer[i] = 0;
+            }
+            WriteDisplayBuffer();
+        }
+
+        /// <summary>
+        /// Set all LEDs On.
+        /// </summary>
+        public void SetAllOn()
+        {
+            for (int i = 0; i < LEDBuffer.Length; i++)
+            {
+                LEDBuffer[i] = 1;
+            }
+            WriteDisplayBuffer();
+        }
 
     }
 }

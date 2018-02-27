@@ -1,9 +1,6 @@
 ﻿using Pi.IO.InterIntegratedCircuit;
 using Pi.Timers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using Pi.System.Threading;
 
 namespace Pi.IO.Components.Sensors.Light
 {
@@ -11,30 +8,36 @@ namespace Pi.IO.Components.Sensors.Light
     {
         public class BH1750Connection
         {
-            public I2cDeviceConnection Connection { get; set; }
-            public BH1750Connection(I2cDeviceConnection connection)
+            private readonly IThread thread;
+
+            public BH1750Connection(I2cDeviceConnection connection, IThread thread)
             {
-                Connection = connection;
+                this.thread = thread;
+                this.Connection = connection;
             }
 
+            public I2cDeviceConnection Connection { get; set; }
+            
             public void SetOff()
             {
-                Connection.Write(0x00);
+                this.Connection.Write(0x00);
             }
+
             public void SetOn()
             {
-                Connection.Write(0x01);
+                this.Connection.Write(0x01);
             }
+
             public void Reset()
             {
-                Connection.Write(0x07);
+                this.Connection.Write(0x07);
             }
 
             public double GetData()
             {
-                Connection.Write(0x10);
-                HighResolutionTimer.Sleep(TimeSpanUtility.FromMicroseconds(150 * 1000));
-                byte[] readBuf = Connection.Read(2);
+                this.Connection.Write(0x10);
+                this.thread.Sleep(TimeSpanUtility.FromMicroseconds(150 * 1000));
+                byte[] readBuf = this.Connection.Read(2);
 
                 var valf = readBuf[0] << 8;
                 valf |= readBuf[1];
@@ -46,8 +49,6 @@ namespace Pi.IO.Components.Sensors.Light
                 // return Math.Round(valf / (2 * 1.2), 2);
 
             }
-
         }
     }
-
 }

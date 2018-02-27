@@ -36,6 +36,9 @@ namespace Pi.IO.Interop
             this.filename = filename;
         }
 
+        /// <summary>
+        /// Finalizes an instance of the <see cref="UnixFile"/> class.
+        /// </summary>
         ~UnixFile() {
             Dispose(false);
             GC.SuppressFinalize(this);

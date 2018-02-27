@@ -2,11 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace Pi.IO.Interop
 {
+    /// <summary>
+    /// Implementation of <see cref="IMemory"/> for managed memory.
+    /// </summary>
+    /// <seealso cref="Pi.IO.Interop.IMemory" />
     public class ManagedMemory : IMemory
     {
         #region Fields
@@ -25,7 +28,10 @@ namespace Pi.IO.Interop
             handle = GCHandle.Alloc(byteArray, GCHandleType.Pinned);
             memoryPointer = handle.AddrOfPinnedObject();
         }
-        
+
+        /// <summary>
+        /// Finalizes an instance of the <see cref="ManagedMemory"/> class.
+        /// </summary>
         ~ManagedMemory() {
             Dispose(false);
         }

@@ -25,7 +25,7 @@ namespace Pi.IO.Interop
         /// <param name="memoryBlock">The origin memory block</param>
         /// <param name="startOffset">Start offset of the origin memory block</param>
         /// <param name="length">Length of this memory subset in bytes</param>
-        /// <param name="isOwner">If <c>true</c> the origin <paramref name="memoryBlock"/> will be disposed on <see cref="Dispose"/>.</param>
+        /// <param name="isOwner">If <c>true</c> the origin <paramref name="memoryBlock"/> will be disposed on <see cref="Dispose()"/>.</param>
         public MemorySubset(IMemory memoryBlock, int startOffset, int length, bool isOwner) {
             if (ReferenceEquals(memoryBlock, null)) {
                 throw new ArgumentNullException("memoryBlock");

@@ -1,20 +1,14 @@
+using System;
+
 namespace Pi.IO.InterIntegratedCircuit
 {
-    using System;
-
     /// <summary>
     /// Represents a connection to the I2C device.
     /// </summary>
     public class I2cDeviceConnection
     {
-        #region Fields
-
         private readonly I2cDriver driver;
         private readonly int deviceAddress;
-
-        #endregion
-
-        #region Instance Management
 
         internal I2cDeviceConnection(I2cDriver driver, int deviceAddress)
         {
@@ -22,26 +16,14 @@ namespace Pi.IO.InterIntegratedCircuit
             this.deviceAddress = deviceAddress;
         }
 
-        #endregion
-
-        #region Properties
-
         /// <summary>
         /// Gets the device address.
         /// </summary>
         /// <value>
         /// The device address.
         /// </value>
-        public int DeviceAddress
-        {
-            get { return deviceAddress; }
-        }
+        public int DeviceAddress => this.deviceAddress;
 
-
-        #endregion
-
-        #region Methods
-        
         /// <summary>
         /// Executes the specified transaction.
         /// </summary>
@@ -53,7 +35,7 @@ namespace Pi.IO.InterIntegratedCircuit
                 throw new ArgumentNullException("transaction");
             }
 
-            driver.Execute(deviceAddress, transaction);
+            this.driver.Execute(this.deviceAddress, transaction);
         }
 
         /// <summary>
@@ -64,7 +46,7 @@ namespace Pi.IO.InterIntegratedCircuit
         {
             try
             {
-                Execute(new I2cTransaction(new I2cWriteAction(buffer)));
+                this.Execute(new I2cTransaction(new I2cWriteAction(buffer)));
             }
             catch (Exception e)
             {
@@ -80,7 +62,7 @@ namespace Pi.IO.InterIntegratedCircuit
         {
             try
             {
-                Execute(new I2cTransaction(new I2cWriteAction(value)));
+                this.Execute(new I2cTransaction(new I2cWriteAction(value)));
             }
             catch (Exception e)
             {
@@ -96,7 +78,7 @@ namespace Pi.IO.InterIntegratedCircuit
         public byte[] Read(int byteCount)
         {
             var readAction = new I2cReadAction(new byte[byteCount]);
-            Execute(new I2cTransaction(readAction));
+            this.Execute(new I2cTransaction(readAction));
 
             return readAction.Buffer;
         }
@@ -107,9 +89,7 @@ namespace Pi.IO.InterIntegratedCircuit
         /// <returns>The byte.</returns>
         public byte ReadByte()
         {
-            return Read(1)[0];
+            return this.Read(1)[0];
         }
-
-        #endregion
     }
 }

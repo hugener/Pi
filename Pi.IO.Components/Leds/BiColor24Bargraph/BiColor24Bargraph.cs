@@ -12,17 +12,39 @@ using Pi.IO.InterIntegratedCircuit;
 
 namespace Pi.IO.Components.Leds.BiColor24Bargraph
 {
-	public class BiColor24Bargraph : HT16K33Connection
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <seealso cref="Pi.IO.Components.Controllers.HT16K33.HT16K33Connection" />
+    public class BiColor24Bargraph : HT16K33Connection
 	{
-		public enum LEDState
+        /// <summary>
+        /// Defines the Led color state.
+        /// </summary>
+        public enum LEDState
 		{
-			Off,
-			Red,
-			Green,
-			Yellow
-		}
+            /// <summary>
+            /// The off
+            /// </summary>
+            Off,
+
+            /// <summary>
+            /// The red
+            /// </summary>
+            Red,
+
+            /// <summary>
+            /// The green
+            /// </summary>
+            Green,
+
+            /// <summary>
+            /// The yellow
+            /// </summary>
+            Yellow
+        }
 		/// <summary>
-		/// Initializes a new instance of the <see cref="Raspberry.IO.Components.Leds.BiColor24Bargraph.BiColor24Bargraph"/> class.
+		/// Initializes a new instance of the <see cref="BiColor24Bargraph"/> class.
 		/// </summary>
 		/// <param name="connection">I2c Connection.</param>
 		public BiColor24Bargraph (I2cDeviceConnection connection) : base (connection,6)

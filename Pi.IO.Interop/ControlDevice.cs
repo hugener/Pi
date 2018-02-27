@@ -16,7 +16,7 @@ namespace Pi.IO.Interop
         protected readonly IFile file;
         
         /// <summary>
-        /// If <c>true</c>, <see cref="file"/> will be disposed on <see cref="ControlDevice.Dispose"/>
+        /// If <c>true</c>, <see cref="file"/> will be disposed on <see cref="ControlDevice.Dispose()"/>
         /// </summary>
         protected readonly bool disposeFile;
 
@@ -38,19 +38,22 @@ namespace Pi.IO.Interop
         /// Initializes a new instance of the <see cref="ControlDevice"/> class.
         /// </summary>
         /// <param name="file">A opened special file that can be controlled using ioctl-system calls.</param>
-        /// <remarks><paramref name="file"/> will be disposed if the user calls <see cref="Dispose"/> on this instance.</remarks>
+        /// <remarks><paramref name="file"/> will be disposed if the user calls <see cref="Dispose()"/> on this instance.</remarks>
         public ControlDevice(IFile file): this(file, true) {}
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ControlDevice"/> class.
         /// </summary>
         /// <param name="file">A opened special file that can be controlled using ioctl-system calls.</param>
-        /// <param name="disposeFile">If <c>true</c> the supplied <paramref name="file"/> will be disposed if the user calls <see cref="Dispose"/> on this instance.</param>
+        /// <param name="disposeFile">If <c>true</c> the supplied <paramref name="file"/> will be disposed if the user calls <see cref="Dispose()"/> on this instance.</param>
         public ControlDevice(IFile file, bool disposeFile) {
             this.file = file;
             this.disposeFile = disposeFile;
         }
 
+        /// <summary>
+        /// Finalizes an instance of the <see cref="ControlDevice"/> class.
+        /// </summary>
         ~ControlDevice() {
             Dispose(false);
         }

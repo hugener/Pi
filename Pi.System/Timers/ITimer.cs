@@ -1,18 +1,12 @@
-#region References
-
 using System;
-
-#endregion
 
 namespace Pi.Timers
 {
     /// <summary>
     /// Provides an interface for a timer.
     /// </summary>
-    public interface ITimer
+    public interface ITimer : IDisposable
     {
-        #region Properties
-
         /// <summary>
         /// Gets or sets the interval.
         /// </summary>
@@ -27,11 +21,7 @@ namespace Pi.Timers
         /// <value>
         /// The action.
         /// </value>
-        Action Action { get; set; }
-
-        #endregion
-
-        #region Methods
+        event EventHandler Tick;
 
         /// <summary>
         /// Starts this instance.
@@ -43,7 +33,5 @@ namespace Pi.Timers
         /// Stops this instance.
         /// </summary>
         void Stop();
-
-        #endregion
     }
 }

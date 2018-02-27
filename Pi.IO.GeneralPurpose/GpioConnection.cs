@@ -1,11 +1,8 @@
-#region References
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Pi.System.Threading;
 using Pi.Timers;
-
-#endregion
 
 namespace Pi.IO.GeneralPurpose
 {
@@ -14,8 +11,6 @@ namespace Pi.IO.GeneralPurpose
     /// </summary>
     public class GpioConnection : IDisposable
     {
-        #region Fields
-
         private readonly GpioConnectionSettings settings;
 
         private readonly Dictionary<ProcessorPin, PinConfiguration> pinConfigurations;
@@ -24,65 +19,78 @@ namespace Pi.IO.GeneralPurpose
         private readonly ITimer timer;
         private readonly Dictionary<ProcessorPin, bool> pinValues = new Dictionary<ProcessorPin, bool>();
         private readonly Dictionary<ProcessorPin, EventHandler<PinStatusEventArgs>> pinEvents = new Dictionary<ProcessorPin, EventHandler<PinStatusEventArgs>>();
+        private readonly IThread thread;
+        private readonly IGpioConnectionDriver gpioConnectionDriver;
 
         private ProcessorPins inputPins = ProcessorPins.None;
         private ProcessorPins pinRawValues = ProcessorPins.None;
 
-        #endregion
-
-        #region Instance Management
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="GpioConnection"/> class.
+        /// Initializes a new instance of the <see cref="GpioConnection" /> class.
         /// </summary>
         /// <param name="pins">The pins.</param>
-        public GpioConnection(params PinConfiguration[] pins) : this(null, (IEnumerable<PinConfiguration>) pins){}
+        public GpioConnection(params PinConfiguration[] pins)
+            : this(null, pins)
+        { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GpioConnection"/> class.
+        /// Initializes a new instance of the <see cref="GpioConnection" /> class.
         /// </summary>
         /// <param name="pins">The pins.</param>
-        public GpioConnection(IEnumerable<PinConfiguration> pins) : this(null, pins){}
+        public GpioConnection(IEnumerable<PinConfiguration> pins)
+            : this(null, pins)
+        { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GpioConnection"/> class.
-        /// </summary>
-        /// <param name="settings">The settings.</param>
-        /// <param name="pins">The pins.</param>
-        public GpioConnection(GpioConnectionSettings settings, params PinConfiguration[] pins) : this(settings, (IEnumerable<PinConfiguration>) pins){}
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="GpioConnection"/> class.
+        /// Initializes a new instance of the <see cref="GpioConnection" /> class.
         /// </summary>
         /// <param name="settings">The settings.</param>
         /// <param name="pins">The pins.</param>
-        public GpioConnection(GpioConnectionSettings settings, IEnumerable<PinConfiguration> pins)
+        public GpioConnection(GpioConnectionSettings settings, params PinConfiguration[] pins)
+            : this(settings, pins, null)
+        { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GpioConnection" /> class.
+        /// </summary>
+        /// <param name="settings">The settings.</param>
+        /// <param name="pins">The pins.</param>
+        /// <param name="gpioConnectionDriverFactory">The gpio connection driver factory.</param>
+        /// <param name="threadFactory">The thread factory.</param>
+        public GpioConnection(GpioConnectionSettings settings, IEnumerable<PinConfiguration> pins, IGpioConnectionDriverFactory gpioConnectionDriverFactory = null, IThreadFactory threadFactory = null)
         {
             this.settings = settings ?? new GpioConnectionSettings();
-            Pins = new ConnectedPins(this);
+            this.gpioConnectionDriver = GpioConnectionDriverFactory
+                .EnsureGpioConnectionDriverFactory(gpioConnectionDriverFactory).Create();
+            this.thread = ThreadFactory.EnsureThreadFactory(threadFactory).Create();
+            this.Pins = new ConnectedPins(this);
 
             var pinList = pins.ToList();
-            pinConfigurations = pinList.ToDictionary(p => p.Pin);
+            this.pinConfigurations = pinList.ToDictionary(p => p.Pin);
 
-            namedPins = pinList.Where(p => !string.IsNullOrEmpty(p.Name)).ToDictionary(p => p.Name);
-            
-            timer = Timer.Create();
+            this.namedPins = pinList.Where(p => !string.IsNullOrEmpty(p.Name)).ToDictionary(p => p.Name);
 
-            timer.Interval = this.settings.PollInterval;
-            timer.Action = CheckInputPins;
+            this.timer = Timer.Create();
+
+            this.timer.Interval = this.settings.PollInterval;
+            this.timer.Tick += this.CheckInputPins;
 
             if (this.settings.Opened)
-                Open();
+            {
+                this.Open();
+            }
         }
 
-        void IDisposable.Dispose()
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
         {
-            Close();
+            this.Close();
+            this.thread.Dispose();
+            Timer.Dispose(this.timer);
+            this.gpioConnectionDriver.Dispose();
         }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         /// Gets a value indicating whether connection is opened.
@@ -97,8 +105,8 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         public bool this[string name]
         {
-            get { return this[namedPins[name].Pin]; }
-            set { this[namedPins[name].Pin] = value; }
+            get => this[this.namedPins[name].Pin];
+            set => this[this.namedPins[name].Pin] = value;
         }
 
         /// <summary>
@@ -106,8 +114,8 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         public bool this[ConnectorPin pin]
         {
-            get { return this[pin.ToProcessor()]; }
-            set { this[pin.ToProcessor()] = value; }
+            get => this[pin.ToProcessor()];
+            set => this[pin.ToProcessor()] = value;
         }
 
         /// <summary>
@@ -115,20 +123,21 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         public bool this[PinConfiguration pin]
         {
-            get { return pinValues[pin.Pin]; }
+            get => this.pinValues[pin.Pin];
             set
             {
                 if (pin.Direction == PinDirection.Output)
                 {
                     var pinValue = pin.GetEffective(value);
-                    Driver.Write(pin.Pin, pinValue);
+                    this.gpioConnectionDriver.Write(pin.Pin, pinValue);
 
-                    pinValues[pin.Pin] = value;
-                    OnPinStatusChanged(new PinStatusEventArgs {Enabled = value, Configuration = pin});
+                    this.pinValues[pin.Pin] = value;
+                    this.OnPinStatusChanged(new PinStatusEventArgs { Enabled = value, Configuration = pin });
                 }
                 else
+                {
                     throw new InvalidOperationException("Value of input pins cannot be modified");
-
+                }
             }
         }
 
@@ -137,34 +146,34 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         public bool this[ProcessorPin pin]
         {
-            get { return this[pinConfigurations[pin]]; }
-            set { this[pinConfigurations[pin]] = value; }
+            get => this[this.pinConfigurations[pin]];
+            set => this[this.pinConfigurations[pin]] = value;
         }
 
         /// <summary>
         /// Gets the pins.
         /// </summary>
-        public ConnectedPins Pins { get; private set; }
-
-        #endregion
-
-        #region Methods
+        public ConnectedPins Pins { get; }
 
         /// <summary>
         /// Opens the connection.
         /// </summary>
         public void Open()
         {
-            lock (timer)
+            lock (this.timer)
             {
-                if (IsOpened)
+                if (this.IsOpened)
+                {
                     return;
+                }
 
-                foreach (var pin in pinConfigurations.Values)
-                    Allocate(pin);
+                foreach (var pin in this.pinConfigurations.Values)
+                {
+                    this.Allocate(pin);
+                }
 
-                timer.Start(TimeSpan.FromMilliseconds(10));
-                IsOpened = true;
+                this.timer.Start(TimeSpan.FromMilliseconds(10));
+                this.IsOpened = true;
             }
         }
 
@@ -173,16 +182,20 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         public void Close()
         {
-            lock (timer)
+            lock (this.timer)
             {
-                if (!IsOpened)
+                if (!this.IsOpened)
+                {
                     return;
+                }
 
-                timer.Stop();
-                foreach (var pin in pinConfigurations.Values)
-                    Release(pin);
+                this.timer.Stop();
+                foreach (var pin in this.pinConfigurations.Values)
+                {
+                    this.Release(pin);
+                }
 
-                IsOpened = false;
+                this.IsOpened = false;
             }
         }
 
@@ -191,17 +204,19 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         public void Clear()
         {
-            lock (pinConfigurations)
+            lock (this.pinConfigurations)
             {
-                foreach (var pinConfiguration in pinConfigurations.Values)
-                    Release(pinConfiguration);
+                foreach (var pinConfiguration in this.pinConfigurations.Values)
+                {
+                    this.Release(pinConfiguration);
+                }
 
-                pinConfigurations.Clear();
-                namedPins.Clear();
-                pinValues.Clear();
+                this.pinConfigurations.Clear();
+                this.namedPins.Clear();
+                this.pinValues.Clear();
 
-                pinRawValues = ProcessorPins.None;
-                inputPins = ProcessorPins.None;
+                this.pinRawValues = ProcessorPins.None;
+                this.inputPins = ProcessorPins.None;
             }
         }
 
@@ -211,22 +226,31 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="pin">The pin.</param>
         public void Add(PinConfiguration pin)
         {
-            lock (pinConfigurations)
+            lock (this.pinConfigurations)
             {
-                if (pinConfigurations.ContainsKey(pin.Pin))
+                if (this.pinConfigurations.ContainsKey(pin.Pin))
+                {
                     throw new InvalidOperationException("This pin is already present on the connection");
-                if (!string.IsNullOrEmpty(pin.Name) && namedPins.ContainsKey(pin.Name))
-                    throw new InvalidOperationException("A pin with the same name is already present on the connection");
+                }
 
-                pinConfigurations.Add(pin.Pin, pin);
+                if (!string.IsNullOrEmpty(pin.Name) && this.namedPins.ContainsKey(pin.Name))
+                {
+                    throw new InvalidOperationException("A pin with the same name is already present on the connection");
+                }
+
+                this.pinConfigurations.Add(pin.Pin, pin);
 
                 if (!string.IsNullOrEmpty(pin.Name))
-                    namedPins.Add(pin.Name, pin);
-
-                lock (timer)
                 {
-                    if (IsOpened)
-                        Allocate(pin);
+                    this.namedPins.Add(pin.Name, pin);
+                }
+
+                lock (this.timer)
+                {
+                    if (this.IsOpened)
+                    {
+                        this.Allocate(pin);
+                    }
                 }
             }
         }
@@ -240,7 +264,7 @@ namespace Pi.IO.GeneralPurpose
         /// </returns>
         public bool Contains(string pinName)
         {
-            return namedPins.ContainsKey(pinName);
+            return this.namedPins.ContainsKey(pinName);
         }
 
         /// <summary>
@@ -252,7 +276,7 @@ namespace Pi.IO.GeneralPurpose
         /// </returns>
         public bool Contains(ConnectorPin pin)
         {
-            return pinConfigurations.ContainsKey(pin.ToProcessor());
+            return this.pinConfigurations.ContainsKey(pin.ToProcessor());
         }
 
         /// <summary>
@@ -264,7 +288,7 @@ namespace Pi.IO.GeneralPurpose
         /// </returns>
         public bool Contains(ProcessorPin pin)
         {
-            return pinConfigurations.ContainsKey(pin);
+            return this.pinConfigurations.ContainsKey(pin);
         }
 
         /// <summary>
@@ -276,7 +300,7 @@ namespace Pi.IO.GeneralPurpose
         /// </returns>
         public bool Contains(PinConfiguration configuration)
         {
-            return pinConfigurations.ContainsKey(configuration.Pin);
+            return this.pinConfigurations.ContainsKey(configuration.Pin);
         }
 
         /// <summary>
@@ -285,7 +309,7 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="pinName">Name of the pin.</param>
         public void Remove(string pinName)
         {
-            Remove(namedPins[pinName]);
+            this.Remove(this.namedPins[pinName]);
         }
 
         /// <summary>
@@ -294,7 +318,7 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="pin">The pin.</param>
         public void Remove(ConnectorPin pin)
         {
-            Remove(pinConfigurations[pin.ToProcessor()]);
+            this.Remove(this.pinConfigurations[pin.ToProcessor()]);
         }
 
         /// <summary>
@@ -303,7 +327,7 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="pin">The pin.</param>
         public void Remove(ProcessorPin pin)
         {
-            Remove(pinConfigurations[pin]);
+            this.Remove(this.pinConfigurations[pin]);
         }
 
         /// <summary>
@@ -312,22 +336,27 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="configuration">The pin configuration.</param>
         public void Remove(PinConfiguration configuration)
         {
-            lock (pinConfigurations)
+            lock (this.pinConfigurations)
             {
-                lock (timer)
+                lock (this.timer)
                 {
-                    if (IsOpened)
-                        Release(configuration);
+                    if (this.IsOpened)
+                    {
+                        this.Release(configuration);
+                    }
                 }
 
-                pinConfigurations.Remove(configuration.Pin);
+                this.pinConfigurations.Remove(configuration.Pin);
                 if (!string.IsNullOrEmpty(configuration.Name))
-                    namedPins.Remove(configuration.Name);
-                pinValues.Remove(configuration.Pin);
+                {
+                    this.namedPins.Remove(configuration.Name);
+                }
+
+                this.pinValues.Remove(configuration.Pin);
 
                 var pin = (ProcessorPins)((uint)1 << (int)configuration.Pin);
-                inputPins = inputPins & ~pin;
-                pinRawValues = pinRawValues & ~pin;
+                this.inputPins = this.inputPins & ~pin;
+                this.pinRawValues = this.pinRawValues & ~pin;
             }
         }
 
@@ -374,9 +403,9 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="duration">The duration.</param>
         public void Blink(string pinName, TimeSpan duration = new TimeSpan())
         {
-            Toggle(pinName);
-            Sleep(duration);
-            Toggle(pinName);
+            this.Toggle(pinName);
+            this.Sleep(duration);
+            this.Toggle(pinName);
         }
 
         /// <summary>
@@ -386,9 +415,9 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="duration">The duration.</param>
         public void Blink(ProcessorPin pin, TimeSpan duration = new TimeSpan())
         {
-            Toggle(pin);
-            Sleep(duration);
-            Toggle(pin);
+            this.Toggle(pin);
+            this.Sleep(duration);
+            this.Toggle(pin);
         }
 
         /// <summary>
@@ -398,9 +427,9 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="duration">The duration.</param>
         public void Blink(ConnectorPin pin, TimeSpan duration = new TimeSpan())
         {
-            Toggle(pin);
-            Sleep(duration);
-            Toggle(pin);
+            this.Toggle(pin);
+            this.Sleep(duration);
+            this.Toggle(pin);
         }
 
         /// <summary>
@@ -410,66 +439,40 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="duration">The duration.</param>
         public void Blink(PinConfiguration configuration, TimeSpan duration = new TimeSpan())
         {
-            Toggle(configuration);
-            Sleep(duration);
-            Toggle(configuration);
+            this.Toggle(configuration);
+            this.Sleep(duration);
+            this.Toggle(configuration);
         }
-
-        #endregion
-
-        #region Events
 
         /// <summary>
         /// Occurs when the status of a pin changed.
         /// </summary>
         public event EventHandler<PinStatusEventArgs> PinStatusChanged;
 
-        #endregion
-
-        #region Protected Methods
-
         /// <summary>
         /// Raises the <see cref="PinStatusChanged"/> event.
         /// </summary>
-        /// <param name="e">The <see cref="Raspberry.IO.GeneralPurpose.PinStatusEventArgs"/> instance containing the event data.</param>
+        /// <param name="e">The <see cref="Pi.IO.GeneralPurpose.PinStatusEventArgs"/> instance containing the event data.</param>
         protected void OnPinStatusChanged(PinStatusEventArgs e)
         {
-            var handler = PinStatusChanged;
-            if (handler != null)
-                handler(this, e);
+            this.PinStatusChanged?.Invoke(this, e);
         }
-
-        #endregion
-        
-        #region Internal Methods
 
         internal PinConfiguration GetConfiguration(string pinName)
         {
-            return namedPins[pinName];
+            return this.namedPins[pinName];
         }
 
         internal PinConfiguration GetConfiguration(ProcessorPin pin)
         {
-            return pinConfigurations[pin];
+            return this.pinConfigurations[pin];
         }
 
-        internal IEnumerable<PinConfiguration> Configurations
-        {
-            get { return pinConfigurations.Values; }
-        }
-        
-        #endregion
-
-        #region Private Helpers
-
-        private IGpioConnectionDriver Driver
-        {
-            get { return settings.Driver; }
-        }
+        internal IEnumerable<PinConfiguration> Configurations => this.pinConfigurations.Values;
 
         private void Sleep(TimeSpan duration)
         {
-            Timer.Sleep(duration <= TimeSpan.Zero ? settings.BlinkDuration : duration);
+            this.thread.Sleep(duration <= TimeSpan.Zero ? this.settings.BlinkDuration : duration);
         }
 
         private void Allocate(PinConfiguration configuration)
@@ -481,36 +484,41 @@ namespace Pi.IO.GeneralPurpose
                                                                            if (args.Configuration == configuration)
                                                                                configuration.StatusChangedAction(args.Enabled);
                                                                        });
-                pinEvents[configuration.Pin] = handler;
-                PinStatusChanged += handler;
+                this.pinEvents[configuration.Pin] = handler;
+                this.PinStatusChanged += handler;
             }
 
-            Driver.Allocate(configuration.Pin, configuration.Direction);
+            this.gpioConnectionDriver.Allocate(configuration.Pin, configuration.Direction);
             var outputConfiguration = configuration as OutputPinConfiguration;
             if (outputConfiguration != null)
+            {
                 this[configuration.Pin] = outputConfiguration.Enabled;
+            }
             else
             {
-                var inputConfiguration = (InputPinConfiguration) configuration;
-                var pinValue = Driver.Read(inputConfiguration.Pin);
+                var inputConfiguration = (InputPinConfiguration)configuration;
+                var pinValue = this.gpioConnectionDriver.Read(inputConfiguration.Pin);
 
                 var pin = (ProcessorPins)((uint)1 << (int)inputConfiguration.Pin);
-                inputPins = inputPins | pin;
-                pinRawValues = Driver.Read(inputPins);
+                this.inputPins = this.inputPins | pin;
+                this.pinRawValues = this.gpioConnectionDriver.Read(this.inputPins);
 
-                if (inputConfiguration.Resistor != PinResistor.None && (Driver.GetCapabilities() & GpioConnectionDriverCapabilities.CanSetPinResistor) > 0)
-                    Driver.SetPinResistor(inputConfiguration.Pin, inputConfiguration.Resistor);
+                if (inputConfiguration.Resistor != PinResistor.None &&
+                    (this.gpioConnectionDriver.GetCapabilities() & GpioConnectionDriverCapabilities.CanSetPinResistor) > 0)
+                {
+                    this.gpioConnectionDriver.SetPinResistor(inputConfiguration.Pin, inputConfiguration.Resistor);
+                }
 
                 var switchConfiguration = inputConfiguration as SwitchInputPinConfiguration;
                 if (switchConfiguration != null)
                 {
-                    pinValues[inputConfiguration.Pin] = switchConfiguration.Enabled;
-                    OnPinStatusChanged(new PinStatusEventArgs { Configuration = inputConfiguration, Enabled = pinValues[inputConfiguration.Pin] });
+                    this.pinValues[inputConfiguration.Pin] = switchConfiguration.Enabled;
+                    this.OnPinStatusChanged(new PinStatusEventArgs { Configuration = inputConfiguration, Enabled = this.pinValues[inputConfiguration.Pin] });
                 }
                 else
                 {
-                    pinValues[inputConfiguration.Pin] = inputConfiguration.GetEffective(pinValue);
-                    OnPinStatusChanged(new PinStatusEventArgs { Configuration = inputConfiguration, Enabled = pinValues[inputConfiguration.Pin] });
+                    this.pinValues[inputConfiguration.Pin] = inputConfiguration.GetEffective(pinValue);
+                    this.OnPinStatusChanged(new PinStatusEventArgs { Configuration = inputConfiguration, Enabled = this.pinValues[inputConfiguration.Pin] });
                 }
             }
         }
@@ -519,63 +527,64 @@ namespace Pi.IO.GeneralPurpose
         {
             if (configuration.Direction == PinDirection.Output)
             {
-                Driver.Write(configuration.Pin, false);
-                OnPinStatusChanged(new PinStatusEventArgs { Enabled = false, Configuration = configuration });
+                this.gpioConnectionDriver.Write(configuration.Pin, false);
+                this.OnPinStatusChanged(new PinStatusEventArgs { Enabled = false, Configuration = configuration });
             }
 
-            Driver.Release(configuration.Pin);
+            this.gpioConnectionDriver.Release(configuration.Pin);
 
-            EventHandler<PinStatusEventArgs> handler;
-            if (pinEvents.TryGetValue(configuration.Pin, out handler))
+            if (this.pinEvents.TryGetValue(configuration.Pin, out var handler))
             {
-                PinStatusChanged -= handler;
-                pinEvents.Remove(configuration.Pin);
+                this.PinStatusChanged -= handler;
+                this.pinEvents.Remove(configuration.Pin);
             }
         }
 
-        private void CheckInputPins()
+        private void CheckInputPins(object sender, EventArgs e)
         {
-            var newPinValues = Driver.Read(inputPins);
-            
-            var changes = newPinValues ^ pinRawValues;
+            var newPinValues = this.gpioConnectionDriver.Read(this.inputPins);
+
+            var changes = newPinValues ^ this.pinRawValues;
             if (changes == ProcessorPins.None)
+            {
                 return;
+            }
 
             var notifiedConfigurations = new List<PinConfiguration>();
             foreach (var np in changes.Enumerate())
             {
-                var processorPin = (ProcessorPins) ((uint) 1 << (int) np);
-                var oldPinValue = (pinRawValues & processorPin) != ProcessorPins.None;
+                var processorPin = (ProcessorPins)((uint)1 << (int)np);
+                var oldPinValue = (this.pinRawValues & processorPin) != ProcessorPins.None;
                 var newPinValue = (newPinValues & processorPin) != ProcessorPins.None;
 
                 if (oldPinValue != newPinValue)
                 {
-                    var pin = (InputPinConfiguration) pinConfigurations[np];
+                    var pin = (InputPinConfiguration)this.pinConfigurations[np];
                     var switchPin = pin as SwitchInputPinConfiguration;
 
                     if (switchPin != null)
                     {
                         if (pin.GetEffective(newPinValue))
                         {
-                            pinValues[np] = !pinValues[np];
+                            this.pinValues[np] = !this.pinValues[np];
                             notifiedConfigurations.Add(pin);
                         }
                     }
                     else
                     {
-                        pinValues[np] = pin.GetEffective(newPinValue);
+                        this.pinValues[np] = pin.GetEffective(newPinValue);
                         notifiedConfigurations.Add(pin);
                     }
                 }
             }
 
-            pinRawValues = newPinValues;
+            this.pinRawValues = newPinValues;
 
             // Only fires events once all states have been modified.
             foreach (var pin in notifiedConfigurations)
-                OnPinStatusChanged(new PinStatusEventArgs {Configuration = pin, Enabled = pinValues[pin.Pin]});
+            {
+                this.OnPinStatusChanged(new PinStatusEventArgs { Configuration = pin, Enabled = this.pinValues[pin.Pin] });
+            }
         }
-
-        #endregion
     }
 }

@@ -1,12 +1,8 @@
-#region References
-
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Collections.Generic;
-
-#endregion
 
 namespace Pi.IO.GeneralPurpose
 {
@@ -15,19 +11,13 @@ namespace Pi.IO.GeneralPurpose
     /// </summary>
     public class FileGpioConnectionDriver : IGpioConnectionDriver
     {
-        #region Fields
-
-        private const string gpioPath = "/sys/class/gpio";
-        private static readonly Dictionary<ProcessorPin, FileGpioHandle> gpioPathList = new Dictionary<ProcessorPin, FileGpioHandle>();
+        private const string GpioPath = "/sys/class/gpio";
+        private static readonly Dictionary<ProcessorPin, FileGpioHandle> GpioPathList = new Dictionary<ProcessorPin, FileGpioHandle>();
 
         /// <summary>
         /// The default timeout (5 seconds).
         /// </summary>
         public static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(5);
-
-        #endregion
-
-        #region Instance Management
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileGpioConnectionDriver"/> class.
@@ -35,12 +25,10 @@ namespace Pi.IO.GeneralPurpose
         public FileGpioConnectionDriver()
         {
             if (Environment.OSVersion.Platform != PlatformID.Unix)
+            {
                 throw new NotSupportedException("FileGpioConnectionDriver is only supported in Unix");
+            }
         }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Gets driver capabilities.
@@ -67,19 +55,22 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="direction">The direction.</param>
         public void Allocate(ProcessorPin pin, PinDirection direction)
         {
-            Release(pin);
+            this.Release(pin);
 
-            using (var streamWriter = new StreamWriter(Path.Combine(gpioPath, "export"), false))
-                streamWriter.Write((int)pin);
-
-            if (!gpioPathList.ContainsKey(pin))
+            using (var streamWriter = new StreamWriter(Path.Combine(GpioPath, "export"), false))
             {
-                var gpio = new FileGpioHandle { GpioPath = GuessGpioPath(pin) };
-                gpioPathList.Add(pin, gpio);
+                streamWriter.Write((int)pin);
             }
 
-            var filePath = Path.Combine(gpioPathList[pin].GpioPath, "direction");
-            try {
+            if (!GpioPathList.ContainsKey(pin))
+            {
+                var gpio = new FileGpioHandle { GpioPath = GuessGpioPath(pin) };
+                GpioPathList.Add(pin, gpio);
+            }
+
+            var filePath = Path.Combine(GpioPathList[pin].GpioPath, "direction");
+            try
+            {
                 SetPinDirection(filePath, direction);
             } 
             catch (UnauthorizedAccessException) {
@@ -88,7 +79,7 @@ namespace Pi.IO.GeneralPurpose
                 SetPinDirection(filePath, direction);
             }
 
-            gpioPathList[pin].GpioStream = new FileStream(Path.Combine(GuessGpioPath(pin), "value"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+            GpioPathList[pin].GpioStream = new FileStream(Path.Combine(GuessGpioPath(pin), "value"), FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
         }
 
         /// <summary>
@@ -106,7 +97,7 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         /// <param name="pin">The pin.</param>
         /// <param name="edges">The edges.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
+        /// <exception cref="NotImplementedException"></exception>
         /// <remarks>
         /// By default, both edges may be detected on input pins.
         /// </remarks>
@@ -128,12 +119,16 @@ namespace Pi.IO.GeneralPurpose
         {
             var startWait = DateTime.UtcNow;
             if (timeout == TimeSpan.Zero)
+            {
                 timeout = DefaultTimeout;
+            }
 
-            while (Read(pin) != waitForUp)
+            while (this.Read(pin) != waitForUp)
             {
                 if (DateTime.UtcNow - startWait >= timeout)
+                {
                     throw new TimeoutException("A timeout occurred while waiting for pin status to change");
+                }
             }
         }
 
@@ -143,14 +138,19 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="pin">The pin.</param>
         public void Release(ProcessorPin pin)
         {
-            if (gpioPathList.ContainsKey(pin) && gpioPathList[pin].GpioStream != null)
+            if (GpioPathList.ContainsKey(pin) && GpioPathList[pin].GpioStream != null)
             {
-                gpioPathList[pin].GpioStream.Close();
-                gpioPathList[pin].GpioStream = null;
+                GpioPathList[pin].GpioStream.Close();
+                GpioPathList[pin].GpioStream = null;
             } 
+
             if (Directory.Exists(GuessGpioPath(pin)))
-                using (var streamWriter = new StreamWriter(Path.Combine(gpioPath, "unexport"), false))
+            {
+                using (var streamWriter = new StreamWriter(Path.Combine(GpioPath, "unexport"), false))
+                {
                     streamWriter.Write((int)pin);
+                }
+            }
         }
 
         /// <summary>
@@ -160,9 +160,9 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="value">The pin status.</param>
         public void Write(ProcessorPin pin, bool value)
         {
-            gpioPathList[pin].GpioStream.Seek(0, SeekOrigin.Begin);
-            gpioPathList[pin].GpioStream.WriteByte(value ? (byte)'1' : (byte)'0');
-            gpioPathList[pin].GpioStream.Flush();
+            GpioPathList[pin].GpioStream.Seek(0, SeekOrigin.Begin);
+            GpioPathList[pin].GpioStream.WriteByte(value ? (byte)'1' : (byte)'0');
+            GpioPathList[pin].GpioStream.Flush();
         }
 
         /// <summary>
@@ -174,9 +174,9 @@ namespace Pi.IO.GeneralPurpose
         /// </returns>
         public bool Read(ProcessorPin pin)
         {
-            gpioPathList[pin].GpioStream.Seek(0, SeekOrigin.Begin);
-            var rawValue = (char)gpioPathList[pin].GpioStream.ReadByte();
-            gpioPathList[pin].GpioStream.Flush();
+            GpioPathList[pin].GpioStream.Seek(0, SeekOrigin.Begin);
+            var rawValue = (char)GpioPathList[pin].GpioStream.ReadByte();
+            GpioPathList[pin].GpioStream.Flush();
             return rawValue == '1';
         }
 
@@ -190,21 +190,22 @@ namespace Pi.IO.GeneralPurpose
         public ProcessorPins Read(ProcessorPins pins)
         {
             return pins.Enumerate()
-                .Select(p => Read(p) ? (ProcessorPins) ((uint) 1 << (int) p) : ProcessorPins.None)
+                .Select(p => this.Read(p) ? (ProcessorPins) ((uint) 1 << (int) p) : ProcessorPins.None)
                     .Aggregate(
                         ProcessorPins.None, 
                         (a, p) => a | p);
         }
 
-        #endregion
+        /// <inheritdoc />
+        public void Dispose()
+        {
+        }
 
-        #region Private Helpers
-
-        private static void SetPinDirection(string fullFilePath, PinDirection direction) {
-            using (var streamWriter = new StreamWriter(fullFilePath, false)) {
-                streamWriter.Write(direction == PinDirection.Input
-                                   ? "in"
-                                   : "out");
+        private static void SetPinDirection(string fullFilePath, PinDirection direction)
+        {
+            using (var streamWriter = new StreamWriter(fullFilePath, false))
+            {
+                streamWriter.Write(direction == PinDirection.Input ? "in" : "out");
             }
         }
 
@@ -212,12 +213,12 @@ namespace Pi.IO.GeneralPurpose
         {
             // by default use Raspberry Pi pin path format
             string gpioId = string.Format("gpio{0}", (int)pin);
-            string pinPath = Path.Combine(gpioPath, gpioId);
+            string pinPath = Path.Combine(GpioPath, gpioId);
             // verify/lookup pin path
             if (!Directory.Exists(pinPath))
             {
                 // check for sunxi gpio path name format (eg. "gpio11_pe10", "gpio2_pi21", ...)
-                string[] dirs = Directory.GetDirectories(gpioPath);
+                string[] dirs = Directory.GetDirectories(GpioPath);
                 foreach (string d in dirs)
                 {
                     if (d.StartsWith(pinPath + "_"))
@@ -227,9 +228,8 @@ namespace Pi.IO.GeneralPurpose
                     }
                 }
             } 
+
             return pinPath;
         }
-
-        #endregion
     }
 }

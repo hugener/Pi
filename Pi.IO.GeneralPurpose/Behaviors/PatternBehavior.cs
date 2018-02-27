@@ -1,9 +1,6 @@
-#region References
-
 using System.Collections.Generic;
 using System.Linq;
-
-#endregion
+using Pi.System.Threading;
 
 namespace Pi.IO.GeneralPurpose.Behaviors
 {
@@ -12,34 +9,29 @@ namespace Pi.IO.GeneralPurpose.Behaviors
     /// </summary>
     public class PatternBehavior : PinsBehavior
     {
-        #region Fields
-
         private bool wayOut;
 
-        #endregion
-
-        #region Instance Management
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="PatternBehavior"/> class.
+        /// Initializes a new instance of the <see cref="PatternBehavior" /> class.
         /// </summary>
         /// <param name="configurations">The configurations.</param>
         /// <param name="patterns">The patterns.</param>
-        public PatternBehavior(IEnumerable<PinConfiguration> configurations, IEnumerable<int> patterns) : this(configurations, patterns.Select(i => (long) i)){}
+        /// <param name="threadFactory">The thread factory.</param>
+        public PatternBehavior(IEnumerable<PinConfiguration> configurations, IEnumerable<int> patterns, IThreadFactory threadFactory = null)
+            : this(configurations, patterns.Select(i => (long)i), threadFactory)
+        { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PatternBehavior"/> class.
+        /// Initializes a new instance of the <see cref="PatternBehavior" /> class.
         /// </summary>
         /// <param name="configurations">The configurations.</param>
         /// <param name="patterns">The patterns.</param>
-        public PatternBehavior(IEnumerable<PinConfiguration> configurations, IEnumerable<long> patterns) : base(configurations)
+        /// <param name="threadFactory">The thread factory.</param>
+        public PatternBehavior(IEnumerable<PinConfiguration> configurations, IEnumerable<long> patterns, IThreadFactory threadFactory = null)
+            : base(configurations, ThreadFactory.EnsureThreadFactory(threadFactory))
         {
-            Patterns = patterns.ToArray();
+            this.Patterns = patterns.ToArray();
         }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="PatternBehavior"/> must loop.
@@ -57,10 +49,6 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// </value>
         public bool RoundTrip { get; set; }
 
-        #endregion
-
-        #region Protected Methods
-
         /// <summary>
         /// Gets the first step.
         /// </summary>
@@ -69,7 +57,7 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// </returns>
         protected override int GetFirstStep()
         {
-            wayOut = true;
+            this.wayOut = true;
             return 0;
         }
 
@@ -79,10 +67,12 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// <param name="step">The step.</param>
         protected override void ProcessStep(int step)
         {
-            var pattern = Patterns[step];
+            var pattern = this.Patterns[step];
 
-            for (var i = 0; i < Configurations.Length; i++)
-                Connection[Configurations[i]] = ((pattern >> i) & 0x1) == 0x1;
+            for (var i = 0; i < this.Configurations.Length; i++)
+            {
+                this.Connection[this.Configurations[i]] = ((pattern >> i) & 0x1) == 0x1;
+            }
         }
 
         /// <summary>
@@ -94,36 +84,46 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// </returns>
         protected override bool TryGetNextStep(ref int step)
         {
-            if (wayOut)
+            if (this.wayOut)
             {
-                if (step == Patterns.Length - 1)
+                if (step == this.Patterns.Length - 1)
                 {
-                    if (RoundTrip)
+                    if (this.RoundTrip)
                     {
-                        wayOut = false;
+                        this.wayOut = false;
                         step--;
                     }
-                    else if (Loop)
+                    else if (this.Loop)
+                    {
                         step = 0;
+                    }
                     else
+                    {
                         return false;
+                    }
                 }
                 else
+                {
                     step++;
+                }
             }
             else
             {
                 if (step == 0)
                 {
-                    if (Loop && RoundTrip)
+                    if (this.Loop && this.RoundTrip)
                     {
-                        wayOut = true;
+                        this.wayOut = true;
                         step++;
                     }
-                    else if (Loop)
-                        step = Patterns.Length - 1;
+                    else if (this.Loop)
+                    {
+                        step = this.Patterns.Length - 1;
+                    }
                     else
+                    {
                         return false;
+                    }
                 }
                 else step--;
             }
@@ -131,12 +131,6 @@ namespace Pi.IO.GeneralPurpose.Behaviors
             return true;
         }
 
-        #endregion
-
-        #region Private Helpers
-
-        private long[] Patterns { get; set; }
-
-        #endregion
+        private long[] Patterns { get; }
     }
 }

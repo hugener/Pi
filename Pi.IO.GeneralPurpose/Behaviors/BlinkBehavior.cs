@@ -1,8 +1,5 @@
-#region References
-
 using System.Collections.Generic;
-
-#endregion
+using Pi.System.Threading;
 
 namespace Pi.IO.GeneralPurpose.Behaviors
 {
@@ -11,17 +8,14 @@ namespace Pi.IO.GeneralPurpose.Behaviors
     /// </summary>
     public class BlinkBehavior : PinsBehavior
     {
-        #region Instance Management
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="BlinkBehavior"/> class.
+        /// Initializes a new instance of the <see cref="BlinkBehavior" /> class.
         /// </summary>
         /// <param name="configurations">The configurations.</param>
-        public BlinkBehavior(IEnumerable<PinConfiguration> configurations) : base(configurations){}
-
-        #endregion
-
-        #region Properties
+        /// <param name="threadFactory">The thread factory.</param>
+        public BlinkBehavior(IEnumerable<PinConfiguration> configurations, IThreadFactory threadFactory = null) 
+            : base(configurations, ThreadFactory.EnsureThreadFactory(threadFactory))
+        { }
 
         /// <summary>
         /// Gets or sets the number of times the behavior may blink.
@@ -30,10 +24,6 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// The number of times the behavior may blink.
         /// </value>
         public int Count { get; set; }
-
-        #endregion
-
-        #region Protected Methods
 
         /// <summary>
         /// Gets the first step.
@@ -52,8 +42,10 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// <param name="step">The step.</param>
         protected override void ProcessStep(int step)
         {
-            foreach (var configuration in Configurations)
-                Connection.Toggle(configuration);
+            foreach (var configuration in this.Configurations)
+            {
+                this.Connection.Toggle(configuration);
+            }
         }
 
         /// <summary>
@@ -66,9 +58,7 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         protected override bool TryGetNextStep(ref int step)
         {
             step++;
-            return step <= Count*2;
+            return step <= this.Count * 2;
         }
-
-        #endregion
     }
 }

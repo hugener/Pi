@@ -1,6 +1,7 @@
 #region References
 
 using System;
+using System.Threading;
 
 #endregion
 
@@ -9,19 +10,13 @@ namespace Pi.Timers
     /// <summary>
     /// Represents a timer.
     /// </summary>
-    public class StandardTimer : ITimer
+    internal class StandardTimer : ITimer
     {
-        #region Fields
-
         private TimeSpan interval;
-        private Action action;
+        private EventHandler tick;
 
         private bool isStarted;
-        private System.Threading.Timer timer;
-
-        #endregion
-
-        #region Properties
+        private global::System.Threading.Timer timer;
 
         /// <summary>
         /// Gets or sets the interval, in milliseconds.
@@ -31,12 +26,14 @@ namespace Pi.Timers
         /// </value>
         public TimeSpan Interval
         {
-            get { return interval; }
+            get => this.interval;
             set
             {
-                interval = value;
-                if (isStarted)
-                    Start(TimeSpan.Zero);
+                this.interval = value;
+                if (this.isStarted)
+                {
+                    this.Start(TimeSpan.Zero);
+                }
             }
         }
 
@@ -46,21 +43,19 @@ namespace Pi.Timers
         /// <value>
         /// The action.
         /// </value>
-        public Action Action
+        public event EventHandler Tick
         {
-            get { return action; }
-            set
+            add
             {
-                if (value == null)
-                    Stop();
-
-                action = value;
+                this.tick += value;
+                this.StopIfHandlerEmpty();
+            }
+            remove
+            {
+                this.tick -= value;
+                this.StopIfHandlerEmpty();
             }
         }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Starts this instance.
@@ -70,13 +65,15 @@ namespace Pi.Timers
         {
             lock (this)
             {
-                if (!isStarted && interval.TotalMilliseconds >= 1)
+                if (!this.isStarted && this.interval.TotalMilliseconds >= 1)
                 {
-                    isStarted = true;
-                    timer = new System.Threading.Timer(OnElapsed, null, startDelay, interval);
+                    this.isStarted = true;
+                    this.timer = new global::System.Threading.Timer(this.OnElapsed, null, startDelay, this.interval);
                 }
                 else
-                    Stop();
+                {
+                    this.Stop();
+                }
             }
         }
 
@@ -87,26 +84,34 @@ namespace Pi.Timers
         {
             lock (this)
             {
-                if (isStarted)
+                if (this.isStarted)
                 {
-                    isStarted = false;
-                    timer.Dispose();
-                    timer = null;
+                    this.isStarted = false;
+                    this.timer.Dispose();
+                    this.timer = null;
                 }
             }
         }
 
-        #endregion
-
-        #region Private Helpers
-
-        private void NoOp(){}
+        /// <summary>
+        /// Releases unmanaged and - optionally - managed resources.
+        /// </summary>
+        public void Dispose()
+        {
+            this.tick = null;
+        }
 
         private void OnElapsed(object state)
         {
-            (Action ?? NoOp)();
+            this.tick?.Invoke(this, EventArgs.Empty);
         }
 
-        #endregion
+        private void StopIfHandlerEmpty()
+        {
+            if (this.tick == null)
+            {
+                this.Stop();
+            }
+        }
     }
 }
