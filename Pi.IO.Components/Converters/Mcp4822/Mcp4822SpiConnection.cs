@@ -1,25 +1,20 @@
-#region References
-
-using System;
-using Pi.IO.SerialPeripheralInterface;
-
-#endregion
+// <copyright file="Mcp4822SpiConnection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Converters.Mcp4822
 {
+    using global::System;
+    using SerialPeripheralInterface;
+
     /// <summary>
     /// Represents a SPI connection to a MCP4802/4812/4822 DAC.
     /// </summary>
     /// <remarks>See http://ww1.microchip.com/downloads/en/DeviceDoc/22249A.pdf for specifications.</remarks>
     public class Mcp4822SpiConnection : IDisposable
     {
-        #region Fields
-
         private readonly SpiConnection spiConnection;
-
-        #endregion
-
-        #region Instance Management
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Mcp4822SpiConnection" /> class.
@@ -29,7 +24,7 @@ namespace Pi.IO.Components.Converters.Mcp4822
         /// <param name="mosiPin">The mosi pin.</param>
         public Mcp4822SpiConnection(IOutputBinaryPin clockPin, IOutputBinaryPin slaveSelectPin, IOutputBinaryPin mosiPin)
         {
-            spiConnection = new SpiConnection(clockPin, slaveSelectPin, null, mosiPin, Endianness.LittleEndian);
+            this.spiConnection = new SpiConnection(clockPin, slaveSelectPin, null, mosiPin, Endianness.LittleEndian);
         }
 
         /// <summary>
@@ -37,19 +32,15 @@ namespace Pi.IO.Components.Converters.Mcp4822
         /// </summary>
         void IDisposable.Dispose()
         {
-            Close();
+            this.Close();
         }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Closes this instance.
         /// </summary>
         public void Close()
         {
-            spiConnection.Close();
+            this.spiConnection.Close();
         }
 
         /// <summary>
@@ -59,29 +50,29 @@ namespace Pi.IO.Components.Converters.Mcp4822
         /// <param name="data">The data.</param>
         public void Write(Mcp4822Channel channel, AnalogValue data)
         {
-            using (spiConnection.SelectSlave())
+            using (this.spiConnection.SelectSlave())
             {
                 var value = (uint)(data.Relative * 0xFFF);
                 if (value > 0xFFF)
+                {
                     value = 0xFFF;
+                }
 
                 // Set active channel
-                spiConnection.Write(channel == Mcp4822Channel.ChannelB);
+                this.spiConnection.Write(channel == Mcp4822Channel.ChannelB);
 
                 // Ignored bit
-                spiConnection.Synchronize();
+                this.spiConnection.Synchronize();
 
                 // Select 1x Gain
-                spiConnection.Write(true);
+                this.spiConnection.Write(true);
 
                 // Active mode operation
-                spiConnection.Write(true);
+                this.spiConnection.Write(true);
 
                 // Write 12 bits data (some lower bits are ignored by MCP4802/4812
-                spiConnection.Write(value, 12);
+                this.spiConnection.Write(value, 12);
             }
         }
-
-        #endregion
     }
 }

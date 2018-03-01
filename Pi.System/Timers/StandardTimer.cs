@@ -1,12 +1,12 @@
-#region References
-
-using System;
-using System.Threading;
-
-#endregion
+// <copyright file="StandardTimer.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.Timers
 {
+    using global::System;
+
     /// <summary>
     /// Represents a timer.
     /// </summary>
@@ -17,6 +17,27 @@ namespace Pi.Timers
 
         private bool isStarted;
         private global::System.Threading.Timer timer;
+
+        /// <summary>
+        /// Gets or sets the action.
+        /// </summary>
+        /// <value>
+        /// The action.
+        /// </value>
+        public event EventHandler Tick
+        {
+            add
+            {
+                this.tick += value;
+                this.StopIfHandlerEmpty();
+            }
+
+            remove
+            {
+                this.tick -= value;
+                this.StopIfHandlerEmpty();
+            }
+        }
 
         /// <summary>
         /// Gets or sets the interval, in milliseconds.
@@ -34,26 +55,6 @@ namespace Pi.Timers
                 {
                     this.Start(TimeSpan.Zero);
                 }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the action.
-        /// </summary>
-        /// <value>
-        /// The action.
-        /// </value>
-        public event EventHandler Tick
-        {
-            add
-            {
-                this.tick += value;
-                this.StopIfHandlerEmpty();
-            }
-            remove
-            {
-                this.tick -= value;
-                this.StopIfHandlerEmpty();
             }
         }
 

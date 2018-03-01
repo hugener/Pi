@@ -1,7 +1,12 @@
-using System;
+// <copyright file="GpioConnectionDriverCapabilities.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.GeneralPurpose
 {
+    using global::System;
+
     /// <summary>
     /// Represents capabilities of a driver.
     /// </summary>
@@ -27,7 +32,7 @@ namespace Pi.IO.GeneralPurpose
         /// The driver can change pin direction rapidly.
         /// </summary>
         CanChangePinDirectionRapidly = 4,
-        
+
         /// <summary>
         /// The driver can work on third-party computers (not only Raspberry Pi)
         /// </summary>

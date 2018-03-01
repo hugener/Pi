@@ -1,9 +1,14 @@
-using System.Collections.Generic;
-using System.Linq;
-using Pi.System.Threading;
+// <copyright file="PatternBehavior.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.GeneralPurpose.Behaviors
 {
+    using System.Threading;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+
     /// <summary>
     /// Represents a pattern behavior.
     /// </summary>
@@ -19,7 +24,8 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// <param name="threadFactory">The thread factory.</param>
         public PatternBehavior(IEnumerable<PinConfiguration> configurations, IEnumerable<int> patterns, IThreadFactory threadFactory = null)
             : this(configurations, patterns.Select(i => (long)i), threadFactory)
-        { }
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PatternBehavior" /> class.
@@ -48,6 +54,8 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         ///   <c>true</c> if round-trip is enabled; otherwise, <c>false</c>.
         /// </value>
         public bool RoundTrip { get; set; }
+
+        private long[] Patterns { get; }
 
         /// <summary>
         /// Gets the first step.
@@ -125,12 +133,13 @@ namespace Pi.IO.GeneralPurpose.Behaviors
                         return false;
                     }
                 }
-                else step--;
+                else
+                {
+                    step--;
+                }
             }
 
             return true;
         }
-
-        private long[] Patterns { get; }
     }
 }

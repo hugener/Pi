@@ -1,18 +1,17 @@
-#region References
-
-using System;
-
-#endregion
+// <copyright file="PinConfigurationExtensionMethods.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.GeneralPurpose
 {
+    using global::System;
+
     /// <summary>
     /// Provides extension methods for pin configuration.
     /// </summary>
     public static class PinConfigurationExtensionMethods
     {
-        #region Methods
-
         /// <summary>
         /// Configures the specified pin as an input pin.
         /// </summary>
@@ -70,7 +69,8 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="configuration">The configuration.</param>
         /// <param name="action">The action.</param>
         /// <returns>The pin configuration.</returns>
-        public static T OnStatusChanged<T>(this T configuration, Action<bool> action) where T : PinConfiguration
+        public static T OnStatusChanged<T>(this T configuration, Action<bool> action)
+            where T : PinConfiguration
         {
             configuration.StatusChangedAction = action;
             return configuration;
@@ -83,7 +83,8 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="configuration">The configuration.</param>
         /// <param name="name">The name.</param>
         /// <returns>The pin configuration.</returns>
-        public static T Name<T>(this T configuration, string name) where T : PinConfiguration
+        public static T Name<T>(this T configuration, string name)
+            where T : PinConfiguration
         {
             configuration.Name = name;
             return configuration;
@@ -95,7 +96,8 @@ namespace Pi.IO.GeneralPurpose
         /// <typeparam name="T">The configuration type.</typeparam>
         /// <param name="configuration">The configuration.</param>
         /// <returns>The pin configuration.</returns>
-        public static T Revert<T>(this T configuration) where T : PinConfiguration
+        public static T Revert<T>(this T configuration)
+            where T : PinConfiguration
         {
             configuration.Reversed = !configuration.Reversed;
             return configuration;
@@ -107,7 +109,8 @@ namespace Pi.IO.GeneralPurpose
         /// <typeparam name="T">The configuration type.</typeparam>
         /// <param name="configuration">The configuration.</param>
         /// <returns>The pin configuration.</returns>
-        public static T PullUp<T>(this T configuration) where T : InputPinConfiguration
+        public static T PullUp<T>(this T configuration)
+            where T : InputPinConfiguration
         {
             configuration.Resistor = PinResistor.PullUp;
             return configuration;
@@ -119,7 +122,8 @@ namespace Pi.IO.GeneralPurpose
         /// <typeparam name="T">The configuration type.</typeparam>
         /// <param name="configuration">The configuration.</param>
         /// <returns>The pin configuration.</returns>
-        public static T PullDown<T>(this T configuration) where T : InputPinConfiguration
+        public static T PullDown<T>(this T configuration)
+            where T : InputPinConfiguration
         {
             configuration.Resistor = PinResistor.PullDown;
             return configuration;
@@ -168,7 +172,5 @@ namespace Pi.IO.GeneralPurpose
             configuration.Enabled = false;
             return configuration;
         }
-
-        #endregion
     }
 }

@@ -1,3 +1,8 @@
+// <copyright file="Mcp23017PinExtensionMethods.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 namespace Pi.IO.Components.Expanders.Mcp23017
 {
     /// <summary>
@@ -5,8 +10,6 @@ namespace Pi.IO.Components.Expanders.Mcp23017
     /// </summary>
     public static class Mcp23017PinExtensionMethods
     {
-        #region Methods
-
         /// <summary>
         /// Creates an output binary pin.
         /// </summary>
@@ -14,8 +17,8 @@ namespace Pi.IO.Components.Expanders.Mcp23017
         /// <param name="pin">The pin.</param>
         /// <param name="resistor">The resistor.</param>
         /// <param name="polarity">The polarity.</param>
-        /// <returns>The pin.</returns>
-        public static Mcp23017OutputBinaryPin Out(this Mcp23017I2cConnection connection, Mcp23017Pin pin, Mcp23017PinResistor resistor = Mcp23017PinResistor.None, Mcp23017PinPolarity polarity = Mcp23017PinPolarity.Normal)
+        /// <returns>The output pin.</returns>
+        public static Mcp23017OutputBinaryPin Out(this Mcp23017I2CConnection connection, Mcp23017Pin pin, Mcp23017PinResistor resistor = Mcp23017PinResistor.None, Mcp23017PinPolarity polarity = Mcp23017PinPolarity.Normal)
         {
             return new Mcp23017OutputBinaryPin(connection, pin, resistor, polarity);
         }
@@ -27,12 +30,10 @@ namespace Pi.IO.Components.Expanders.Mcp23017
         /// <param name="pin">The pin.</param>
         /// <param name="resistor">The resistor.</param>
         /// <param name="polarity">The polarity.</param>
-        /// <returns>The pin.</returns>
-        public static Mcp23017InputBinaryPin In(this Mcp23017I2cConnection connection, Mcp23017Pin pin, Mcp23017PinResistor resistor = Mcp23017PinResistor.None, Mcp23017PinPolarity polarity = Mcp23017PinPolarity.Normal)
+        /// <returns>The input pin.</returns>
+        public static Mcp23017InputBinaryPin In(this Mcp23017I2CConnection connection, Mcp23017Pin pin, Mcp23017PinResistor resistor = Mcp23017PinResistor.None, Mcp23017PinPolarity polarity = Mcp23017PinPolarity.Normal)
         {
             return new Mcp23017InputBinaryPin(connection, pin, resistor, polarity);
         }
-
-        #endregion
     }
 }

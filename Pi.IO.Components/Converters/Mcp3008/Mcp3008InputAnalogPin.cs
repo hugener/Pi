@@ -1,15 +1,18 @@
+// <copyright file="Mcp3008InputAnalogPin.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 namespace Pi.IO.Components.Converters.Mcp3008
 {
+    /// <summary>
+    /// Analog input pin of the <see cref="Mcp3008SpiConnection"/>.
+    /// </summary>
+    /// <seealso cref="Pi.IO.IInputAnalogPin" />
     public class Mcp3008InputAnalogPin : IInputAnalogPin
     {
-        #region Fields
-
         private readonly Mcp3008SpiConnection connection;
         private readonly Mcp3008Channel channel;
-
-        #endregion
-
-        #region Instance Management
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Mcp3008InputAnalogPin" /> class.
@@ -25,11 +28,9 @@ namespace Pi.IO.Components.Converters.Mcp3008
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public void Dispose(){}
-
-        #endregion
-
-        #region Methods
+        public void Dispose()
+        {
+        }
 
         /// <summary>
         /// Reads the value of the pin.
@@ -39,9 +40,7 @@ namespace Pi.IO.Components.Converters.Mcp3008
         /// </returns>
         public AnalogValue Read()
         {
-            return connection.Read(channel);
+            return this.connection.Read(this.channel);
         }
-
-        #endregion
     }
 }

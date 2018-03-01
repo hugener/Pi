@@ -1,28 +1,26 @@
-﻿#region References
-
-using System;
-
-#endregion
+﻿// <copyright file="ByteExtensionMethods.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Controllers.Tlc59711
 {
+    using global::System;
+
     internal static class ByteExtensionMethods
     {
-        #region Constants
-        public const byte BRIGHTNESS_CONTROL_MAX = 127;
-        #endregion
+        public const byte BrightnessControlMax = 127;
 
-        #region Methods
-
-        public static void ThrowOnInvalidBrightnessControl(this byte value) {
-            if (value <= BRIGHTNESS_CONTROL_MAX)
+        public static void ThrowOnInvalidBrightnessControl(this byte value)
+        {
+            if (value <= BrightnessControlMax)
+            {
                 return;
+            }
 
-            var message = String.Format("The maximum value for brightness control is {0}. You set a value of {1}.", BRIGHTNESS_CONTROL_MAX, value);
+            var message = string.Format("The maximum value for brightness control is {0}. You set a value of {1}.", BrightnessControlMax, value);
 
             throw new ArgumentException(message, "value");
         }
-
-        #endregion
     }
 }

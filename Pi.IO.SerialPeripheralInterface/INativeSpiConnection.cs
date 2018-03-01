@@ -1,53 +1,48 @@
-﻿#region References
-
-using System;
-
-#endregion
+﻿// <copyright file="INativeSpiConnection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.SerialPeripheralInterface
 {
+    using global::System;
+
     /// <summary>
     /// Native SPI connection that communicates with Linux's userspace SPI driver (e.g. /dev/spidev0.0) using IOCTL.
     /// </summary>
     public interface INativeSpiConnection : IDisposable
     {
-        #region Properties
-
         /// <summary>
-        /// If nonzero, how long to delay (in µ seconds) after the last bit transfer before optionally deselecting the device before the next transfer.
+        /// Gets the delay (in µ seconds) after the last bit transfer before optionally deselecting the device before the next transfer.
         /// </summary>
-        UInt16 Delay { get; }
+        ushort Delay { get; }
 
         /// <summary>
-        /// Maximum clock speed in Hz.
+        /// Gets the maximum clock speed in Hz.
         /// </summary>
-        UInt32 MaxSpeed { get; }
+        uint MaxSpeed { get; }
 
         /// <summary>
-        /// SPI mode
+        /// Gets the SPI mode
         /// </summary>
         SpiMode Mode { get; }
 
         /// <summary>
-        /// The device's wordsize
+        /// Gets the device's wordsize
         /// </summary>
         byte BitsPerWord { get; }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Sets the <see cref="INativeSpiConnection.Delay"/>.
         /// </summary>
         /// <param name="delayInMicroSeconds">Delay in µsec.</param>
-        void SetDelay(UInt16 delayInMicroSeconds);
+        void SetDelay(ushort delayInMicroSeconds);
 
         /// <summary>
         /// Sets the maximum clock speed.
         /// </summary>
         /// <param name="maxSpeedInHz">The speed in Hz</param>
-        void SetMaxSpeed(UInt32 maxSpeedInHz);
+        void SetMaxSpeed(uint maxSpeedInHz);
 
         /// <summary>
         /// Sets the device's wordsize <see cref="INativeSpiConnection.BitsPerWord"/>.
@@ -76,7 +71,9 @@ namespace Pi.IO.SerialPeripheralInterface
         /// <param name="messageSizeInBytes">Message size in bytes.</param>
         /// <param name="transferMode">The transfer mode.</param>
         /// <returns>The requested transfer buffer collection.</returns>
-        ISpiTransferBufferCollection CreateTransferBufferCollection(int numberOfMessages, int messageSizeInBytes,
+        ISpiTransferBufferCollection CreateTransferBufferCollection(
+            int numberOfMessages,
+            int messageSizeInBytes,
             SpiTransferMode transferMode);
 
         /// <summary>
@@ -92,7 +89,5 @@ namespace Pi.IO.SerialPeripheralInterface
         /// <param name="transferBuffers">The transfer buffers that contain data to be send and/or the received data.</param>
         /// <returns>An <see cref="int"/> that contains the result of the transfer operation.</returns>
         int Transfer(ISpiTransferBufferCollection transferBuffers);
-
-        #endregion
     }
 }

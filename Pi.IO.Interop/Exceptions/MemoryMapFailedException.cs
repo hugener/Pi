@@ -1,27 +1,35 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿// <copyright file="MemoryMapFailedException.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Interop
 {
+    using System;
+    using System.Runtime.Serialization;
+
     /// <summary>
     /// Exception for mapping memory.
     /// </summary>
     /// <seealso cref="System.Exception" />
     [Serializable]
-    public class MemoryMapFailedException : Exception {
+    public class MemoryMapFailedException : Exception
+    {
         /// <summary>
         /// Initializes a new instance of the <see cref="MemoryMapFailedException"/> class.
         /// </summary>
         public MemoryMapFailedException()
-        { }
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MemoryMapFailedException"/> class.
         /// </summary>
         /// <param name="message">The message that describes the error.</param>
-        public MemoryMapFailedException(string message) 
+        public MemoryMapFailedException(string message)
             : base(message)
-        { }
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MemoryMapFailedException"/> class.
@@ -30,7 +38,8 @@ namespace Pi.IO.Interop
         /// <param name="innerException">The exception that is the cause of the current exception, or a null reference (Nothing in Visual Basic) if no inner exception is specified.</param>
         public MemoryMapFailedException(string message, Exception innerException)
             : base(message, innerException)
-        { }
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MemoryMapFailedException"/> class.
@@ -39,6 +48,7 @@ namespace Pi.IO.Interop
         /// <param name="context">The <see cref="T:System.Runtime.Serialization.StreamingContext"></see> that contains contextual information about the source or destination.</param>
         protected MemoryMapFailedException(SerializationInfo info, StreamingContext context)
             : base(info, context)
-        { }
+        {
+        }
     }
 }

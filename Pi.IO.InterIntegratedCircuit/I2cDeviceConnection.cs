@@ -1,7 +1,12 @@
-using System;
+// <copyright file="I2cDeviceConnection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.InterIntegratedCircuit
 {
+    using global::System;
+
     /// <summary>
     /// Represents a connection to the I2C device.
     /// </summary>
@@ -28,7 +33,7 @@ namespace Pi.IO.InterIntegratedCircuit
         /// Executes the specified transaction.
         /// </summary>
         /// <param name="transaction">The transaction.</param>
-        public void Execute(I2cTransaction transaction)
+        public void Execute(I2CTransaction transaction)
         {
             if (transaction == null)
             {
@@ -46,7 +51,7 @@ namespace Pi.IO.InterIntegratedCircuit
         {
             try
             {
-                this.Execute(new I2cTransaction(new I2cWriteAction(buffer)));
+                this.Execute(new I2CTransaction(new I2CWriteAction(buffer)));
             }
             catch (Exception e)
             {
@@ -62,7 +67,7 @@ namespace Pi.IO.InterIntegratedCircuit
         {
             try
             {
-                this.Execute(new I2cTransaction(new I2cWriteAction(value)));
+                this.Execute(new I2CTransaction(new I2CWriteAction(value)));
             }
             catch (Exception e)
             {
@@ -77,8 +82,8 @@ namespace Pi.IO.InterIntegratedCircuit
         /// <returns>The buffer.</returns>
         public byte[] Read(int byteCount)
         {
-            var readAction = new I2cReadAction(new byte[byteCount]);
-            this.Execute(new I2cTransaction(readAction));
+            var readAction = new I2CReadAction(new byte[byteCount]);
+            this.Execute(new I2CTransaction(readAction));
 
             return readAction.Buffer;
         }

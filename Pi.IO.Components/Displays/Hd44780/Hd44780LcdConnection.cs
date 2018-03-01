@@ -1,16 +1,21 @@
-using System;
-using System.Text;
-using Pi.IO.GeneralPurpose;
-using Pi.System.Threading;
-using Pi.Timers;
+// <copyright file="Hd44780LcdConnection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Displays.Hd44780
 {
+    using System.Threading;
+    using GeneralPurpose;
+    using global::System;
+    using global::System.Text;
+    using Timers;
+
     /// <summary>
     /// Based on https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code/blob/master/Adafruit_CharLCD/Adafruit_CharLCD.py
     ///      and http://lcd-linux.sourceforge.net/pdfdocs/hd44780.pdf
     ///      and http://www.quinapalus.com/hd44780udg.html
-    ///      and http://robo.fe.uni-lj.si/~kamnikr/sola/urac/vaja3_display/How%20to%20control%20HD44780%20display.pdf 
+    ///      and http://robo.fe.uni-lj.si/~kamnikr/sola/urac/vaja3_display/How%20to%20control%20HD44780%20display.pdf
     ///      and http://web.stanford.edu/class/ee281/handouts/lcd_tutorial.pdf
     ///      and http://www.systronix.com/access/Systronix_20x4_lcd_brief_data.pdf
     /// </summary>
@@ -57,16 +62,12 @@ namespace Pi.IO.Components.Displays.Hd44780
         /// <exception cref="ArgumentException">At most 80 characters are allowed
         /// or
         /// 10 pixels height pattern cannot be used with an even number of rows</exception>
-        /// <exception cref="ArgumentOutOfRangeException">pins - There must be either 4 or 8 data pins
-        /// or
-        /// settings - ScreenHeight must be between 1 and 4 rows
-        /// or
-        /// settings - PatternWidth must be 5 pixels
-        /// or
-        /// settings - PatternWidth must be either 7 or 10 pixels height</exception>
+        /// <exception cref="ArgumentOutOfRangeException">pins - There must be either 4 or 8 data pins and
+        /// or settings - ScreenHeight must be between 1 and 4 rows
+        /// or settings - PatternWidth must be 5 pixels
+        /// or settings - PatternWidth must be either 7 or 10 pixels height</exception>
         /// <exception cref="ArgumentException">At most 80 characters are allowed
-        /// or
-        /// 10 pixels height pattern cannot be used with an even number of rows</exception>
+        /// or /// 10 pixels height pattern cannot be used with an even number of rows</exception>
         public Hd44780LcdConnection(
             Hd44780LcdConnectionSettings settings,
             IGpioConnectionDriver gpioConnectionDriver,
@@ -108,16 +109,16 @@ namespace Pi.IO.Components.Displays.Hd44780
                 throw new ArgumentOutOfRangeException("settings", settings.PatternWidth, "PatternWidth must be either 7 or 10 pixels height");
             }
 
-            if (settings.PatternHeight == 10 && (this.height % 2) == 0)
+            if (settings.PatternHeight == 10 && this.height % 2 == 0)
             {
                 throw new ArgumentException("10 pixels height pattern cannot be used with an even number of rows");
             }
 
-            this.functions = (settings.PatternHeight == 8 ? Functions.Matrix5x8 : Functions.Matrix5x10)
+            this.functions = (settings.PatternHeight == 8 ? Functions.Matrix5X8 : Functions.Matrix5X10)
                 | (this.height == 1 ? Functions.OneLine : Functions.TwoLines)
-                | (this.pins.Data.Length == 4 ? Functions.Data4bits : Functions.Data8bits);
+                | (this.pins.Data.Length == 4 ? Functions.Data4Bits : Functions.Data8Bits);
 
-            this.entryModeFlags = /*settings.RightToLeft 
+            this.entryModeFlags = /*settings.RightToLeft
                 ? EntryModeFlags.EntryRight | EntryModeFlags.EntryShiftDecrement
                 :*/ EntryModeFlags.EntryLeft | EntryModeFlags.EntryShiftDecrement;
 
@@ -143,11 +144,6 @@ namespace Pi.IO.Components.Displays.Hd44780
 
             this.Clear();
             this.BacklightEnabled = true;
-        }
-
-        void IDisposable.Dispose()
-        {
-            this.Close();
         }
 
         /// <summary>
@@ -253,6 +249,11 @@ namespace Pi.IO.Components.Displays.Hd44780
             this.thread.Dispose();
         }
 
+        void IDisposable.Dispose()
+        {
+            this.Close();
+        }
+
         /// <summary>
         /// Set cursor to top left corner.
         /// </summary>
@@ -339,13 +340,13 @@ namespace Pi.IO.Components.Displays.Hd44780
         /// <param name="pattern">The pattern.</param>
         public void SetCustomCharacter(byte character, byte[] pattern)
         {
-            if ((this.functions & Functions.Matrix5x8) == Functions.Matrix5x8)
+            if ((this.functions & Functions.Matrix5X8) == Functions.Matrix5X8)
             {
-                this.Set5x8CustomCharacter(character, pattern);
+                this.Set5X8CustomCharacter(character, pattern);
             }
             else
             {
-                this.Set5x10CustomCharacter(character, pattern);
+                this.Set5X10CustomCharacter(character, pattern);
             }
         }
 
@@ -354,7 +355,7 @@ namespace Pi.IO.Components.Displays.Hd44780
         /// </summary>
         /// <param name="value">The value.</param>
         /// <param name="animationDelay">The animation delay.</param>
-        public void WriteLine(object value, TimeSpan animationDelay = new TimeSpan())
+        public void WriteLine(object value, TimeSpan animationDelay = default(TimeSpan))
         {
             this.WriteLine("{0}", value, animationDelay);
         }
@@ -364,7 +365,7 @@ namespace Pi.IO.Components.Displays.Hd44780
         /// </summary>
         /// <param name="text">The text.</param>
         /// <param name="animationDelay">The animation delay.</param>
-        public void WriteLine(string text, TimeSpan animationDelay = new TimeSpan())
+        public void WriteLine(string text, TimeSpan animationDelay = default(TimeSpan))
         {
             this.Write(text + Environment.NewLine, animationDelay);
         }
@@ -374,7 +375,7 @@ namespace Pi.IO.Components.Displays.Hd44780
         /// </summary>
         /// <param name="value">The value.</param>
         /// <param name="animationDelay">The animation delay.</param>
-        public void Write(object value, TimeSpan animationDelay = new TimeSpan())
+        public void Write(object value, TimeSpan animationDelay = default(TimeSpan))
         {
             this.Write("{0}", value, animationDelay);
         }
@@ -426,7 +427,7 @@ namespace Pi.IO.Components.Displays.Hd44780
         /// </summary>
         /// <param name="text">The text.</param>
         /// <param name="animationDelay">The animation delay.</param>
-        public void Write(string text, TimeSpan animationDelay = new TimeSpan())
+        public void Write(string text, TimeSpan animationDelay = default(TimeSpan))
         {
             var lines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
 
@@ -437,7 +438,6 @@ namespace Pi.IO.Components.Displays.Hd44780
                     continue;
                 }
 
-                //Console.WriteLine(line);
                 var bytes = this.encoding.GetBytes(line);
                 foreach (var b in bytes)
                 {
@@ -448,7 +448,6 @@ namespace Pi.IO.Components.Displays.Hd44780
 
                     if (animationDelay > TimeSpan.Zero)
                     {
-                        var now = DateTime.Now;
                         this.thread.Sleep(animationDelay);
                     }
 
@@ -477,7 +476,7 @@ namespace Pi.IO.Components.Displays.Hd44780
             this.WriteByte(bits, false);
         }
 
-        private void Set5x10CustomCharacter(byte character, byte[] pattern)
+        private void Set5X10CustomCharacter(byte character, byte[] pattern)
         {
             if (character > 7 || (character & 0x1) != 0x1)
             {
@@ -489,7 +488,7 @@ namespace Pi.IO.Components.Displays.Hd44780
                 throw new ArgumentOutOfRangeException("pattern", pattern, "pattern must be 10 rows long");
             }
 
-            this.WriteCommand(Command.SetCGRamAddr, character << 3);
+            this.WriteCommand(Command.SetCgRamAddr, character << 3);
             for (var i = 0; i < 10; i++)
             {
                 this.WriteByte(pattern[i], true);
@@ -498,7 +497,7 @@ namespace Pi.IO.Components.Displays.Hd44780
             this.WriteByte(0, true);
         }
 
-        private void Set5x8CustomCharacter(byte character, byte[] pattern)
+        private void Set5X8CustomCharacter(byte character, byte[] pattern)
         {
             if (character > 7)
             {
@@ -510,7 +509,7 @@ namespace Pi.IO.Components.Displays.Hd44780
                 throw new ArgumentOutOfRangeException("pattern", pattern, "pattern must be 7 rows long");
             }
 
-            this.WriteCommand(Command.SetCGRamAddr, character << 3);
+            this.WriteCommand(Command.SetCgRamAddr, character << 3);
             for (var i = 0; i < 7; i++)
             {
                 this.WriteByte(pattern[i], true);
@@ -563,9 +562,9 @@ namespace Pi.IO.Components.Displays.Hd44780
             switch (row)
             {
                 case 0: return baseAddress;
-                case 1: return (baseAddress + 64);
-                case 2: return (baseAddress + this.width);
-                case 3: return (baseAddress + 64 + this.width);
+                case 1: return baseAddress + 64;
+                case 2: return baseAddress + this.width;
+                case 3: return baseAddress + 64 + this.width;
                 default: return baseAddress;
             }
         }
@@ -573,7 +572,7 @@ namespace Pi.IO.Components.Displays.Hd44780
         private void Synchronize()
         {
             this.pins.Clock.Write(true);
-            this.thread.Sleep(SyncDelay); // 1 microsecond pause - enable pulse must be > 450ns 	
+            this.thread.Sleep(SyncDelay); // 1 microsecond pause - enable pulse must be > 450ns
 
             this.pins.Clock.Write(false);
             this.thread.Sleep(SyncDelay); // commands need > 37us to settle

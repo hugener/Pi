@@ -1,3 +1,8 @@
+// <copyright file="GpioBinaryPinExtensionMethods.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 namespace Pi.IO.GeneralPurpose
 {
     /// <summary>
@@ -5,8 +10,6 @@ namespace Pi.IO.GeneralPurpose
     /// </summary>
     public static class GpioBinaryPinExtensionMethods
     {
-        #region Methods
-
         /// <summary>
         /// Gets an output pin on the current driver.
         /// </summary>
@@ -84,7 +87,5 @@ namespace Pi.IO.GeneralPurpose
         {
             return new GpioInputOutputBinaryPin(driver, pin, resistor);
         }
-
-        #endregion
     }
 }

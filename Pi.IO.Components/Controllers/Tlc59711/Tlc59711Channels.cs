@@ -1,72 +1,65 @@
-﻿#region References
-
-using System;
-using Pi.IO.Interop;
-
-#endregion
+﻿// <copyright file="Tlc59711Channels.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Controllers.Tlc59711
 {
+    using global::System;
+    using Interop;
+
     /// <summary>
     /// The PWM channels of a TLC59711
     /// </summary>
     internal sealed class Tlc59711Channels : IPwmChannels
     {
-        #region Constants
-        private const int NUMBER_OF_CHANNELS = 12;
-        #endregion
+        private const int NumberOfChannels = 12;
 
-        #region Fields
         private readonly IMemory memory;
         private readonly int channelOffset;
-        #endregion
 
-        #region Instance Management
         /// <summary>
-        /// Creates a new instance of the <see cref="Tlc59711Channels"/> class.
+        /// Initializes a new instance of the <see cref="Tlc59711Channels"/> class.
         /// </summary>
-        /// <param name="memory">Memory to work with</param>
-        /// <param name="offset">Byte offset to the first channel index</param>
-        public Tlc59711Channels(IMemory memory, int offset) {
+        /// <param name="memory">The memory.</param>
+        /// <param name="offset">The offset.</param>
+        public Tlc59711Channels(IMemory memory, int offset)
+        {
             this.memory = memory;
-            channelOffset = offset;
+            this.channelOffset = offset;
         }
-        #endregion
 
-        #region Properties
         /// <summary>
-        /// Returns the number of channels.
+        /// Gets the number of channels.
         /// </summary>
-        public int Count {
-            get { return NUMBER_OF_CHANNELS; }
-        }
+        public int Count => NumberOfChannels;
+
         /// <summary>
         /// Indexer, which will allow client code to use [] notation on the class instance itself to modify PWM channel values.
         /// </summary>
         /// <param name="index">channel index</param>
         /// <returns>The current PWM value from <paramref name="index"/></returns>
-        public UInt16 this[int index] {
-            get { return Get(index); }
-            set { Set(index, value); }
+        public ushort this[int index]
+        {
+            get => this.Get(index);
+            set => this.Set(index, value);
         }
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Returns the PWM value at the specified channel <paramref name="index"/>.
         /// </summary>
         /// <param name="index">Channel index</param>
         /// <returns>The PWM value at the specified channel <paramref name="index"/></returns>
-        public UInt16 Get(int index) {
+        public ushort Get(int index)
+        {
             ThrowOnInvalidChannelIndex(index);
-            
-            var offset = channelOffset + (index * 2);
-            
-            var high = memory.Read(offset);
-            var low = memory.Read(offset + 1);
 
-            return unchecked((UInt16)((high << 8) | low));
+            var offset = this.channelOffset + (index * 2);
+
+            var high = this.memory.Read(offset);
+            var low = this.memory.Read(offset + 1);
+
+            return unchecked((ushort)((high << 8) | low));
         }
 
         /// <summary>
@@ -74,27 +67,25 @@ namespace Pi.IO.Components.Controllers.Tlc59711
         /// </summary>
         /// <param name="index">Channel index</param>
         /// <param name="value">The PWM value</param>
-        public void Set(int index, UInt16 value) {
+        public void Set(int index, ushort value)
+        {
             ThrowOnInvalidChannelIndex(index);
-            
-            var offset = channelOffset + (index * 2);
 
-            memory.Write(offset, unchecked((byte)(value >> 8)));
-            memory.Write(offset + 1, unchecked((byte)value));
+            var offset = this.channelOffset + (index * 2);
+
+            this.memory.Write(offset, unchecked((byte)(value >> 8)));
+            this.memory.Write(offset + 1, unchecked((byte)value));
         }
-        #endregion
 
-        #region Private Helpers
-
-        private static void ThrowOnInvalidChannelIndex(int index) {
-            if (index >= 0 && index < NUMBER_OF_CHANNELS) {
+        private static void ThrowOnInvalidChannelIndex(int index)
+        {
+            if (index >= 0 && index < NumberOfChannels)
+            {
                 return;
             }
 
-            var message = string.Format("The index must be greater or equal than 0 and lower than {0}.", NUMBER_OF_CHANNELS);
+            var message = string.Format("The index must be greater or equal than 0 and lower than {0}.", NumberOfChannels);
             throw new ArgumentOutOfRangeException("index", index, message);
         }
-
-        #endregion
     }
 }

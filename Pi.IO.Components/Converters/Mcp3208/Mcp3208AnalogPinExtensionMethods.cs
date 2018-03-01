@@ -1,9 +1,15 @@
+// <copyright file="Mcp3208AnalogPinExtensionMethods.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 namespace Pi.IO.Components.Converters.Mcp3208
 {
+    /// <summary>
+    /// Extension methods for the <see cref="Mcp3208SpiConnection"/>.
+    /// </summary>
     public static class Mcp3208AnalogPinExtensionMethods
     {
-        #region Methods
-
         /// <summary>
         /// Creates an analog input pin.
         /// </summary>
@@ -14,7 +20,5 @@ namespace Pi.IO.Components.Converters.Mcp3208
         {
             return new Mcp3208InputAnalogPin(connection, channel);
         }
-
-        #endregion
     }
 }

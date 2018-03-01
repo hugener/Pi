@@ -1,15 +1,13 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="CachedThread.cs" company="Hukano">
-// Copyright (c) Hukano. All rights reserved.
+﻿// <copyright file="CachedThread.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // </copyright>
-// --------------------------------------------------------------------------------------------------------------------
-
-using System;
-using System.Threading;
 
 namespace Pi.System.Threading
 {
+    using global::System;
+    using global::System.Threading;
+
     internal class CachedThread : IThread
     {
         private static long instanceCount;

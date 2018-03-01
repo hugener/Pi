@@ -1,7 +1,12 @@
-using System;
+// <copyright file="IGpioConnectionDriver.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.GeneralPurpose
 {
+    using global::System;
+
     /// <summary>
     /// Provides an interface for connection drivers.
     /// </summary>
@@ -10,6 +15,7 @@ namespace Pi.IO.GeneralPurpose
         /// <summary>
         /// Gets driver capabilities.
         /// </summary>
+        /// <returns>The connection driver capabilities.</returns>
         GpioConnectionDriverCapabilities GetCapabilities();
 
         /// <summary>
@@ -18,7 +24,7 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="pin">The pin.</param>
         /// <param name="direction">The direction.</param>
         void Allocate(ProcessorPin pin, PinDirection direction);
-        
+
         /// <summary>
         /// Sets the pin resistor.
         /// </summary>
@@ -41,7 +47,7 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="waitForUp">if set to <c>true</c> waits for the pin to be up. Default value is <c>true</c>.</param>
         /// <param name="timeout">The timeout. Default value is <see cref="TimeSpan.Zero"/>.</param>
         /// <remarks>If <c>timeout</c> is set to <see cref="TimeSpan.Zero"/>, a default timeout is used instead.</remarks>
-        void Wait(ProcessorPin pin, bool waitForUp = true, TimeSpan timeout = new TimeSpan());
+        void Wait(ProcessorPin pin, bool waitForUp = true, TimeSpan timeout = default(TimeSpan));
 
         /// <summary>
         /// Releases the specified pin.

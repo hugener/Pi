@@ -1,24 +1,19 @@
-#region References
-
-using System;
-using Pi.IO.SerialPeripheralInterface;
-
-#endregion
+// <copyright file="Mcp3002SpiConnection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Converters.Mcp3002
 {
+    using global::System;
+    using SerialPeripheralInterface;
+
     /// <summary>
     /// Represents a connection to MCP3002 ADC converter.
     /// </summary>
     public class Mcp3002SpiConnection : IDisposable
     {
-        #region Fields
-
         private readonly SpiConnection spiConnection;
-
-        #endregion
-
-        #region Instance Management
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Mcp3002SpiConnection"/> class.
@@ -29,7 +24,7 @@ namespace Pi.IO.Components.Converters.Mcp3002
         /// <param name="mosiPin">The mosi pin.</param>
         public Mcp3002SpiConnection(IOutputBinaryPin clockPin, IOutputBinaryPin slaveSelectPin, IInputBinaryPin misoPin, IOutputBinaryPin mosiPin)
         {
-            spiConnection = new SpiConnection(clockPin, slaveSelectPin, misoPin, mosiPin, Endianness.LittleEndian);
+            this.spiConnection = new SpiConnection(clockPin, slaveSelectPin, misoPin, mosiPin, Endianness.LittleEndian);
         }
 
         /// <summary>
@@ -37,12 +32,8 @@ namespace Pi.IO.Components.Converters.Mcp3002
         /// </summary>
         void IDisposable.Dispose()
         {
-            Close();
+            this.Close();
         }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Reads the specified channel.
@@ -51,23 +42,23 @@ namespace Pi.IO.Components.Converters.Mcp3002
         /// <returns>The value</returns>
         public AnalogValue Read(Mcp3002Channel channel)
         {
-            using(spiConnection.SelectSlave())
+            using (this.spiConnection.SelectSlave())
             {
                 // Start bit
-                spiConnection.Write(true);
+                this.spiConnection.Write(true);
 
                 // Channel is single-ended
-                spiConnection.Write(true);
-                
+                this.spiConnection.Write(true);
+
                 // Channel Id
-                spiConnection.Write((byte)channel, 1);
-                
+                this.spiConnection.Write((byte)channel, 1);
+
                 // Let one clock to sample
-                spiConnection.Synchronize();
+                this.spiConnection.Synchronize();
 
                 // Read 10 bits
-                var data = (int)spiConnection.Read(10);
-                
+                var data = (int)this.spiConnection.Read(10);
+
                 return new AnalogValue(data, 0x3FF);
             }
         }
@@ -77,9 +68,7 @@ namespace Pi.IO.Components.Converters.Mcp3002
         /// </summary>
         public void Close()
         {
-            spiConnection.Close();
+            this.spiConnection.Close();
         }
-
-        #endregion
     }
 }

@@ -1,37 +1,40 @@
-#region References
-
-using Pi.IO.InterIntegratedCircuit;
-
-#endregion
+// <copyright file="Mcp23017I2cConnection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Expanders.Mcp23017
 {
+    using InterIntegratedCircuit;
+
     /// <summary>
     /// Represents a I2C connection to a MCP23017 I/O Expander.
     /// </summary>
     /// <remarks>See <see href="http://www.adafruit.com/datasheets/mcp23017.pdf"/> for more information.</remarks>
-    public class Mcp23017I2cConnection
+    public class Mcp23017I2CConnection
     {
-        #region Fields
-
         private readonly I2cDeviceConnection connection;
 
-        #endregion
-
-        #region Instance Management
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="Mcp23017I2cConnection"/> class.
+        /// Initializes a new instance of the <see cref="Mcp23017I2CConnection"/> class.
         /// </summary>
         /// <param name="connection">The connection.</param>
-        public Mcp23017I2cConnection(I2cDeviceConnection connection)
+        public Mcp23017I2CConnection(I2cDeviceConnection connection)
         {
             this.connection = connection;
         }
 
-        #endregion
-
-        #region Methods
+        private enum Register
+        {
+            Iodira = 0x00,
+            Iodirb = 0x01,
+            Ipola = 0x02,
+            Ipolb = 0x03,
+            Gppua = 0x0c,
+            Gppub = 0x0d,
+            Gpioa = 0x12,
+            Gpiob = 0x13
+        }
 
         /// <summary>
         /// Sets the direction.
@@ -40,17 +43,17 @@ namespace Pi.IO.Components.Expanders.Mcp23017
         /// <param name="direction">The direction.</param>
         public void SetDirection(Mcp23017Pin pin, Mcp23017PinDirection direction)
         {
-            var register = ((int) pin & 0x0100) == 0x0000 ? Register.IODIRA : Register.IODIRB;
+            var register = ((int)pin & 0x0100) == 0x0000 ? Register.Iodira : Register.Iodirb;
 
-            connection.WriteByte((byte) register);
-            var directions = connection.ReadByte();
+            this.connection.WriteByte((byte)register);
+            var directions = this.connection.ReadByte();
 
-            var bit = (byte) ((int) pin & 0xFF);
-            var newDirections = (direction == Mcp23017PinDirection.Input)
+            var bit = (byte)((int)pin & 0xFF);
+            var newDirections = direction == Mcp23017PinDirection.Input
                                     ? directions | bit
                                     : directions & ~bit;
 
-            connection.Write(new[] {(byte) register, (byte) newDirections});
+            this.connection.Write(new[] { (byte)register, (byte)newDirections });
         }
 
         /// <summary>
@@ -60,17 +63,17 @@ namespace Pi.IO.Components.Expanders.Mcp23017
         /// <param name="polarity">The polarity.</param>
         public void SetPolarity(Mcp23017Pin pin, Mcp23017PinPolarity polarity)
         {
-            var register = ((int) pin & 0x0100) == 0x0000 ? Register.IPOLA : Register.IPOLB;
+            var register = ((int)pin & 0x0100) == 0x0000 ? Register.Ipola : Register.Ipolb;
 
-            connection.WriteByte((byte) register);
-            var polarities = connection.ReadByte();
+            this.connection.WriteByte((byte)register);
+            var polarities = this.connection.ReadByte();
 
-            var bit = (byte) ((int) pin & 0xFF);
-            var newPolarities = (polarity == Mcp23017PinPolarity.Inverted)
+            var bit = (byte)((int)pin & 0xFF);
+            var newPolarities = polarity == Mcp23017PinPolarity.Inverted
                                     ? polarities | bit
                                     : polarities & ~bit;
 
-            connection.Write(new[] {(byte) register, (byte) newPolarities});
+            this.connection.Write(new[] { (byte)register, (byte)newPolarities });
         }
 
         /// <summary>
@@ -80,17 +83,17 @@ namespace Pi.IO.Components.Expanders.Mcp23017
         /// <param name="resistor">The resistor.</param>
         public void SetResistor(Mcp23017Pin pin, Mcp23017PinResistor resistor)
         {
-            var register = ((int) pin & 0x0100) == 0x0000 ? Register.GPPUA : Register.GPPUB;
+            var register = ((int)pin & 0x0100) == 0x0000 ? Register.Gppua : Register.Gppub;
 
-            connection.WriteByte((byte) register);
-            var resistors = connection.ReadByte();
+            this.connection.WriteByte((byte)register);
+            var resistors = this.connection.ReadByte();
 
-            var bit = (byte) ((int) pin & 0xFF);
-            var newResistors = (resistor == Mcp23017PinResistor.PullUp)
+            var bit = (byte)((int)pin & 0xFF);
+            var newResistors = resistor == Mcp23017PinResistor.PullUp
                                    ? resistors | bit
                                    : resistors & ~bit;
 
-            connection.Write(new[] {(byte) register, (byte) newResistors});
+            this.connection.Write(new[] { (byte)register, (byte)newResistors });
         }
 
         /// <summary>
@@ -100,17 +103,17 @@ namespace Pi.IO.Components.Expanders.Mcp23017
         /// <param name="enabled">if set to <c>true</c>, pin is enabled.</param>
         public void SetPinStatus(Mcp23017Pin pin, bool enabled)
         {
-            var register = ((int) pin & 0x0100) == 0x0000 ? Register.GPIOA : Register.GPIOB;
+            var register = ((int)pin & 0x0100) == 0x0000 ? Register.Gpioa : Register.Gpiob;
 
-            connection.WriteByte((byte) register);
-            var status = connection.ReadByte();
+            this.connection.WriteByte((byte)register);
+            var status = this.connection.ReadByte();
 
-            var bit = (byte) ((int) pin & 0xFF);
+            var bit = (byte)((int)pin & 0xFF);
             var newStatus = enabled
                                 ? status | bit
                                 : status & ~bit;
 
-            connection.Write((byte) register, (byte) newStatus);
+            this.connection.Write((byte)register, (byte)newStatus);
         }
 
         /// <summary>
@@ -120,12 +123,12 @@ namespace Pi.IO.Components.Expanders.Mcp23017
         /// <returns>The pin status.</returns>
         public bool GetPinStatus(Mcp23017Pin pin)
         {
-            var register = ((int) pin & 0x0100) == 0x0000 ? Register.GPIOA : Register.GPIOB;
+            var register = ((int)pin & 0x0100) == 0x0000 ? Register.Gpioa : Register.Gpiob;
 
-            connection.WriteByte((byte) register);
-            var status = connection.ReadByte();
+            this.connection.WriteByte((byte)register);
+            var status = this.connection.ReadByte();
 
-            var bit = (byte) ((int) pin & 0xFF);
+            var bit = (byte)((int)pin & 0xFF);
             return (status & bit) != 0x00;
         }
 
@@ -135,12 +138,12 @@ namespace Pi.IO.Components.Expanders.Mcp23017
         /// <param name="pin">The pin.</param>
         public void Toogle(Mcp23017Pin pin)
         {
-            var register = ((int) pin & 0x0100) == 0x0000 ? Register.GPIOA : Register.GPIOB;
+            var register = ((int)pin & 0x0100) == 0x0000 ? Register.Gpioa : Register.Gpiob;
 
-            connection.WriteByte((byte) register);
-            var status = connection.ReadByte();
+            this.connection.WriteByte((byte)register);
+            var status = this.connection.ReadByte();
 
-            var bit = (byte) ((int) pin & 0xFF);
+            var bit = (byte)((int)pin & 0xFF);
             var bitEnabled = (status & bit) != 0x00;
             var newBitEnabled = !bitEnabled;
 
@@ -148,25 +151,7 @@ namespace Pi.IO.Components.Expanders.Mcp23017
                                 ? status | bit
                                 : status & ~bit;
 
-            connection.Write((byte) register, (byte) newStatus);
+            this.connection.Write((byte)register, (byte)newStatus);
         }
-
-        #endregion
-
-        #region Private Helpers
-
-        private enum Register
-        {
-            IODIRA = 0x00,
-            IODIRB = 0x01,
-            IPOLA = 0x02,
-            IPOLB = 0x03,
-            GPPUA = 0x0c,
-            GPPUB = 0x0d,
-            GPIOA = 0x12,
-            GPIOB = 0x13
-        }
-
-        #endregion
     }
 }

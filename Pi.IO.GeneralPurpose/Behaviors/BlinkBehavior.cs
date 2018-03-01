@@ -1,8 +1,13 @@
-using System.Collections.Generic;
-using Pi.System.Threading;
+// <copyright file="BlinkBehavior.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.GeneralPurpose.Behaviors
 {
+    using System.Threading;
+    using global::System.Collections.Generic;
+
     /// <summary>
     /// Represents a simple blink behavior.
     /// </summary>
@@ -13,9 +18,10 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// </summary>
         /// <param name="configurations">The configurations.</param>
         /// <param name="threadFactory">The thread factory.</param>
-        public BlinkBehavior(IEnumerable<PinConfiguration> configurations, IThreadFactory threadFactory = null) 
+        public BlinkBehavior(IEnumerable<PinConfiguration> configurations, IThreadFactory threadFactory = null)
             : base(configurations, ThreadFactory.EnsureThreadFactory(threadFactory))
-        { }
+        {
+        }
 
         /// <summary>
         /// Gets or sets the number of times the behavior may blink.

@@ -1,3 +1,8 @@
+// <copyright file="Timer.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 namespace Pi.Timers
 {
     /// <summary>
@@ -15,7 +20,7 @@ namespace Pi.Timers
         public static ITimer Create()
         {
             return Board.Current.IsRaspberryPi
-                       ? (ITimer) new HighResolutionTimer()
+                       ? (ITimer)new HighResolutionTimer()
                        : new StandardTimer();
         }
 

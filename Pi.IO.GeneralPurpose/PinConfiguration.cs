@@ -1,41 +1,36 @@
-#region References
-
-using System;
-
-#endregion
+// <copyright file="PinConfiguration.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.GeneralPurpose
 {
+    using global::System;
+
     /// <summary>
     /// Represents the configuration of a pin.
     /// </summary>
     public abstract class PinConfiguration
     {
-        #region Instance Management
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PinConfiguration"/> class.
         /// </summary>
         /// <param name="pin">The pin.</param>
         protected PinConfiguration(ProcessorPin pin)
         {
-            Pin = pin;
+            this.Pin = pin;
         }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         /// Gets the pin.
         /// </summary>
-        public ProcessorPin Pin { get; private set; }
+        public ProcessorPin Pin { get; }
 
         /// <summary>
         /// Gets the direction.
         /// </summary>
         public abstract PinDirection Direction { get; }
-        
+
         /// <summary>
         /// Gets or sets the name.
         /// </summary>
@@ -61,15 +56,9 @@ namespace Pi.IO.GeneralPurpose
         /// </value>
         public Action<bool> StatusChangedAction { get; set; }
 
-        #endregion
-
-        #region Internal Methods
-
         internal bool GetEffective(bool value)
         {
-            return Reversed ? !value : value;
+            return this.Reversed ? !value : value;
         }
-
-        #endregion
     }
 }

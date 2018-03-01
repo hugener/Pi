@@ -1,15 +1,18 @@
+// <copyright file="Mcp4822OutputAnalogPin.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 namespace Pi.IO.Components.Converters.Mcp4822
 {
+    /// <summary>
+    /// Represents an output pin for <see cref="Mcp4822SpiConnection"/>.
+    /// </summary>
+    /// <seealso cref="Pi.IO.IOutputAnalogPin" />
     public class Mcp4822OutputAnalogPin : IOutputAnalogPin
     {
-        #region Fields
-
         private readonly Mcp4822SpiConnection connection;
         private readonly Mcp4822Channel channel;
-
-        #endregion
-
-        #region Instance Management
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Mcp4822OutputAnalogPin" /> class.
@@ -29,19 +32,13 @@ namespace Pi.IO.Components.Converters.Mcp4822
         {
         }
 
-        #endregion
-
-        #region Methods
-
         /// <summary>
         /// Writes the specified value to the pin.
         /// </summary>
         /// <param name="value">The value.</param>
         public void Write(AnalogValue value)
         {
-            connection.Write(channel, value);
+            this.connection.Write(this.channel, value);
         }
-
-        #endregion
     }
 }

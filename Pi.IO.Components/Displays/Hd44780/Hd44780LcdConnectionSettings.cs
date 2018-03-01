@@ -1,28 +1,31 @@
-using System.Text;
+// <copyright file="Hd44780LcdConnectionSettings.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Displays.Hd44780
 {
+    using global::System.Text;
+
+    /// <summary>
+    /// Settings for the <see cref="Hd44780LcdConnection"/>.
+    /// </summary>
     public class Hd44780LcdConnectionSettings
     {
-        #region Instance Management
-
         /// <summary>
         /// Initializes a new instance of the <see cref="Hd44780LcdConnectionSettings"/> class.
         /// </summary>
         public Hd44780LcdConnectionSettings()
         {
-            ScreenWidth = 20;
-            ScreenHeight = 2;
-            PatternWidth = 5;
-            PatternHeight = 8;
+            this.ScreenWidth = 20;
+            this.ScreenHeight = 2;
+            this.PatternWidth = 5;
+            this.PatternHeight = 8;
 
-            Encoding = new Hd44780A00Encoding();
-            //RightToLeft = false;
+            this.Encoding = new Hd44780A00Encoding();
+
+            // RightToLeft = false;
         }
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         /// Gets or sets the width of the screen.
@@ -64,8 +67,6 @@ namespace Pi.IO.Components.Displays.Hd44780
         /// </value>
         public Encoding Encoding { get; set; }
 
-        //public bool RightToLeft { get; set; }
-
-        #endregion
+        // public bool RightToLeft { get; set; }
     }
 }

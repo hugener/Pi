@@ -1,13 +1,17 @@
-using System.Runtime.InteropServices;
+// <copyright file="I2CNativeLib.cs" company="PlaceholderCompany">
+// Copyright (c) PlaceholderCompany. All rights reserved.
+// </copyright>
 
 namespace I2C.Net
 {
-	internal static class I2CNativeLib
-	{
-        internal static int OPEN_READ_WRITE = 2;
+    using System.Runtime.InteropServices;
+
+    internal static class I2CNativeLib
+    {
+        internal static int OpenReadWrite = 2;
 
         // constant, even for different devices
-        internal static int I2C_SLAVE = 0x0703;
+        internal static int I2CSlave = 0x0703;
 
         [DllImport("libc.so.6", EntryPoint = "open")]
         internal static extern int Open(string fileName, int mode);
@@ -16,7 +20,7 @@ namespace I2C.Net
         internal static extern int Close(int busHandle);
 
         [DllImport("libc.so.6", EntryPoint = "ioctl", SetLastError = true)]
-        internal extern static int Ioctl(int fd, int request, int data);
+        internal static extern int Ioctl(int fd, int request, int data);
 
         [DllImport("libc.so.6", EntryPoint = "read", SetLastError = true)]
         internal static extern int Read(int handle, byte[] data, int length);
@@ -25,11 +29,11 @@ namespace I2C.Net
         internal static extern int Write(int handle, byte[] data, int length);
 
         /*TODO: Move these to C# based on the above.
-        
-        
+
+
         [DllImport("libnativei2c.so", EntryPoint = "readBytes", SetLastError = true)]
-		internal static extern int ReadBytes(int busHandle, int addr, byte[] buf, int len);
-        
+        internal static extern int ReadBytes(int busHandle, int addr, byte[] buf, int len);
+
         */
     }
 }

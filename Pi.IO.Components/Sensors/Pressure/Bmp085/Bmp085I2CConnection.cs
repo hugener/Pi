@@ -1,18 +1,30 @@
-﻿using System;
-using Pi.IO.InterIntegratedCircuit;
-using Pi.System.Threading;
-using Pi.Timers;
+﻿// <copyright file="Bmp085I2CConnection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Sensors.Pressure.Bmp085
 {
+    using System.Threading;
+    using global::System;
+    using InterIntegratedCircuit;
+
     /// <summary>
     /// Represents an I2C connection to a BMP085 barometer / thermometer.
     /// </summary>
-    public class Bmp085I2cConnection
+    public class Bmp085I2CConnection
     {
+        /// <summary>
+        /// The default address
+        /// </summary>
+        public const int DefaultAddress = 0x77;
+
+        private static readonly TimeSpan LowDelay = TimeSpan.FromMilliseconds(5);
+        private static readonly TimeSpan HighDelay = TimeSpan.FromMilliseconds(14);
+        private static readonly TimeSpan HighestDelay = TimeSpan.FromMilliseconds(26);
+        private static readonly TimeSpan DefaultDelay = TimeSpan.FromMilliseconds(8);
         private readonly I2cDeviceConnection connection;
         private readonly IThread thread;
-        private Bmp085Precision precision = Bmp085Precision.Standard;
 
         private short ac1;
         private short ac2;
@@ -25,32 +37,28 @@ namespace Pi.IO.Components.Sensors.Pressure.Bmp085
         private short b2;
         private short mb;
         private short mc;
+
         private short md;
 
-        private static readonly TimeSpan lowDelay = TimeSpan.FromMilliseconds(5);
-        private static readonly TimeSpan highDelay = TimeSpan.FromMilliseconds(14);
-        private static readonly TimeSpan highestDelay = TimeSpan.FromMilliseconds(26);
-        private static readonly TimeSpan defaultDelay = TimeSpan.FromMilliseconds(8);
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="Bmp085I2cConnection" /> class.
+        /// Initializes a new instance of the <see cref="Bmp085I2CConnection" /> class.
         /// </summary>
         /// <param name="connection">The connection.</param>
         /// <param name="thread">The thread.</param>
-        public Bmp085I2cConnection(I2cDeviceConnection connection, IThread thread)
+        public Bmp085I2CConnection(I2cDeviceConnection connection, IThread thread)
         {
             this.connection = connection;
             this.thread = thread;
             this.Initialize();
         }
 
-        public const int DefaultAddress = 0x77;
-
-        public Bmp085Precision Precision
-        {
-            get => this.precision;
-            set => this.precision = value;
-        }
+        /// <summary>
+        /// Gets or sets the precision.
+        /// </summary>
+        /// <value>
+        /// The precision.
+        /// </value>
+        public Bmp085Precision Precision { get; set; } = Bmp085Precision.Standard;
 
         /// <summary>
         /// Gets the pressure.
@@ -87,16 +95,16 @@ namespace Pi.IO.Components.Sensors.Pressure.Bmp085
 
             // do pressure calcs
             var b6 = b5 - 4000;
-            var x1 = (this.b2*((b6*b6) >> 12)) >> 11;
-            var x2 = (this.ac2*b6) >> 11;
+            var x1 = (this.b2 * ((b6 * b6) >> 12)) >> 11;
+            var x2 = (this.ac2 * b6) >> 11;
             var x3 = x1 + x2;
-            var b3 = (((this.ac1*4 + x3) << (int) this.precision) + 2)/4;
+            var b3 = ((((this.ac1 * 4) + x3) << (int)this.Precision) + 2) / 4;
 
-            x1 = (this.ac3*b6) >> 13;
-            x2 = (this.b1*((b6*b6) >> 12)) >> 16;
-            x3 = ((x1 + x2) + 2) >> 2;
-            var b4 = (this.ac4*(uint) (x3 + 32768)) >> 15;
-            var b7 = (uint) ((rawPressure - b3)*(uint) (50000UL >> (int) this.precision));
+            x1 = (this.ac3 * b6) >> 13;
+            x2 = (this.b1 * ((b6 * b6) >> 12)) >> 16;
+            x3 = (x1 + x2 + 2) >> 2;
+            var b4 = (this.ac4 * (uint)(x3 + 32768)) >> 15;
+            var b7 = (uint)((rawPressure - b3) * (uint)(50000UL >> (int)this.Precision));
 
             int p;
             if (b4 == 0)
@@ -105,16 +113,16 @@ namespace Pi.IO.Components.Sensors.Pressure.Bmp085
             }
             else if (b7 < 0x80000000)
             {
-                p = (int) ((b7 * 2) / b4);
+                p = (int)(b7 * 2 / b4);
             }
             else
             {
-                p = (int) ((b7/b4)*2);
+                p = (int)(b7 / b4 * 2);
             }
 
-            x1 = (p >> 8)*(p >> 8);
-            x1 = (x1*3038) >> 16;
-            x2 = (-7357*p) >> 16;
+            x1 = (p >> 8) * (p >> 8);
+            x1 = (x1 * 3038) >> 16;
+            x2 = (-7357 * p) >> 16;
 
             return new Bmp085Data
             {
@@ -123,32 +131,11 @@ namespace Pi.IO.Components.Sensors.Pressure.Bmp085
             };
         }
 
-        private static class Interop
-        {
-            public const byte CAL_AC1 = 0xAA; // R   Calibration data (16 bits)
-            public const byte CAL_AC2 = 0xAC; // R   Calibration data (16 bits)
-            public const byte CAL_AC3 = 0xAE; // R   Calibration data (16 bits)    
-            public const byte CAL_AC4 = 0xB0; // R   Calibration data (16 bits)
-            public const byte CAL_AC5 = 0xB2; // R   Calibration data (16 bits)
-            public const byte CAL_AC6 = 0xB4; // R   Calibration data (16 bits)
-            public const byte CAL_B1 = 0xB6;  // R   Calibration data (16 bits)
-            public const byte CAL_B2 = 0xB8;  // R   Calibration data (16 bits)
-            public const byte CAL_MB = 0xBA;  // R   Calibration data (16 bits)
-            public const byte CAL_MC = 0xBC;  // R   Calibration data (16 bits)
-            public const byte CAL_MD = 0xBE;  // R   Calibration data (16 bits)
-
-            public const byte CONTROL = 0xF4;
-            public const byte TEMPDATA = 0xF6;
-            public const byte PRESSUREDATA = 0xF6;
-            public const byte READTEMPCMD = 0x2E;
-            public const byte READPRESSURECMD = 0x34;
-        }
-
         private void Initialize()
         {
-            if (this.precision > Bmp085Precision.Highest)
+            if (this.Precision > Bmp085Precision.Highest)
             {
-                this.precision = Bmp085Precision.Highest;
+                this.Precision = Bmp085Precision.Highest;
             }
 
             if (this.ReadByte(0xD0) != 0x55)
@@ -157,70 +144,70 @@ namespace Pi.IO.Components.Sensors.Pressure.Bmp085
             }
 
             /* read calibration data */
-            this.ac1 = this.ReadInt16(Interop.CAL_AC1);
-            this.ac2 = this.ReadInt16(Interop.CAL_AC2);
-            this.ac3 = this.ReadInt16(Interop.CAL_AC3);
-            this.ac4 = this.ReadUInt16(Interop.CAL_AC4);
-            this.ac5 = this.ReadUInt16(Interop.CAL_AC5);
-            this.ac6 = this.ReadUInt16(Interop.CAL_AC6);
+            this.ac1 = this.ReadInt16(Interop.CalAc1);
+            this.ac2 = this.ReadInt16(Interop.CalAc2);
+            this.ac3 = this.ReadInt16(Interop.CalAc3);
+            this.ac4 = this.ReadUInt16(Interop.CalAc4);
+            this.ac5 = this.ReadUInt16(Interop.CalAc5);
+            this.ac6 = this.ReadUInt16(Interop.CalAc6);
 
-            this.b1 = this.ReadInt16(Interop.CAL_B1);
-            this.b2 = this.ReadInt16(Interop.CAL_B2);
+            this.b1 = this.ReadInt16(Interop.CalB1);
+            this.b2 = this.ReadInt16(Interop.CalB2);
 
-            this.mb = this.ReadInt16(Interop.CAL_MB);
-            this.mc = this.ReadInt16(Interop.CAL_MC);
-            this.md = this.ReadInt16(Interop.CAL_MD);
+            this.mb = this.ReadInt16(Interop.CalMb);
+            this.mc = this.ReadInt16(Interop.CalMc);
+            this.md = this.ReadInt16(Interop.CalMd);
         }
 
         private ushort GetRawTemperature()
         {
-            this.WriteByte(Interop.CONTROL, Interop.READTEMPCMD);
-            this.thread.Sleep(lowDelay);
+            this.WriteByte(Interop.Control, Interop.Readtempcmd);
+            this.thread.Sleep(LowDelay);
 
-            return this.ReadUInt16(Interop.TEMPDATA);
+            return this.ReadUInt16(Interop.Tempdata);
         }
 
         private uint GetRawPressure()
         {
-            this.WriteByte(Interop.CONTROL, (byte)(Interop.READPRESSURECMD + ((int) this.precision << 6)));
+            this.WriteByte(Interop.Control, (byte)(Interop.Readpressurecmd + ((int)this.Precision << 6)));
 
-            switch (this.precision)
+            switch (this.Precision)
             {
                 case Bmp085Precision.Low:
-                    this.thread.Sleep(lowDelay);
+                    this.thread.Sleep(LowDelay);
                     break;
 
                 case Bmp085Precision.High:
-                    this.thread.Sleep(highDelay);
+                    this.thread.Sleep(HighDelay);
                     break;
 
                 case Bmp085Precision.Highest:
-                    this.thread.Sleep(highestDelay);
+                    this.thread.Sleep(HighestDelay);
                     break;
 
                 default:
-                    this.thread.Sleep(defaultDelay);
+                    this.thread.Sleep(DefaultDelay);
                     break;
             }
 
-            var msb = this.ReadByte(Interop.PRESSUREDATA);
-            var lsb = this.ReadByte(Interop.PRESSUREDATA + 1);
-            var xlsb = this.ReadByte(Interop.PRESSUREDATA + 2);
-            var raw = ((msb << 16) + (lsb << 8) + xlsb) >> (8 - (int) this.precision);
-            
+            var msb = this.ReadByte(Interop.Pressuredata);
+            var lsb = this.ReadByte(Interop.Pressuredata + 1);
+            var xlsb = this.ReadByte(Interop.Pressuredata + 2);
+            var raw = ((msb << 16) + (lsb << 8) + xlsb) >> (8 - (int)this.Precision);
+
             return (uint)raw;
         }
 
         private int ComputeB5(int ut)
         {
-            var x1 = (ut - this.ac6)* this.ac5 >> 15;
+            var x1 = ((ut - this.ac6) * this.ac5) >> 15;
 
             if (x1 + this.md == 0)
             {
                 return int.MaxValue;
             }
-            
-            var x2 = (this.mc << 11)/(x1 + this.md);
+
+            var x2 = (this.mc << 11) / (x1 + this.md);
             return x1 + x2;
         }
 
@@ -256,6 +243,27 @@ namespace Pi.IO.Components.Sensors.Pressure.Bmp085
         private void WriteByte(byte address, byte data)
         {
             this.connection.Write(address, data);
+        }
+
+        private static class Interop
+        {
+            public const byte CalAc1 = 0xAA; // R   Calibration data (16 bits)
+            public const byte CalAc2 = 0xAC; // R   Calibration data (16 bits)
+            public const byte CalAc3 = 0xAE; // R   Calibration data (16 bits)
+            public const byte CalAc4 = 0xB0; // R   Calibration data (16 bits)
+            public const byte CalAc5 = 0xB2; // R   Calibration data (16 bits)
+            public const byte CalAc6 = 0xB4; // R   Calibration data (16 bits)
+            public const byte CalB1 = 0xB6;  // R   Calibration data (16 bits)
+            public const byte CalB2 = 0xB8;  // R   Calibration data (16 bits)
+            public const byte CalMb = 0xBA;  // R   Calibration data (16 bits)
+            public const byte CalMc = 0xBC;  // R   Calibration data (16 bits)
+            public const byte CalMd = 0xBE;  // R   Calibration data (16 bits)
+
+            public const byte Control = 0xF4;
+            public const byte Tempdata = 0xF6;
+            public const byte Pressuredata = 0xF6;
+            public const byte Readtempcmd = 0x2E;
+            public const byte Readpressurecmd = 0x34;
         }
     }
 }

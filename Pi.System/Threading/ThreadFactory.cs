@@ -1,14 +1,12 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="ThreadFactory.cs" company="Hukano">
-// Copyright (c) Hukano. All rights reserved.
+﻿// <copyright file="ThreadFactory.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // </copyright>
-// --------------------------------------------------------------------------------------------------------------------
-
-using System;
 
 namespace Pi.System.Threading
 {
+    using global::System;
+
     /// <summary>
     /// Factory for creating a thread.
     /// </summary>
@@ -32,6 +30,16 @@ namespace Pi.System.Threading
         }
 
         /// <summary>
+        /// Ensures the thread factory.
+        /// </summary>
+        /// <param name="threadFactory">The thread factory.</param>
+        /// <returns>The <see cref="IThreadFactory"/>.</returns>
+        public static IThreadFactory EnsureThreadFactory(IThreadFactory threadFactory)
+        {
+            return threadFactory ?? Board.Current.ThreadFactory;
+        }
+
+        /// <summary>
         /// Creates this instance.
         /// </summary>
         /// <returns>An <see cref="IThread"/>.</returns>
@@ -43,16 +51,6 @@ namespace Pi.System.Threading
             }
 
             return this.CreateThread();
-        }
-
-        /// <summary>
-        /// Ensures the thread factory.
-        /// </summary>
-        /// <param name="threadFactory">The thread factory.</param>
-        /// <returns></returns>
-        public static IThreadFactory EnsureThreadFactory(IThreadFactory threadFactory)
-        {
-            return threadFactory ?? Board.Current.ThreadFactory;
         }
 
         internal void Dispose(IDisposableThread disposableThread)

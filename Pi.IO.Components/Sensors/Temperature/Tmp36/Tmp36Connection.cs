@@ -1,26 +1,21 @@
-﻿#region References
-
-using System;
-using UnitsNet;
-
-#endregion
+﻿// <copyright file="Tmp36Connection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Sensors.Temperature.Tmp36
 {
+    using global::System;
+    using UnitsNet;
+
     /// <summary>
     /// Represents a connection to a TMP36 temperature sensor.
     /// </summary>
     /// <remarks>See <see href="http://learn.adafruit.com/send-raspberry-pi-data-to-cosm"/>.</remarks>
     public class Tmp36Connection : IDisposable
     {
-        #region Fields
-
         private readonly IInputAnalogPin inputPin;
         private readonly ElectricPotential referenceVoltage;
-
-        #endregion
-
-        #region Instance Management
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Tmp36Connection"/> class.
@@ -38,21 +33,17 @@ namespace Pi.IO.Components.Sensors.Temperature.Tmp36
         /// </summary>
         void IDisposable.Dispose()
         {
-            Close();
+            this.Close();
         }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Gets the temperature.
         /// </summary>
         /// <returns>The temperature.</returns>
-        public UnitsNet.Temperature GetTemperature()
+        public Temperature GetTemperature()
         {
-            var voltage = referenceVoltage * (double)inputPin.Read().Relative;
-            return UnitsNet.Temperature.FromDegreesCelsius(voltage.Volts * 100 - 50);
+            var voltage = this.referenceVoltage * (double)this.inputPin.Read().Relative;
+            return Temperature.FromDegreesCelsius((voltage.Volts * 100) - 50);
         }
 
         /// <summary>
@@ -60,9 +51,7 @@ namespace Pi.IO.Components.Sensors.Temperature.Tmp36
         /// </summary>
         public void Close()
         {
-            inputPin.Dispose();
+            this.inputPin.Dispose();
         }
-
-        #endregion
     }
 }

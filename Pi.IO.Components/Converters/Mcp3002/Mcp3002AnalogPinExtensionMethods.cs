@@ -1,9 +1,15 @@
+// <copyright file="Mcp3002AnalogPinExtensionMethods.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 namespace Pi.IO.Components.Converters.Mcp3002
 {
+    /// <summary>
+    /// Extension methods for <see cref="Mcp3002SpiConnection"/>.
+    /// </summary>
     public static class Mcp3002AnalogPinExtensionMethods
     {
-        #region Methods
-
         /// <summary>
         /// Creates an analog input pin.
         /// </summary>
@@ -14,7 +20,5 @@ namespace Pi.IO.Components.Converters.Mcp3002
         {
             return new Mcp3002InputAnalogPin(connection, channel);
         }
-
-        #endregion
     }
 }

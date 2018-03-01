@@ -1,10 +1,14 @@
-using System;
-using Pi.Timers;
-using System.Text;
-using Pi.System.Threading;
+// <copyright file="GroveBarConnection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Leds.GroveBar
 {
+    using System.Threading;
+    using global::System;
+    using global::System.Text;
+
     /// <summary>
     /// Represents a connection with Grove Led Bar module.
     /// @see http://www.seeedstudio.com/wiki/Grove_-_LED_Bar
@@ -19,6 +23,12 @@ namespace Pi.IO.Components.Leds.GroveBar
         private readonly IThread thread;
         private string currentLedsStatus = "0000000000";
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GroveBarConnection"/> class.
+        /// </summary>
+        /// <param name="dataPin">The data pin.</param>
+        /// <param name="clockPin">The clock pin.</param>
+        /// <param name="threadFactory">The thread factory.</param>
         public GroveBarConnection(IOutputBinaryPin dataPin, IInputOutputBinaryPin clockPin, IThreadFactory threadFactory = null)
         {
             this.dataPin = dataPin;
@@ -70,7 +80,7 @@ namespace Pi.IO.Components.Leds.GroveBar
             this.SendData(CommandMode);
             for (int i = 0; i < 12; i++)
             {
-                var state = (uint)((i < level) ? 0x00FF : 0x0000);
+                var state = (uint)(i < level ? 0x00FF : 0x0000);
                 this.SendData(state);
             }
 
@@ -88,7 +98,7 @@ namespace Pi.IO.Components.Leds.GroveBar
             this.currentLedsStatus = status.ToString();
             this.SetFromString(this.currentLedsStatus);
         }
-        
+
         /// <summary>
         /// Turn off a single led at a given position (0-9)
         /// </summary>
@@ -109,7 +119,7 @@ namespace Pi.IO.Components.Leds.GroveBar
             this.currentLedsStatus = new string('1', 10);
             this.SetFromString(this.currentLedsStatus);
         }
-        
+
         /// <summary>
         /// Turn all leds off.
         /// </summary>
@@ -133,20 +143,19 @@ namespace Pi.IO.Components.Leds.GroveBar
         {
             this.dataPin.Write(false);
             this.thread.Sleep(Delay);
-            for(int i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++)
             {
                 this.dataPin.Write(true);
                 this.dataPin.Write(false);
             }
-
         }
 
         private void SendData(uint data)
         {
             // Send 16 bit data
-            for(int i = 0; i < 16; i++)
+            for (int i = 0; i < 16; i++)
             {
-                bool state = ((data & 0x8000) > 0);
+                bool state = (data & 0x8000) > 0;
                 this.dataPin.Write(state);
                 state = !this.clockPin.Read();
                 this.clockPin.Write(state);
@@ -158,7 +167,7 @@ namespace Pi.IO.Components.Leds.GroveBar
         {
             this.dataPin.Write(false);
             this.thread.Sleep(Delay);
-            for(int i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++)
             {
                 this.dataPin.Write(true);
                 this.dataPin.Write(false);
@@ -166,4 +175,3 @@ namespace Pi.IO.Components.Leds.GroveBar
         }
     }
 }
-

@@ -1,23 +1,29 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Collections.Generic;
+// <copyright file="FileGpioConnectionDriver.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.GeneralPurpose
 {
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.IO;
+    using global::System.Linq;
+    using global::System.Threading;
+
     /// <summary>
     /// Represents a connection driver using files.
     /// </summary>
     public class FileGpioConnectionDriver : IGpioConnectionDriver
     {
-        private const string GpioPath = "/sys/class/gpio";
-        private static readonly Dictionary<ProcessorPin, FileGpioHandle> GpioPathList = new Dictionary<ProcessorPin, FileGpioHandle>();
-
         /// <summary>
         /// The default timeout (5 seconds).
         /// </summary>
         public static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(5);
+
+        private const string GpioPath = "/sys/class/gpio";
+
+        private static readonly Dictionary<ProcessorPin, FileGpioHandle> GpioPathList = new Dictionary<ProcessorPin, FileGpioHandle>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FileGpioConnectionDriver"/> class.
@@ -34,18 +40,18 @@ namespace Pi.IO.GeneralPurpose
         /// Gets driver capabilities.
         /// </summary>
         /// <returns>The capabilites.</returns>
-        GpioConnectionDriverCapabilities IGpioConnectionDriver.GetCapabilities()
+        public static GpioConnectionDriverCapabilities GetCapabilities()
         {
-            return GetCapabilities();
+            return GpioConnectionDriverCapabilities.None;
         }
 
         /// <summary>
         /// Gets driver capabilities.
         /// </summary>
         /// <returns>The capabilites.</returns>
-        public static GpioConnectionDriverCapabilities GetCapabilities()
+        GpioConnectionDriverCapabilities IGpioConnectionDriver.GetCapabilities()
         {
-            return GpioConnectionDriverCapabilities.None;
+            return GetCapabilities();
         }
 
         /// <summary>
@@ -72,8 +78,9 @@ namespace Pi.IO.GeneralPurpose
             try
             {
                 SetPinDirection(filePath, direction);
-            } 
-            catch (UnauthorizedAccessException) {
+            }
+            catch (UnauthorizedAccessException)
+            {
                 // program hasn't been started as root, give it a second to correct file permissions
                 Thread.Sleep(TimeSpan.FromSeconds(1));
                 SetPinDirection(filePath, direction);
@@ -87,6 +94,7 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         /// <param name="pin">The pin.</param>
         /// <param name="resistor">The resistor.</param>
+        /// <exception cref="NotSupportedException">Resistor are not supported by file GPIO connection driver</exception>
         public void SetPinResistor(ProcessorPin pin, PinResistor resistor)
         {
             throw new NotSupportedException("Resistor are not supported by file GPIO connection driver");
@@ -97,7 +105,7 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         /// <param name="pin">The pin.</param>
         /// <param name="edges">The edges.</param>
-        /// <exception cref="NotImplementedException"></exception>
+        /// <exception cref="NotSupportedException">Edge detection is not supported by file GPIO connection driver.</exception>
         /// <remarks>
         /// By default, both edges may be detected on input pins.
         /// </remarks>
@@ -115,7 +123,7 @@ namespace Pi.IO.GeneralPurpose
         /// <remarks>
         /// If <c>timeout</c> is set to <see cref="TimeSpan.Zero" />, a 5 second timeout is used.
         /// </remarks>
-        public void Wait(ProcessorPin pin, bool waitForUp = true, TimeSpan timeout = new TimeSpan())
+        public void Wait(ProcessorPin pin, bool waitForUp = true, TimeSpan timeout = default(TimeSpan))
         {
             var startWait = DateTime.UtcNow;
             if (timeout == TimeSpan.Zero)
@@ -142,7 +150,7 @@ namespace Pi.IO.GeneralPurpose
             {
                 GpioPathList[pin].GpioStream.Close();
                 GpioPathList[pin].GpioStream = null;
-            } 
+            }
 
             if (Directory.Exists(GuessGpioPath(pin)))
             {
@@ -190,9 +198,9 @@ namespace Pi.IO.GeneralPurpose
         public ProcessorPins Read(ProcessorPins pins)
         {
             return pins.Enumerate()
-                .Select(p => this.Read(p) ? (ProcessorPins) ((uint) 1 << (int) p) : ProcessorPins.None)
+                .Select(p => this.Read(p) ? (ProcessorPins)((uint)1 << (int)p) : ProcessorPins.None)
                     .Aggregate(
-                        ProcessorPins.None, 
+                        ProcessorPins.None,
                         (a, p) => a | p);
         }
 
@@ -214,6 +222,7 @@ namespace Pi.IO.GeneralPurpose
             // by default use Raspberry Pi pin path format
             string gpioId = string.Format("gpio{0}", (int)pin);
             string pinPath = Path.Combine(GpioPath, gpioId);
+
             // verify/lookup pin path
             if (!Directory.Exists(pinPath))
             {
@@ -227,7 +236,7 @@ namespace Pi.IO.GeneralPurpose
                         break;
                     }
                 }
-            } 
+            }
 
             return pinPath;
         }

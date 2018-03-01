@@ -1,11 +1,16 @@
-using System;
-using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
-using Pi.System.Threading;
+// <copyright file="HighResolutionTimer.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.Timers
 {
+    using System.Threading;
+    using global::System;
+    using global::System.Collections.Concurrent;
+    using global::System.Threading;
+    using global::System.Threading.Tasks;
+
     /// <summary>
     /// Represents a high-resolution timer.
     /// </summary>
@@ -33,14 +38,6 @@ namespace Pi.Timers
         }
 
         /// <summary>
-        /// Gets or sets the interval.
-        /// </summary>
-        /// <value>
-        /// The interval.
-        /// </value>
-        public TimeSpan Interval { get; set; }
-
-        /// <summary>
         /// Gets or sets the action.
         /// </summary>
         /// <value>
@@ -53,12 +50,21 @@ namespace Pi.Timers
                 this.tick += value;
                 this.StopIfHandlerEmpty();
             }
+
             remove
             {
                 this.tick -= value;
                 this.StopIfHandlerEmpty();
             }
         }
+
+        /// <summary>
+        /// Gets or sets the interval.
+        /// </summary>
+        /// <value>
+        /// The interval.
+        /// </value>
+        public TimeSpan Interval { get; set; }
 
         /// <summary>
         /// Starts this instance.
@@ -171,7 +177,7 @@ namespace Pi.Timers
         private void StartTimer(TimeSpan startDelay)
         {
             if (this.timerRunningEvent.IsSet)
-            { 
+            {
                 return;
             }
 

@@ -1,9 +1,14 @@
-using System;
-using System.Linq;
-using Pi.IO.GeneralPurpose;
+// <copyright file="Hd44780Pins.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Displays.Hd44780
 {
+    using GeneralPurpose;
+    using global::System;
+    using global::System.Linq;
+
     /// <summary>
     /// Represents the pins of a HD44780 LCD display.
     /// </summary>
@@ -20,10 +25,10 @@ namespace Pi.IO.Components.Displays.Hd44780
         /// <param name="data">The data.</param>
         public Hd44780Pins(
             IGpioConnectionDriver gpioConnectionDriver,
-            ConnectorPin registerSelect, 
-            ConnectorPin clock, 
+            ConnectorPin registerSelect,
+            ConnectorPin clock,
             ConnectorPin? backlight,
-            ConnectorPin? readWrite, 
+            ConnectorPin? readWrite,
             params ConnectorPin[] data)
         {
             this.RegisterSelect = gpioConnectionDriver.Out(registerSelect);
@@ -42,6 +47,31 @@ namespace Pi.IO.Components.Displays.Hd44780
         }
 
         /// <summary>
+        /// Gets the register select (RS) pin.
+        /// </summary>
+        public IOutputBinaryPin RegisterSelect { get; }
+
+        /// <summary>
+        /// Gets the clock (EN) pin.
+        /// </summary>
+        public IOutputBinaryPin Clock { get; }
+
+        /// <summary>
+        /// Gets the backlight pin.
+        /// </summary>
+        public IOutputBinaryPin Backlight { get; }
+
+        /// <summary>
+        /// Gets the read write (RW) pin.
+        /// </summary>
+        public IOutputBinaryPin ReadWrite { get; }
+
+        /// <summary>
+        /// Gets the data pins.
+        /// </summary>
+        public IOutputBinaryPin[] Data { get; }
+
+        /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public void Dispose()
@@ -57,30 +87,5 @@ namespace Pi.IO.Components.Displays.Hd44780
                 dataPin.Dispose();
             }
         }
-
-        /// <summary>
-        /// The register select (RS) pin.
-        /// </summary>
-        public IOutputBinaryPin RegisterSelect { get; }
-
-        /// <summary>
-        /// The clock (EN) pin.
-        /// </summary>
-        public IOutputBinaryPin Clock { get; }
-
-        /// <summary>
-        /// The backlight pin.
-        /// </summary>
-        public IOutputBinaryPin Backlight { get; }
-
-        /// <summary>
-        /// The read write (RW) pin.
-        /// </summary>
-        public IOutputBinaryPin ReadWrite { get; }
-
-        /// <summary>
-        /// The data pins.
-        /// </summary>
-        public IOutputBinaryPin[] Data { get; }
     }
 }

@@ -1,35 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// <copyright file="PiFacePin.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Devices.PiFaceDigital
 {
+    using global::System;
+    using global::System.Collections.Generic;
+
     /// <summary>
     /// Represents the pins on a PiFace Digital board
     /// </summary>
     public abstract class PiFacePin
     {
-
-
-        #region Fields
-
-        /// <summary>
-        /// bit mask that allows this pin to get / set it's value from a byte
-        /// </summary>
-        protected byte mask;
-
-        /// <summary>
-        /// state of this pin
-        /// </summary>
-        protected bool state;
-
-        #endregion
-
-
-
-        #region Instance Management
-
         /// <summary>
         /// Initializes a new instance of the <see cref="PiFacePin"/> class.
         /// </summary>
@@ -40,31 +23,28 @@ namespace Pi.IO.Components.Devices.PiFaceDigital
             {
                 throw new ArgumentOutOfRangeException("pin numbers must be in the range 0 to 7");
             }
-            mask = (byte)(1 << pinNumber);
-            Id = pinNumber;
+
+            this.Mask = (byte)(1 << pinNumber);
+            this.Id = pinNumber;
         }
 
-        #endregion
-
-        #region Properties
+        /// <summary>
+        /// Gets or sets the bit mask that allows this pin to get / set it's value from a byte.
+        /// </summary>
+        public byte Mask { get; protected set; }
 
         /// <summary>
-        /// Number of the pin 0..7
+        /// Gets the id number of the pin 0..7.
         /// </summary>
-        public int Id { get; private set; }
-
-        #endregion
-
-        #region Methods
+        /// <value>
+        /// The identifier.
+        /// </value>
+        public int Id { get; }
 
         /// <summary>
-        /// Update this pin based on a byte that contains the data for every pin
+        /// Gets or sets a value indicating whether the pin is set.
         /// </summary>
-        /// <param name="allPinState">byte with all pin values</param>
-        internal virtual void Update(byte allPinState)
-        {
-            state = (allPinState & mask) > 0;
-        }
+        public virtual bool State { get; protected set; }
 
         /// <summary>
         /// Returns a byte representing the state of all pins
@@ -76,15 +56,22 @@ namespace Pi.IO.Components.Devices.PiFaceDigital
             byte allPinState = 0;
             foreach (var pin in pins)
             {
-                if (pin.state)
+                if (pin.State)
                 {
-                    allPinState = (byte)(allPinState | pin.mask);
+                    allPinState = (byte)(allPinState | pin.Mask);
                 }
             }
+
             return allPinState;
         }
 
-
-        #endregion
+        /// <summary>
+        /// Update this pin based on a byte that contains the data for every pin
+        /// </summary>
+        /// <param name="allPinState">byte with all pin values</param>
+        internal virtual void Update(byte allPinState)
+        {
+            this.State = (allPinState & this.Mask) > 0;
+        }
     }
 }

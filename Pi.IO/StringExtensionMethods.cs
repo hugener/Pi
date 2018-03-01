@@ -1,19 +1,18 @@
-﻿#region References
-
-using System;
-using System.Linq;
-
-#endregion
+﻿// <copyright file="StringExtensionMethods.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO
 {
+    using System;
+    using System.Linq;
+
     /// <summary>
     /// Provides extension methods for strings.
     /// </summary>
     public static class StringExtensionMethods
     {
-        #region Methods
-
         /// <summary>
         /// Converts a bit string in MSBF order (most significant bit first) to a byte array.
         /// </summary>
@@ -22,17 +21,15 @@ namespace Pi.IO
         /// <returns>An array starting with the most significant byte.</returns>
         public static byte[] BitStringToArray(this string bitString, bool prefixWithZero)
         {
-            var requiredPrefixBits = bitString.Length%8;
-            var @string = (requiredPrefixBits > 0 && prefixWithZero)
+            var requiredPrefixBits = bitString.Length % 8;
+            var @string = requiredPrefixBits > 0 && prefixWithZero
                 ? new string('0', requiredPrefixBits) + bitString
                 : bitString;
 
             return Enumerable
-                .Range(0, @string.Length/8)
-                .Select(pos => Convert.ToByte(@string.Substring(pos*8, 8), 2))
+                .Range(0, @string.Length / 8)
+                .Select(pos => Convert.ToByte(@string.Substring(pos * 8, 8), 2))
                 .ToArray();
         }
-
-        #endregion
     }
 }

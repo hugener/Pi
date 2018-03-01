@@ -1,26 +1,21 @@
-﻿#region References
-
-using System.Configuration;
-
-#endregion
+﻿// <copyright file="GpioConnectionConfigurationSection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.GeneralPurpose.Configuration
 {
+    using global::System.Configuration;
+
     /// <summary>
     /// Represents the configuration of the GPIO connection.
     /// </summary>
     public class GpioConnectionConfigurationSection : ConfigurationSection
     {
-        #region Constants
-
         /// <summary>
         /// The default poll interval, in milliseconds.
         /// </summary>
         public const decimal DefaultPollInterval = 50.0m;
-
-        #endregion
-
-        #region Properties
 
         /// <summary>
         /// Gets or sets the name of the driver type.
@@ -31,8 +26,8 @@ namespace Pi.IO.GeneralPurpose.Configuration
         [ConfigurationProperty("driver")]
         public string DriverTypeName
         {
-            get { return (string) this["driver"]; }
-            set { this["driver"] = value; }
+            get => (string)this["driver"];
+            set => this["driver"] = value;
         }
 
         /// <summary>
@@ -44,8 +39,8 @@ namespace Pi.IO.GeneralPurpose.Configuration
         [ConfigurationProperty("boardConnectorRevision", DefaultValue = 0)]
         public int BoardConnectorRevision
         {
-            get { return (int)this["boardConnectorRevision"]; }
-            set { this["boardConnectorRevision"] = value; }
+            get => (int)this["boardConnectorRevision"];
+            set => this["boardConnectorRevision"] = value;
         }
 
         /// <summary>
@@ -61,10 +56,8 @@ namespace Pi.IO.GeneralPurpose.Configuration
         [ConfigurationProperty("pollInterval", DefaultValue = "50")]
         public decimal PollInterval
         {
-            get { return (decimal)this["pollInterval"]; }
-            set { this["pollInterval"] = value; }
+            get => (decimal)this["pollInterval"];
+            set => this["pollInterval"] = value;
         }
-
-        #endregion
     }
 }

@@ -1,13 +1,18 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Runtime.InteropServices;
-using Pi.IO.Interop;
-using Pi.System.Threading;
-using Pi.Timers;
+// <copyright file="MemoryGpioConnectionDriver.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.GeneralPurpose
 {
+    using System.Threading;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Globalization;
+    using global::System.Runtime.InteropServices;
+    using IO.Interop;
+    using Timers;
+
     /// <summary>
     /// Represents a connection driver that uses memory.
     /// </summary>
@@ -20,24 +25,35 @@ namespace Pi.IO.GeneralPurpose
 
         private static readonly TimeSpan ResistorSetDelay = TimeSpanUtility.FromMicroseconds(5);
         private readonly IntPtr gpioAddress;
-        private readonly Dictionary<ProcessorPin, PinResistor> pinResistors = new Dictionary<ProcessorPin, PinResistor>();  
+        private readonly Dictionary<ProcessorPin, PinResistor> pinResistors = new Dictionary<ProcessorPin, PinResistor>();
         private readonly IThread thread;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MemoryGpioConnectionDriver"/> class.
+        /// Initializes a new instance of the <see cref="MemoryGpioConnectionDriver" /> class.
         /// </summary>
+        /// <param name="threadFactory">The thread factory.</param>
         public MemoryGpioConnectionDriver(IThreadFactory threadFactory = null)
         {
             this.thread = ThreadFactory.EnsureThreadFactory(threadFactory).Create();
-            using (var memoryFile = UnixFile.Open("/dev/mem", UnixFileMode.ReadWrite | UnixFileMode.Synchronized)) {
+            using (var memoryFile = UnixFile.Open("/dev/mem", UnixFileMode.ReadWrite | UnixFileMode.Synchronized))
+            {
                 this.gpioAddress = MemoryMap.Create(
-                    IntPtr.Zero, 
-                    Interop.BCM2835_BLOCK_SIZE,
-                    MemoryProtection.ReadWrite, 
-                    MemoryFlags.Shared, 
+                    IntPtr.Zero,
+                    Interop.Bcm2835BlockSize,
+                    MemoryProtection.ReadWrite,
+                    MemoryFlags.Shared,
                     memoryFile.Descriptor,
                     GetProcessorBaseAddress(Board.Current.Processor));
             }
+        }
+
+        /// <summary>
+        /// Gets driver capabilities.
+        /// </summary>
+        /// <returns>The capabilites.</returns>
+        public static GpioConnectionDriverCapabilities GetCapabilities()
+        {
+            return GpioConnectionDriverCapabilities.CanSetPinResistor | GpioConnectionDriverCapabilities.CanChangePinDirectionRapidly;
         }
 
         /// <summary>
@@ -46,7 +62,7 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         public void Dispose()
         {
-            MemoryMap.Close(this.gpioAddress, Interop.BCM2835_BLOCK_SIZE);
+            MemoryMap.Close(this.gpioAddress, Interop.Bcm2835BlockSize);
             this.thread.Dispose();
         }
 
@@ -60,15 +76,6 @@ namespace Pi.IO.GeneralPurpose
         }
 
         /// <summary>
-        /// Gets driver capabilities.
-        /// </summary>
-        /// <returns>The capabilites.</returns>
-        public static GpioConnectionDriverCapabilities GetCapabilities()
-        {
-            return GpioConnectionDriverCapabilities.CanSetPinResistor | GpioConnectionDriverCapabilities.CanChangePinDirectionRapidly;
-        }
-
-        /// <summary>
         /// Allocates the specified pin.
         /// </summary>
         /// <param name="pin">The pin.</param>
@@ -76,7 +83,7 @@ namespace Pi.IO.GeneralPurpose
         public void Allocate(ProcessorPin pin, PinDirection direction)
         {
             // Set the direction on the pin and update the exported list
-            this.SetPinMode(pin, direction == PinDirection.Input ? Interop.BCM2835_GPIO_FSEL_INPT : Interop.BCM2835_GPIO_FSEL_OUTP);
+            this.SetPinMode(pin, direction == PinDirection.Input ? Interop.Bcm2835GpioFselInpt : Interop.Bcm2835GpioFselOutp);
 
             if (direction == PinDirection.Input)
             {
@@ -112,18 +119,17 @@ namespace Pi.IO.GeneralPurpose
             // 6. Write to GPPUDCLK0/1 to remove the clock
             //
             // RPi has P1-03 and P1-05 with 1k8 pullup resistor
-
             uint pud;
-            switch(resistor)
+            switch (resistor)
             {
                 case PinResistor.None:
-                    pud = Interop.BCM2835_GPIO_PUD_OFF;
+                    pud = Interop.Bcm2835GpioPudOff;
                     break;
                 case PinResistor.PullDown:
-                    pud = Interop.BCM2835_GPIO_PUD_DOWN;
+                    pud = Interop.Bcm2835GpioPudDown;
                     break;
                 case PinResistor.PullUp:
-                    pud = Interop.BCM2835_GPIO_PUD_UP;
+                    pud = Interop.Bcm2835GpioPudUp;
                     break;
 
                 default:
@@ -134,7 +140,7 @@ namespace Pi.IO.GeneralPurpose
             this.thread.Sleep(ResistorSetDelay);
             this.SetPinResistorClock(pin, true);
             this.thread.Sleep(ResistorSetDelay);
-            this.WriteResistor(Interop.BCM2835_GPIO_PUD_OFF);
+            this.WriteResistor(Interop.Bcm2835GpioPudOff);
             this.SetPinResistorClock(pin, false);
 
             this.pinResistors[pin] = PinResistor.None;
@@ -162,7 +168,7 @@ namespace Pi.IO.GeneralPurpose
         /// <remarks>
         /// If <c>timeout</c> is set to <see cref="TimeSpan.Zero" />, a default timeout of <see cref="DefaultTimeout"/> is used.
         /// </remarks>
-        public void Wait(ProcessorPin pin, bool waitForUp = true, TimeSpan timeout = new TimeSpan())
+        public void Wait(ProcessorPin pin, bool waitForUp = true, TimeSpan timeout = default(TimeSpan))
         {
             var startWait = DateTime.UtcNow;
             if (timeout == TimeSpan.Zero)
@@ -185,7 +191,7 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="pin">The pin.</param>
         public void Release(ProcessorPin pin)
         {
-            this.SetPinMode(pin, Interop.BCM2835_GPIO_FSEL_INPT);
+            this.SetPinMode(pin, Interop.Bcm2835GpioFselInpt);
         }
 
         /// <summary>
@@ -198,8 +204,8 @@ namespace Pi.IO.GeneralPurpose
             int shift;
             var offset = Math.DivRem((int)pin, 32, out shift);
 
-            var pinGroupAddress = this.gpioAddress + (int)((value ? Interop.BCM2835_GPSET0 : Interop.BCM2835_GPCLR0) + offset);
-            SafeWriteUInt32(pinGroupAddress, (uint) 1 << shift);
+            var pinGroupAddress = this.gpioAddress + (int)((value ? Interop.Bcm2835Gpset0 : Interop.Bcm2835Gpclr0) + offset);
+            SafeWriteUInt32(pinGroupAddress, (uint)1 << shift);
         }
 
         /// <summary>
@@ -212,9 +218,9 @@ namespace Pi.IO.GeneralPurpose
         public bool Read(ProcessorPin pin)
         {
             int shift;
-            var offset = Math.DivRem((int) pin, 32, out shift);
+            var offset = Math.DivRem((int)pin, 32, out shift);
 
-            var pinGroupAddress = this.gpioAddress + (int) (Interop.BCM2835_GPLEV0 + offset);
+            var pinGroupAddress = this.gpioAddress + (int)(Interop.Bcm2835Gplev0 + offset);
             var value = SafeReadUInt32(pinGroupAddress);
 
             return (value & (1 << shift)) != 0;
@@ -229,53 +235,10 @@ namespace Pi.IO.GeneralPurpose
         /// </returns>
         public ProcessorPins Read(ProcessorPins pins)
         {
-            var pinGroupAddress = this.gpioAddress + (int) (Interop.BCM2835_GPLEV0 + (uint) 0 * 4);
+            var pinGroupAddress = this.gpioAddress + (int)(Interop.Bcm2835Gplev0 + ((uint)0 * 4));
             var value = SafeReadUInt32(pinGroupAddress);
 
             return (ProcessorPins)((uint)pins & value);
-        }
-
-        private static uint GetProcessorBaseAddress(Processor processor)
-        {
-            switch (processor)
-            {
-                case Processor.Bcm2708:
-                    return Interop.BCM2835_GPIO_BASE;
-
-                case Processor.Bcm2709:
-                case Processor.Bcm2835:
-                    return Interop.BCM2836_GPIO_BASE;
-
-                default:
-                    throw new ArgumentOutOfRangeException("processor");
-            }
-        }
-
-        private void SetPinResistorClock(ProcessorPin pin, bool on)
-        {
-            int shift;
-            var offset = Math.DivRem((int)pin, 32, out shift);
-
-            var clockAddress = this.gpioAddress + (int)(Interop.BCM2835_GPPUDCLK0 + offset);
-            SafeWriteUInt32(clockAddress, (uint) (on ? 1 : 0) << shift);
-        }
-
-        private void WriteResistor(uint resistor)
-        {
-            var resistorPin = this.gpioAddress + (int) Interop.BCM2835_GPPUD;
-            SafeWriteUInt32(resistorPin, resistor);
-        }
-
-        private void SetPinMode(ProcessorPin pin, uint mode)
-        {
-            // Function selects are 10 pins per 32 bit word, 3 bits per pin
-            var pinModeAddress = this.gpioAddress + (int) (Interop.BCM2835_GPFSEL0 + 4*((int)pin/10));
-
-            var shift = 3*((int) pin%10);
-            var mask = Interop.BCM2835_GPIO_FSEL_MASK << shift;
-            var value = mode << shift;
-
-            WriteUInt32Mask(pinModeAddress, value, mask);
         }
 
         private static void WriteUInt32Mask(IntPtr address, uint value, uint mask)
@@ -299,7 +262,7 @@ namespace Pi.IO.GeneralPurpose
         {
             unchecked
             {
-                return (uint) Marshal.ReadInt32(address);
+                return (uint)Marshal.ReadInt32(address);
             }
         }
 
@@ -317,6 +280,49 @@ namespace Pi.IO.GeneralPurpose
             {
                 Marshal.WriteInt32(address, (int)value);
             }
+        }
+
+        private static uint GetProcessorBaseAddress(Processor processor)
+        {
+            switch (processor)
+            {
+                case Processor.Bcm2708:
+                    return Interop.Bcm2835GpioBase;
+
+                case Processor.Bcm2709:
+                case Processor.Bcm2835:
+                    return Interop.Bcm2836GpioBase;
+
+                default:
+                    throw new ArgumentOutOfRangeException("processor");
+            }
+        }
+
+        private void SetPinResistorClock(ProcessorPin pin, bool on)
+        {
+            int shift;
+            var offset = Math.DivRem((int)pin, 32, out shift);
+
+            var clockAddress = this.gpioAddress + (int)(Interop.Bcm2835Gppudclk0 + offset);
+            SafeWriteUInt32(clockAddress, (uint)(on ? 1 : 0) << shift);
+        }
+
+        private void WriteResistor(uint resistor)
+        {
+            var resistorPin = this.gpioAddress + (int)Interop.Bcm2835Gppud;
+            SafeWriteUInt32(resistorPin, resistor);
+        }
+
+        private void SetPinMode(ProcessorPin pin, uint mode)
+        {
+            // Function selects are 10 pins per 32 bit word, 3 bits per pin
+            var pinModeAddress = this.gpioAddress + (int)(Interop.Bcm2835Gpfsel0 + (4 * ((int)pin / 10)));
+
+            var shift = 3 * ((int)pin % 10);
+            var mask = Interop.Bcm2835GpioFselMask << shift;
+            var value = mode << shift;
+
+            WriteUInt32Mask(pinModeAddress, value, mask);
         }
     }
 }

@@ -1,11 +1,16 @@
-﻿using System;
-using System.Globalization;
-using Common.Logging;
-using Pi.IO.GeneralPurpose;
-using Pi.System.Threading;
+﻿// <copyright file="DhtConnection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Sensors.Temperature.Dht
 {
+    using System.Threading;
+    using Common.Logging;
+    using GeneralPurpose;
+    using global::System;
+    using global::System.Globalization;
+
     /// <summary>
     /// Represents a base class for connections to a DHT-11 or DHT-22 humidity / temperature sensor.
     /// </summary>
@@ -25,8 +30,6 @@ namespace Pi.IO.Components.Sensors.Temperature.Dht
         private DateTime previousRead;
         private bool started;
 
-
-
         /// <summary>
         /// Initializes a new instance of the <see cref="DhtConnection" /> class.
         /// </summary>
@@ -45,21 +48,13 @@ namespace Pi.IO.Components.Sensors.Temperature.Dht
             else
             {
                 this.Stop();
-            } 
+            }
         }
 
         /// <summary>
         /// Finalizes an instance of the <see cref="DhtConnection"/> class.
         /// </summary>
         ~DhtConnection()
-        {
-            this.Close();
-        }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        void IDisposable.Dispose()
         {
             this.Close();
         }
@@ -75,6 +70,22 @@ namespace Pi.IO.Components.Sensors.Temperature.Dht
             get => this.samplingInterval != TimeSpan.Zero ? this.samplingInterval : this.DefaultSamplingInterval;
             set => this.samplingInterval = value;
         }
+
+        /// <summary>
+        /// Gets the default sampling interval.
+        /// </summary>
+        /// <value>
+        /// The default sampling interval.
+        /// </value>
+        protected abstract TimeSpan DefaultSamplingInterval { get; }
+
+        /// <summary>
+        /// Gets the wakeup interval.
+        /// </summary>
+        /// <value>
+        /// The wakeup interval.
+        /// </value>
+        protected abstract TimeSpan WakeupInterval { get; }
 
         /// <summary>
         /// Starts the DHT sensor. If not called, sensor will be automatically enabled before getting data.
@@ -116,12 +127,12 @@ namespace Pi.IO.Components.Sensors.Temperature.Dht
                     data = this.TryGetData();
                     data.AttemptCount = tryCount;
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     var logger = LogManager.GetLogger<DhtConnection>();
                     logger.Error(
                         CultureInfo.InvariantCulture,
-                        h => h("Failed to read data from DHT11, try {0}", tryCount), 
+                        h => h("Failed to read data from DHT11, try {0}", tryCount),
                         ex);
                 }
             }
@@ -130,7 +141,7 @@ namespace Pi.IO.Components.Sensors.Temperature.Dht
             {
                 this.pin.Write(false);
             }
-        
+
             return data;
         }
 
@@ -145,28 +156,20 @@ namespace Pi.IO.Components.Sensors.Temperature.Dht
         }
 
         /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        void IDisposable.Dispose()
+        {
+            this.Close();
+        }
+
+        /// <summary>
         /// Gets the DHT data.
         /// </summary>
         /// <param name="temperatureValue">The temperature value.</param>
         /// <param name="humidityValue">The humidity value.</param>
-        /// <returns></returns>
+        /// <returns>The DhtData.</returns>
         protected abstract DhtData GetDhtData(int temperatureValue, int humidityValue);
-
-        /// <summary>
-        /// Gets the default sampling interval.
-        /// </summary>
-        /// <value>
-        /// The default sampling interval.
-        /// </value>
-        protected abstract TimeSpan DefaultSamplingInterval { get; }
-
-        /// <summary>
-        /// Gets the wakeup interval.
-        /// </summary>
-        /// <value>
-        /// The wakeup interval.
-        /// </value>
-        protected abstract TimeSpan WakeupInterval { get; }
 
         private DhtData TryGetData()
         {
@@ -216,7 +219,9 @@ namespace Pi.IO.Components.Sensors.Temperature.Dht
                         cnt = 7;    // restart at MSB
                     }
                     else
+                    {
                         cnt--;
+                    }
                 }
             }
             finally
@@ -229,11 +234,11 @@ namespace Pi.IO.Components.Sensors.Temperature.Dht
             var checkSum = data[0] + data[1] + data[2] + data[3];
             if ((checkSum & 0xff) != data[4])
             {
-                throw new InvalidChecksumException("Invalid checksum on DHT data", data[4], (checkSum & 0xff));
+                throw new InvalidChecksumException("Invalid checksum on DHT data", data[4], checkSum & 0xff);
             }
 
             var sign = 1;
-            if ((data[2] & 0x80) != 0) // negative temperature
+            if ((data[2] & 0x80) != 0) //// negative temperature
             {
                 data[2] = (byte)(data[2] & 0x7F);
                 sign = -1;

@@ -1,3 +1,8 @@
+// <copyright file="GpioOutputBinaryPin.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 namespace Pi.IO.GeneralPurpose
 {
     /// <summary>
@@ -5,14 +10,8 @@ namespace Pi.IO.GeneralPurpose
     /// </summary>
     public class GpioOutputBinaryPin : IOutputBinaryPin
     {
-        #region Fields
-
         private readonly IGpioConnectionDriver driver;
         private readonly ProcessorPin pin;
-
-        #endregion
-
-        #region Instance Management
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GpioOutputBinaryPin"/> class.
@@ -27,19 +26,17 @@ namespace Pi.IO.GeneralPurpose
 
             driver.Allocate(pin, PinDirection.Output);
             if ((driver.GetCapabilities() & GpioConnectionDriverCapabilities.CanSetPinResistor) > 0)
+            {
                 driver.SetPinResistor(pin, resistor);
+            }
         }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
         public void Dispose()
         {
-            driver.Release(pin);
+            this.driver.Release(this.pin);
         }
 
         /// <summary>
@@ -48,9 +45,7 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="state">The pin state.</param>
         public void Write(bool state)
         {
-            driver.Write(pin, state);
+            this.driver.Write(this.pin, state);
         }
-
-        #endregion
     }
 }

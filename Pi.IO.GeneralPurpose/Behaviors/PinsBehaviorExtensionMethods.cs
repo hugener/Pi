@@ -1,3 +1,8 @@
+// <copyright file="PinsBehaviorExtensionMethods.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 namespace Pi.IO.GeneralPurpose.Behaviors
 {
     /// <summary>
@@ -5,8 +10,6 @@ namespace Pi.IO.GeneralPurpose.Behaviors
     /// </summary>
     public static class PinsBehaviorExtensionMethods
     {
-        #region Methods
-
         /// <summary>
         /// Starts the specified behavior on the connection.
         /// </summary>
@@ -17,7 +20,9 @@ namespace Pi.IO.GeneralPurpose.Behaviors
             foreach (var configuration in behavior.Configurations)
             {
                 if (!connection.Contains(configuration))
+                {
                     connection.Add(configuration);
+                }
             }
 
             behavior.Start(connection);
@@ -32,7 +37,5 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         {
             behavior.Stop();
         }
-
-        #endregion
     }
 }

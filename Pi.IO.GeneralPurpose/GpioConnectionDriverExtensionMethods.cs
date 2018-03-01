@@ -1,18 +1,17 @@
-#region References
-
-using System;
-
-#endregion
+// <copyright file="GpioConnectionDriverExtensionMethods.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.GeneralPurpose
 {
+    using global::System;
+
     /// <summary>
     /// Provides extension methods for <see cref="IGpioConnectionDriver"/>.
     /// </summary>
     public static class GpioConnectionDriverExtensionMethods
     {
-        #region Methods
-
         /// <summary>
         /// Waits for a pin to reach the specified state, then measures the time it remains in this state.
         /// </summary>
@@ -24,16 +23,14 @@ namespace Pi.IO.GeneralPurpose
         /// <returns>
         /// The time the pin remains up.
         /// </returns>
-        public static decimal Time(this IGpioConnectionDriver driver, ProcessorPin pin, bool waitForUp = true, TimeSpan phase1Timeout = new TimeSpan(), TimeSpan phase2Timeout = new TimeSpan())
+        public static decimal Time(this IGpioConnectionDriver driver, ProcessorPin pin, bool waitForUp = true, TimeSpan phase1Timeout = default(TimeSpan), TimeSpan phase2Timeout = default(TimeSpan))
         {
             driver.Wait(pin, waitForUp, phase1Timeout);
 
             var waitDown = DateTime.Now.Ticks;
             driver.Wait(pin, !waitForUp, phase2Timeout);
 
-            return (DateTime.Now.Ticks - waitDown)/10000m;
+            return (DateTime.Now.Ticks - waitDown) / 10000m;
         }
-
-        #endregion
     }
 }

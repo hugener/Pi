@@ -1,11 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Pi.System.Threading;
-using Pi.Timers;
+// <copyright file="GpioConnection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.GeneralPurpose
 {
+    using System.Threading;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using Timers;
+
     /// <summary>
     /// Represents a connection to the GPIO pins.
     /// </summary>
@@ -31,7 +36,8 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="pins">The pins.</param>
         public GpioConnection(params PinConfiguration[] pins)
             : this(null, pins)
-        { }
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GpioConnection" /> class.
@@ -39,7 +45,8 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="pins">The pins.</param>
         public GpioConnection(IEnumerable<PinConfiguration> pins)
             : this(null, pins)
-        { }
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GpioConnection" /> class.
@@ -48,7 +55,8 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="pins">The pins.</param>
         public GpioConnection(GpioConnectionSettings settings, params PinConfiguration[] pins)
             : this(settings, pins, null)
-        { }
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GpioConnection" /> class.
@@ -82,15 +90,9 @@ namespace Pi.IO.GeneralPurpose
         }
 
         /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// Occurs when the status of a pin changed.
         /// </summary>
-        public void Dispose()
-        {
-            this.Close();
-            this.thread.Dispose();
-            Timer.Dispose(this.timer);
-            this.gpioConnectionDriver.Dispose();
-        }
+        public event EventHandler<PinStatusEventArgs> PinStatusChanged;
 
         /// <summary>
         /// Gets a value indicating whether connection is opened.
@@ -101,8 +103,23 @@ namespace Pi.IO.GeneralPurpose
         public bool IsOpened { get; private set; }
 
         /// <summary>
+        /// Gets the pins.
+        /// </summary>
+        /// <value>
+        /// The pins.
+        /// </value>
+        public ConnectedPins Pins { get; }
+
+        internal IEnumerable<PinConfiguration> Configurations => this.pinConfigurations.Values;
+
+        /// <summary>
         /// Gets or sets the status of the pin having the specified name.
         /// </summary>
+        /// <value>
+        /// The <see cref="bool" />.
+        /// </value>
+        /// <param name="name">The name.</param>
+        /// <returns>The value of the named pin.</returns>
         public bool this[string name]
         {
             get => this[this.namedPins[name].Pin];
@@ -112,6 +129,11 @@ namespace Pi.IO.GeneralPurpose
         /// <summary>
         /// Gets or sets the status of the specified pin.
         /// </summary>
+        /// <value>
+        /// The <see cref="bool" />.
+        /// </value>
+        /// <param name="pin">The pin.</param>
+        /// <returns>The value of the pin.</returns>
         public bool this[ConnectorPin pin]
         {
             get => this[pin.ToProcessor()];
@@ -121,6 +143,11 @@ namespace Pi.IO.GeneralPurpose
         /// <summary>
         /// Gets or sets the status of the specified pin.
         /// </summary>
+        /// <value>
+        /// The <see cref="bool" />.
+        /// </value>
+        /// <param name="pin">The pin.</param>
+        /// <returns>The value of the pin.</returns>
         public bool this[PinConfiguration pin]
         {
             get => this.pinValues[pin.Pin];
@@ -144,6 +171,11 @@ namespace Pi.IO.GeneralPurpose
         /// <summary>
         /// Gets or sets the status of the specified pin.
         /// </summary>
+        /// <value>
+        /// The <see cref="bool" />.
+        /// </value>
+        /// <param name="pin">The pin.</param>
+        /// <returns>The value of the pin.</returns>
         public bool this[ProcessorPin pin]
         {
             get => this[this.pinConfigurations[pin]];
@@ -151,9 +183,15 @@ namespace Pi.IO.GeneralPurpose
         }
 
         /// <summary>
-        /// Gets the pins.
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public ConnectedPins Pins { get; }
+        public void Dispose()
+        {
+            this.Close();
+            this.thread.Dispose();
+            Timer.Dispose(this.timer);
+            this.gpioConnectionDriver.Dispose();
+        }
 
         /// <summary>
         /// Opens the connection.
@@ -401,7 +439,7 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         /// <param name="pinName">Name of the pin.</param>
         /// <param name="duration">The duration.</param>
-        public void Blink(string pinName, TimeSpan duration = new TimeSpan())
+        public void Blink(string pinName, TimeSpan duration = default(TimeSpan))
         {
             this.Toggle(pinName);
             this.Sleep(duration);
@@ -413,7 +451,7 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         /// <param name="pin">The pin.</param>
         /// <param name="duration">The duration.</param>
-        public void Blink(ProcessorPin pin, TimeSpan duration = new TimeSpan())
+        public void Blink(ProcessorPin pin, TimeSpan duration = default(TimeSpan))
         {
             this.Toggle(pin);
             this.Sleep(duration);
@@ -425,7 +463,7 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         /// <param name="pin">The pin.</param>
         /// <param name="duration">The duration.</param>
-        public void Blink(ConnectorPin pin, TimeSpan duration = new TimeSpan())
+        public void Blink(ConnectorPin pin, TimeSpan duration = default(TimeSpan))
         {
             this.Toggle(pin);
             this.Sleep(duration);
@@ -437,25 +475,11 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         /// <param name="configuration">The pin configuration.</param>
         /// <param name="duration">The duration.</param>
-        public void Blink(PinConfiguration configuration, TimeSpan duration = new TimeSpan())
+        public void Blink(PinConfiguration configuration, TimeSpan duration = default(TimeSpan))
         {
             this.Toggle(configuration);
             this.Sleep(duration);
             this.Toggle(configuration);
-        }
-
-        /// <summary>
-        /// Occurs when the status of a pin changed.
-        /// </summary>
-        public event EventHandler<PinStatusEventArgs> PinStatusChanged;
-
-        /// <summary>
-        /// Raises the <see cref="PinStatusChanged"/> event.
-        /// </summary>
-        /// <param name="e">The <see cref="Pi.IO.GeneralPurpose.PinStatusEventArgs"/> instance containing the event data.</param>
-        protected void OnPinStatusChanged(PinStatusEventArgs e)
-        {
-            this.PinStatusChanged?.Invoke(this, e);
         }
 
         internal PinConfiguration GetConfiguration(string pinName)
@@ -468,7 +492,14 @@ namespace Pi.IO.GeneralPurpose
             return this.pinConfigurations[pin];
         }
 
-        internal IEnumerable<PinConfiguration> Configurations => this.pinConfigurations.Values;
+        /// <summary>
+        /// Raises the <see cref="PinStatusChanged"/> event.
+        /// </summary>
+        /// <param name="e">The <see cref="Pi.IO.GeneralPurpose.PinStatusEventArgs"/> instance containing the event data.</param>
+        protected void OnPinStatusChanged(PinStatusEventArgs e)
+        {
+            this.PinStatusChanged?.Invoke(this, e);
+        }
 
         private void Sleep(TimeSpan duration)
         {
@@ -482,7 +513,9 @@ namespace Pi.IO.GeneralPurpose
                 var handler = new EventHandler<PinStatusEventArgs>((sender, args) =>
                                                                        {
                                                                            if (args.Configuration == configuration)
+                                                                           {
                                                                                configuration.StatusChangedAction(args.Enabled);
+                                                                           }
                                                                        });
                 this.pinEvents[configuration.Pin] = handler;
                 this.PinStatusChanged += handler;

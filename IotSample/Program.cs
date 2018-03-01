@@ -1,16 +1,20 @@
-﻿using System;
-using System.Threading;
-using Pi.IO.Components.Converters.Mcp3008;
-using Pi.IO.GeneralPurpose;
-using Pi.IO;
+﻿// <copyright file="Program.cs" company="PlaceholderCompany">
+// Copyright (c) PlaceholderCompany. All rights reserved.
+// </copyright>
 
 namespace IotSample
 {
-    class Program
+    using System;
+    using System.Threading;
+    using Pi.IO;
+    using Pi.IO.Components.Converters.Mcp3008;
+    using Pi.IO.GeneralPurpose;
+
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            var bmp280 = new BMP280();
+            var bmp280 = new Bmp280();
             bmp280.Initialize();
 
             const ConnectorPin adcClock = ConnectorPin.P1Pin23;
@@ -43,12 +47,12 @@ namespace IotSample
                 float p = bmp280.ReadPreasure().Result;
                 float t = bmp280.ReadTemperature().Result;
 
-                float tempF = (t * 9 / 5 + 32);
+                float tempF = (t * 9 / 5) + 32;
                 float pressureInHg = p * .295357F / 1000;
 
                 Console.WriteLine("Pressure: " + pressureInHg + " inHg");
                 Console.WriteLine("Temperature: " + tempF + " F");
-                
+
                 // Read the analog inputs
                 AnalogValue a0 = adcConnection.Read(Mcp3008Channel.Channel0);
                 AnalogValue a1 = adcConnection.Read(Mcp3008Channel.Channel1);

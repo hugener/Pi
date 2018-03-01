@@ -1,19 +1,18 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿// <copyright file="ErrNum.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Interop
 {
+    using System;
+    using System.Runtime.InteropServices;
+
     /// <summary>
     /// Helper methods for P/Invoke errors.
     /// </summary>
     public static class ErrNum
     {
-        #region libc imports
-        [DllImport("libc", EntryPoint = "strerror", SetLastError = true)]
-        private static extern IntPtr strerror(int errnum);
-        #endregion
-
-        #region Methods
         /// <summary>
         /// Throws the on p invoke error.
         /// </summary>
@@ -22,31 +21,35 @@ namespace Pi.IO.Interop
         /// <param name="message">The message.</param>
         /// <exception cref="Exception">The exception type.</exception>
         public static void ThrowOnPInvokeError<TException>(this int result, string message = null)
-            where TException : Exception, new() 
+            where TException : Exception, new()
         {
-            if (result >= 0) {
+            if (result >= 0)
+            {
                 return;
             }
 
             var type = typeof(TException);
             var constructorInfo = type.GetConstructor(new[] { typeof(string) });
-            if (ReferenceEquals(constructorInfo, null)) {
+            if (ReferenceEquals(constructorInfo, null))
+            {
                 throw new TException();
             }
-            
-            var err = Marshal.GetLastWin32Error();
-            var messagePtr = strerror(err);
 
-            var strErrorMessage = (messagePtr != IntPtr.Zero)
+            var err = Marshal.GetLastWin32Error();
+            var messagePtr = Strerror(err);
+
+            var strErrorMessage = messagePtr != IntPtr.Zero
                 ? Marshal.PtrToStringAuto(messagePtr)
                 : "unknown";
 
-            var exceptionMessage = (message == null)
+            var exceptionMessage = message == null
                 ? string.Format("Error {0}: {1}", err, strErrorMessage)
                 : string.Format(message, result, err, strErrorMessage);
-            
+
             throw (TException)constructorInfo.Invoke(new object[] { exceptionMessage });
         }
-        #endregion
+
+        [DllImport("libc", EntryPoint = "strerror", SetLastError = true)]
+        private static extern IntPtr Strerror(int errnum);
     }
 }

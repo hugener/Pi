@@ -1,74 +1,56 @@
-﻿using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
+﻿// <copyright file="UnixFile.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Interop
 {
+    using System;
+    using System.Diagnostics;
+    using System.Runtime.InteropServices;
+
     /// <summary>
     /// A UNIX file that is controlled by the operation system.
     /// </summary>
     public sealed class UnixFile : IFile
     {
-        #region Libc imports
-        [DllImport("libc.so.6", EntryPoint = "open")]
-        private static extern int open(string fileName, int mode);
-        [DllImport("libc.so.6", EntryPoint = "close")]
-        private static extern int close(int file);
-        #endregion
-
-        #region Fields
         private int descriptor;
         private string filename;
-        #endregion
-
-        #region Instance Management
-        private UnixFile(int descriptor) {
-            this.descriptor = descriptor;
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UnixFile"/> class.
         /// </summary>
-        /// <param name="filename">A pathname for the file.</param>
-        /// <param name="fileMode">The file access mode.</param>
+        /// <param name="filename">The filename.</param>
+        /// <param name="fileMode">The file mode.</param>
         public UnixFile(string filename, UnixFileMode fileMode)
-            :this(OpenFileDescriptor(filename, fileMode)) {
+            : this(OpenFileDescriptor(filename, fileMode))
+        {
             this.filename = filename;
+        }
+
+        private UnixFile(int descriptor)
+        {
+            this.descriptor = descriptor;
         }
 
         /// <summary>
         /// Finalizes an instance of the <see cref="UnixFile"/> class.
         /// </summary>
-        ~UnixFile() {
-            Dispose(false);
+        ~UnixFile()
+        {
+            this.Dispose(false);
             GC.SuppressFinalize(this);
         }
-        #endregion
-
-        #region Properties
-        /// <summary>
-        ///  The file descriptor
-        /// </summary>
-        public int Descriptor {
-            get { return descriptor; }
-        }
 
         /// <summary>
-        /// The pathname for the file.
+        /// Gets the file descriptor
         /// </summary>
-        public string Filename {
-            get { return filename; }
-        }
-        #endregion
+        public int Descriptor => this.descriptor;
 
-        #region Methods
         /// <summary>
-        /// Closes the file and frees all unmanaged system resources. See <see cref="CloseFileDescriptor"/> for more information.
+        /// Gets the pathname for the file.
         /// </summary>
-        public void Dispose() {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+        public string Filename => this.filename;
 
         /// <summary>
         /// Opens a UNIX file.
@@ -76,7 +58,8 @@ namespace Pi.IO.Interop
         /// <param name="fileName">The filepath.</param>
         /// <param name="fileMode">The file access mode.</param>
         /// <returns>A opened file.</returns>
-        public static IFile Open(string fileName, UnixFileMode fileMode) {
+        public static IFile Open(string fileName, UnixFileMode fileMode)
+        {
             return new UnixFile(fileName, fileMode);
         }
 
@@ -86,9 +69,10 @@ namespace Pi.IO.Interop
         /// <param name="fileName">The filepath.</param>
         /// <param name="fileMode">The file access mode.</param>
         /// <returns>The file descriptor returned by a successful call will be the lowest-numbered file descriptor not currently open for the process.</returns>
-        public static int OpenFileDescriptor(string fileName, UnixFileMode fileMode) {
-            var mode = unchecked ((int) fileMode);
-            return open(fileName, mode);
+        public static int OpenFileDescriptor(string fileName, UnixFileMode fileMode)
+        {
+            var mode = (int)fileMode;
+            return Open(fileName, mode);
         }
 
         /// <summary>
@@ -97,35 +81,53 @@ namespace Pi.IO.Interop
         /// </summary>
         /// <param name="fileDescriptor">The file descriptor the shall be closed.</param>
         /// <returns><c>true</c> on success</returns>
-        /// <remarks> 
-        /// If <paramref name="fileDescriptor"/> is the last file descriptor referring to the underlying open file description, the resources associated with 
+        /// <remarks>
+        /// If <paramref name="fileDescriptor"/> is the last file descriptor referring to the underlying open file description, the resources associated with
         /// the open file description are freed; if the descriptor was the last reference to a file which has been removed using unlink the file is deleted.
         /// </remarks>
-        public static bool CloseFileDescriptor(int fileDescriptor) {
-            if (fileDescriptor != 0) {
-                return close(fileDescriptor) == 0;
+        public static bool CloseFileDescriptor(int fileDescriptor)
+        {
+            if (fileDescriptor != 0)
+            {
+                return Close(fileDescriptor) == 0;
             }
+
             return false;
         }
-        #endregion
 
-        #region Private Helpers
-        private void Dispose(bool disposing) {
-            if (disposing) {
+        /// <summary>
+        /// Closes the file and frees all unmanaged system resources. See <see cref="CloseFileDescriptor"/> for more information.
+        /// </summary>
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        [DllImport("libc.so.6", EntryPoint = "open")]
+        private static extern int Open(string fileName, int mode);
+
+        [DllImport("libc.so.6", EntryPoint = "close")]
+        private static extern int Close(int file);
+
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
                 // free managed here
             }
 
-            Trace.Assert(disposing,
-                string.Format("ERROR: GC finalized a unix file '{0}' with open file descriptor {1} that was not disposed!",
-                    filename, descriptor));
+            Trace.Assert(
+                disposing,
+                string.Format("ERROR: GC finalized a unix file '{0}' with open file descriptor {1} that was not disposed!", this.filename, this.descriptor));
 
-            if (descriptor != 0) {
+            if (this.descriptor != 0)
+            {
                 // we need to free unmanaged resources to avoid memory leeks
-                close(descriptor);
-                descriptor = 0;
-                filename = null;
+                Close(this.descriptor);
+                this.descriptor = 0;
+                this.filename = null;
             }
         }
-        #endregion
     }
 }

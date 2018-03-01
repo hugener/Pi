@@ -1,3 +1,8 @@
+// <copyright file="ProcessorPin.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 namespace Pi.IO.GeneralPurpose
 {
     /// <summary>
@@ -214,7 +219,7 @@ namespace Pi.IO.GeneralPurpose
         /// Pin 31.
         /// </summary>
         Pin31 = 31,
-        
+
         /// <summary>
         /// Pin 32. (added for CubieTruck/CubieBoard3 compatibility
         /// </summary>

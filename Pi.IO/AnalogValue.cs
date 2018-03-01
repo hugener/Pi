@@ -1,3 +1,8 @@
+// <copyright file="AnalogValue.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 namespace Pi.IO
 {
     /// <summary>
@@ -27,8 +32,8 @@ namespace Pi.IO
         /// </value>
         public decimal Value
         {
-            get { return value; }
-            set { this.value = value; }
+            get => this.value;
+            set => this.value = value;
         }
 
         /// <summary>
@@ -39,8 +44,8 @@ namespace Pi.IO
         /// </value>
         public decimal Range
         {
-            get { return range; }
-            set { range = value; }
+            get => this.range;
+            set => this.range = value;
         }
 
         /// <summary>
@@ -49,9 +54,6 @@ namespace Pi.IO
         /// <value>
         /// The relative value.
         /// </value>
-        public decimal Relative
-        {
-            get { return value / range; }
-        }
+        public decimal Relative => this.value / this.range;
     }
 }

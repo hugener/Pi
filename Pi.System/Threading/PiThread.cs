@@ -1,18 +1,16 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
-// <copyright file="PiThread.cs" company="Hukano">
-// Copyright (c) Hukano. All rights reserved.
+﻿// <copyright file="PiThread.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // </copyright>
-// --------------------------------------------------------------------------------------------------------------------
-
-using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using Pi.Timers;
 
 namespace Pi.System.Threading
 {
+    using global::System;
+    using global::System.Diagnostics;
+    using global::System.Linq;
+    using global::System.Threading;
+    using Timers;
+
     internal class PiThread : IDisposableThread
     {
         private static readonly TimeSpan MinLongDelay = TimeSpan.FromMilliseconds(100);
@@ -62,26 +60,29 @@ namespace Pi.System.Threading
 
             if (delay > MinNanoDelay)
             {
-                var t1 = new Interop.timespec();
-                var t2 = new Interop.timespec();
+                var t1 = default(Interop.Timespec);
+                var t2 = default(Interop.Timespec);
 
                 // Use nanosleep if interval is higher than 450µs
-                t1.tv_sec = IntPtr.Zero;
+                t1.TvSec = IntPtr.Zero;
                 try
                 {
-                    t1.tv_nsec = (IntPtr)(delay.Ticks * 100 - NanoSleepOffset);
+                    t1.TvNsec = (IntPtr)((delay.Ticks * 100) - NanoSleepOffset);
                 }
                 catch (Exception e)
                 {
-                    global::System.Console.WriteLine(e + " - " + delay);
+                    Console.WriteLine(e + " - " + delay);
                     throw;
                 }
 
-                Interop.nanosleep(ref t1, ref t2);
+                Interop.Nanosleep(ref t1, ref t2);
                 return true;
             }
 
-            while (stopwatch.Elapsed < delay);
+            while (stopwatch.Elapsed < delay)
+            {
+            }
+
             return true;
         }
 
@@ -96,16 +97,16 @@ namespace Pi.System.Threading
                     (long)0,
                     (a, i) =>
                     {
-                        var t1 = new Interop.timespec();
-                        var t2 = new Interop.timespec();
+                        var t1 = default(Interop.Timespec);
+                        var t2 = default(Interop.Timespec);
 
-                        t1.tv_sec = IntPtr.Zero;
-                        t1.tv_nsec = (IntPtr)1000000;
+                        t1.TvSec = IntPtr.Zero;
+                        t1.TvNsec = (IntPtr)1000000;
 
                         stopwatch.Restart();
-                        Interop.nanosleep(ref t1, ref t2);
+                        Interop.Nanosleep(ref t1, ref t2);
                         stopwatch.Stop();
-                        return a + (stopwatch.ElapsedTicks * ticksPerNanoSecond - 1000000);
+                        return a + ((stopwatch.ElapsedTicks * ticksPerNanoSecond) - 1000000);
                     },
                     a => a / referenceCount);
         }

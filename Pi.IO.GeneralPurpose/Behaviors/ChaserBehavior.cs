@@ -1,8 +1,13 @@
-using System.Collections.Generic;
-using Pi.System.Threading;
+// <copyright file="ChaserBehavior.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.GeneralPurpose.Behaviors
 {
+    using System.Threading;
+    using global::System.Collections.Generic;
+
     /// <summary>
     /// Represents a chaser behavior.
     /// </summary>
@@ -16,7 +21,7 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// </summary>
         /// <param name="configurations">The configurations.</param>
         /// <param name="threadFactory">The thread factory.</param>
-        public ChaserBehavior(IEnumerable<PinConfiguration> configurations, IThreadFactory threadFactory = null) 
+        public ChaserBehavior(IEnumerable<PinConfiguration> configurations, IThreadFactory threadFactory = null)
             : base(configurations, ThreadFactory.EnsureThreadFactory(threadFactory))
         {
             this.Width = 1;
@@ -54,6 +59,16 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// </value>
         public int Width { get; set; }
 
+        private bool Overflow => this.Loop && !this.RoundTrip;
+
+        private int MinimumStep => this.Overflow ? 0 : this.WidthBefore;
+
+        private int MaximumStep => this.Configurations.Length - 1 - (this.Overflow ? 0 : this.WidthAfter);
+
+        private int WidthBefore => this.Width % 2 == 1 ? (this.Width - 1) / 2 : this.Width / 2;
+
+        private int WidthAfter => this.Width % 2 == 1 ? (this.Width - 1) / 2 : (this.Width / 2) - 1;
+
         /// <summary>
         /// Gets the first step.
         /// </summary>
@@ -80,13 +95,13 @@ namespace Pi.IO.GeneralPurpose.Behaviors
                 var configuration = this.Configurations[i];
                 if (!this.Overflow)
                 {
-                    this.Connection[configuration] = (i >= minEnabledStep && i <= maxEnabledStep);
+                    this.Connection[configuration] = i >= minEnabledStep && i <= maxEnabledStep;
                 }
                 else
                 {
-                    this.Connection[configuration] = (i >= minEnabledStep && i <= maxEnabledStep) || 
-                        (maxEnabledStep >= this.Configurations.Length && i <= maxEnabledStep% this.Configurations.Length) ||
-                        (minEnabledStep < 0 && i >= minEnabledStep + this.Configurations.Length);
+                    this.Connection[configuration] = (i >= minEnabledStep && i <= maxEnabledStep)
+                        || (maxEnabledStep >= this.Configurations.Length && i <= maxEnabledStep % this.Configurations.Length)
+                        || (minEnabledStep < 0 && i >= minEnabledStep + this.Configurations.Length);
                 }
             }
         }
@@ -141,20 +156,13 @@ namespace Pi.IO.GeneralPurpose.Behaviors
                         return false;
                     }
                 }
-                else step--;
+                else
+                {
+                    step--;
+                }
             }
 
             return true;
         }
-
-        private bool Overflow => this.Loop && !this.RoundTrip;
-
-        private int MinimumStep => this.Overflow ? 0 : this.WidthBefore;
-
-        private int MaximumStep => this.Configurations.Length - 1 - (this.Overflow ? 0 : this.WidthAfter);
-
-        private int WidthBefore => (this.Width%2) == 1 ? (this.Width - 1)/2 : this.Width/2;
-
-        private int WidthAfter => (this.Width%2) == 1 ? (this.Width - 1)/2 : this.Width/2 - 1;
     }
 }

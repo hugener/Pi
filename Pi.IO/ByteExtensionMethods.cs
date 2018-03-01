@@ -1,21 +1,20 @@
-﻿#region References
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-#endregion
+﻿// <copyright file="ByteExtensionMethods.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+
     /// <summary>
     /// Provides extension methods for byte and byte arrays.
     /// </summary>
     public static class ByteExtensionMethods
     {
-        #region Methods
-
         /// <summary>
         /// Converts a byte array/enumerable to a bit string.
         /// </summary>
@@ -30,11 +29,11 @@ namespace Pi.IO
                 {
                     sb.Append(new string('0', 8 - value.Length));
                 }
+
                 sb.Append(value);
             }
+
             return sb.ToString();
         }
-
-        #endregion
     }
 }

@@ -1,21 +1,20 @@
-﻿#region References
-
-using System;
-using Pi.IO.Interop;
-
-#endregion
+﻿// <copyright file="ISpiTransferBuffer.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.SerialPeripheralInterface
 {
+    using global::System;
+    using IO.Interop;
+
     /// <summary>
     /// A transfer buffer used to read from / write to the SPI bus.
     /// </summary>
     public interface ISpiTransferBuffer : IDisposable
     {
-        #region Properties
-
         /// <summary>
-        /// Temporary override of the device's wordsize
+        /// Gets or sets the temporary override of the device's wordsize
         /// </summary>
         /// <value>
         /// The bits per word.
@@ -23,23 +22,23 @@ namespace Pi.IO.SerialPeripheralInterface
         byte BitsPerWord { get; set; }
 
         /// <summary>
-        /// Temporary override of the device's bitrate (in Hz)
+        /// Gets or sets the temporary override of the device's bitrate (in Hz)
         /// </summary>
         /// <value>
         /// The speed.
         /// </value>
-        UInt32 Speed { get; set; }
+        uint Speed { get; set; }
 
         /// <summary>
-        /// If nonzero, how long to delay (in µ seconds) after the last bit transfer before optionally deselecting the device before the next transfer.
+        /// Gets or sets the delay (in µ seconds) after the last bit transfer before optionally deselecting the device before the next transfer.
         /// </summary>
         /// <value>
         /// The delay.
         /// </value>
-        UInt16 Delay { get; set; }
+        ushort Delay { get; set; }
 
         /// <summary>
-        /// Set to <c>true</c> to deselect device before starting the next transfer.
+        /// Gets or sets a value indicating whether [chip select change].
         /// </summary>
         /// <value>
         ///   <c>true</c> if device is delected before starting next transfer; otherwise, <c>false</c>.
@@ -47,15 +46,15 @@ namespace Pi.IO.SerialPeripheralInterface
         bool ChipSelectChange { get; set; }
 
         /// <summary>
-        /// Pad.
+        /// Gets or sets the Pad.
         /// </summary>
         /// <value>
         /// The pad.
         /// </value>
-        UInt32 Pad { get; set; }
+        uint Pad { get; set; }
 
         /// <summary>
-        /// Specifies if the transfer shall read and/or write. <see cref="SpiTransferMode" />
+        /// Gets the spi transfer mode (read and/or write). <see cref="SpiTransferMode" />
         /// </summary>
         /// <value>
         /// The transfer mode.
@@ -63,7 +62,7 @@ namespace Pi.IO.SerialPeripheralInterface
         SpiTransferMode TransferMode { get; }
 
         /// <summary>
-        /// Length of <see cref="Tx" /> and <see cref="Rx" /> buffers, in bytes
+        /// Gets the length of <see cref="Tx" /> and <see cref="Rx" /> buffers, in bytes
         /// </summary>
         /// <value>
         /// The length.
@@ -71,7 +70,7 @@ namespace Pi.IO.SerialPeripheralInterface
         int Length { get; }
 
         /// <summary>
-        /// Holds pointer to userspace buffer with transmit data, or <c>null</c>. If no data is provided, zeroes are shifted out
+        /// Gets the pointer to userspace buffer with transmit data, or <c>null</c>. If no data is provided, zeroes are shifted out
         /// </summary>
         /// <value>
         /// The tx.
@@ -79,7 +78,7 @@ namespace Pi.IO.SerialPeripheralInterface
         IMemory Tx { get; }
 
         /// <summary>
-        /// Holds pointer to userspace buffer for receive data, or <c>null</c>
+        /// Gets the pointer to userspace buffer for receive data, or <c>null</c>
         /// </summary>
         /// <value>
         /// The rx.
@@ -87,14 +86,11 @@ namespace Pi.IO.SerialPeripheralInterface
         IMemory Rx { get; }
 
         /// <summary>
-        /// The IOCTL structure that contains control information for a single SPI transfer
+        /// Gets the IOCTL structure that contains control information for a single SPI transfer
         /// </summary>
         /// <value>
         /// The control structure.
         /// </value>
         SpiTransferControlStructure ControlStructure { get; }
-
-        #endregion
-
     }
 }

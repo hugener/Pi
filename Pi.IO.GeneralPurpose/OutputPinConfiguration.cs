@@ -1,3 +1,8 @@
+// <copyright file="OutputPinConfiguration.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 namespace Pi.IO.GeneralPurpose
 {
     /// <summary>
@@ -5,17 +10,14 @@ namespace Pi.IO.GeneralPurpose
     /// </summary>
     public class OutputPinConfiguration : PinConfiguration
     {
-        #region Instance Management
-
         /// <summary>
         /// Initializes a new instance of the <see cref="OutputPinConfiguration"/> class.
         /// </summary>
         /// <param name="pin">The pin.</param>
-        public OutputPinConfiguration(ProcessorPin pin) : base(pin){}
-
-        #endregion
-
-        #region Properties
+        public OutputPinConfiguration(ProcessorPin pin)
+            : base(pin)
+        {
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="OutputPinConfiguration"/> is enabled on connection.
@@ -28,11 +30,6 @@ namespace Pi.IO.GeneralPurpose
         /// <summary>
         /// Gets the direction.
         /// </summary>
-        public override PinDirection Direction
-        {
-            get { return PinDirection.Output; }
-        }
-
-        #endregion
+        public override PinDirection Direction => PinDirection.Output;
     }
 }

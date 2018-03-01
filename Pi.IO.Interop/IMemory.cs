@@ -1,19 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// <copyright file="IMemory.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Interop
 {
+    using System;
+    using System.Collections.Generic;
+
     /// <summary>
     /// Managed/Unmanaged memory that can be used for P/Invoke operations.
     /// </summary>
-    public interface IMemory : IDisposable, IEnumerable<byte> {
+    public interface IMemory : IDisposable, IEnumerable<byte>
+    {
         /// <summary>
-        /// Pointer to the memory address.
+        /// Gets the pointer to the memory address.
         /// </summary>
         IntPtr Pointer { get; }
-        
+
         /// <summary>
-        /// Size in bytes
+        /// Gets the size in bytes
         /// </summary>
         int Length { get; }
 
@@ -46,7 +52,7 @@ namespace Pi.IO.Interop
         /// <param name="destinationIndex">Copies the data starting at <paramref name="destinationIndex"/> to the memory.</param>
         /// <param name="length">Copies <paramref name="length"/> bytes.</param>
         void Copy(byte[] source, int sourceIndex, int destinationIndex, int length);
-        
+
         /// <summary>
         /// Copies data from the memory to the supplied <paramref name="destination"/> byte array.
         /// </summary>

@@ -1,24 +1,26 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿// <copyright file="MemorySubset.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Interop
 {
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+
     /// <summary>
     /// A subset of an already allocated memory block.
     /// </summary>
     public class MemorySubset : IMemory
     {
-        #region Fields
         private readonly IMemory memory;
 
         private int memoryLength;
         private int memoryOffset;
         private bool owner;
         private IntPtr memoryPointer;
-        #endregion
 
-        #region Instance Management   
         /// <summary>
         /// Initializes a new instance of the <see cref="MemorySubset"/> class.
         /// </summary>
@@ -26,92 +28,73 @@ namespace Pi.IO.Interop
         /// <param name="startOffset">Start offset of the origin memory block</param>
         /// <param name="length">Length of this memory subset in bytes</param>
         /// <param name="isOwner">If <c>true</c> the origin <paramref name="memoryBlock"/> will be disposed on <see cref="Dispose()"/>.</param>
-        public MemorySubset(IMemory memoryBlock, int startOffset, int length, bool isOwner) {
-            if (ReferenceEquals(memoryBlock, null)) {
+        public MemorySubset(IMemory memoryBlock, int startOffset, int length, bool isOwner)
+        {
+            if (ReferenceEquals(memoryBlock, null))
+            {
                 throw new ArgumentNullException("memoryBlock");
             }
-            if (startOffset < 0 || startOffset > memoryBlock.Length) {
+
+            if (startOffset < 0 || startOffset > memoryBlock.Length)
+            {
                 var message = string.Format("The offset must be between 0 and {0}", memoryBlock.Length);
                 throw new ArgumentOutOfRangeException("startOffset", startOffset, message);
             }
-            if (length < 0 || startOffset + length > memoryBlock.Length) {
+
+            if (length < 0 || startOffset + length > memoryBlock.Length)
+            {
                 throw new ArgumentOutOfRangeException("length", length, "Invalid size");
             }
 
-            memory = memoryBlock;
-            memoryOffset = startOffset;
-            memoryLength = length;
-            memoryPointer = memory.Pointer + memoryOffset;
-            owner = isOwner;
+            this.memory = memoryBlock;
+            this.memoryOffset = startOffset;
+            this.memoryLength = length;
+            this.memoryPointer = this.memory.Pointer + this.memoryOffset;
+            this.owner = isOwner;
         }
 
         /// <summary>
-        /// If owner, managed memory will be released. Otherwise this method does nothing.
+        /// Gets the pointer to the memory address.
         /// </summary>
-        public void Dispose() {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
+        public IntPtr Pointer => this.memoryPointer;
 
         /// <summary>
-        /// Free managed memory. This method does nothing if it is not owner of origin memory block.
+        /// Gets the size in bytes
         /// </summary>
-        /// <param name="disposing">If this instance is the owner of the memory block it will always release the origin memory block to avoid memory leaks. If you don't want this, don't call this method (<see cref="Dispose(bool)"/>) in your derived class.</param>
-        protected virtual void Dispose(bool disposing) {
-            if (disposing) {
-                // free managed here
-            }
+        public int Length => this.memoryLength;
 
-            if (owner) {
-                memoryLength = 0;
-                memoryPointer = IntPtr.Zero;
-                memoryOffset = 0;
-                memory.Dispose();
-                owner = false;
-            }
-        }
-
-        #endregion
-
-        #region Properties
-
-        /// <summary>
-        /// Pointer to the memory address.
-        /// </summary>
-        public IntPtr Pointer {
-            get { return memoryPointer; }
-        }
-        
-        /// <summary>
-        /// Size in bytes
-        /// </summary>
-        public int Length {
-            get { return memoryLength; }
-        }
-        
         /// <summary>
         /// Indexer, which will allow client code to use [] notation on the class instance itself.
         /// </summary>
         /// <param name="index">Offset to memory</param>
         /// <returns>Byte at/from the specified position <paramref name="index"/>.</returns>
-        public byte this[int index] {
-            get { return Read(index); }
-            set { Write(index, value); }
+        public byte this[int index]
+        {
+            get => this.Read(index);
+            set => this.Write(index, value);
         }
-        #endregion
 
-        #region Methods
+        /// <summary>
+        /// If owner, managed memory will be released. Otherwise this method does nothing.
+        /// </summary>
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         /// <summary>
         /// Returns an enumerator
         /// </summary>
         /// <returns>
         /// A <see cref="T:System.Collections.Generic.IEnumerator`1"/>
         /// </returns>
-        public IEnumerator<byte> GetEnumerator() {
-            var tmp = new byte[memoryLength];
-            memory.Copy(memoryOffset, tmp, 0, memoryLength);
-            
-            return ((IEnumerable<byte>) tmp)
+        public IEnumerator<byte> GetEnumerator()
+        {
+            var tmp = new byte[this.memoryLength];
+            this.memory.Copy(this.memoryOffset, tmp, 0, this.memoryLength);
+
+            return ((IEnumerable<byte>)tmp)
                 .GetEnumerator();
         }
 
@@ -121,8 +104,9 @@ namespace Pi.IO.Interop
         /// <returns>
         /// A <see cref="T:System.Collections.Generic.IEnumerator`1"/>
         /// </returns>
-        IEnumerator IEnumerable.GetEnumerator() {
-            return GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
         }
 
         /// <summary>
@@ -130,11 +114,14 @@ namespace Pi.IO.Interop
         /// </summary>
         /// <param name="offset">Offset</param>
         /// <param name="data">Data that shall be written.</param>
-        public void Write(int offset, byte data) {
-            if (offset < 0 || offset >= memoryLength) {
+        public void Write(int offset, byte data)
+        {
+            if (offset < 0 || offset >= this.memoryLength)
+            {
                 throw new ArgumentOutOfRangeException("offset", offset, "invalid offset");
             }
-            memory.Write(memoryOffset + offset, data);
+
+            this.memory.Write(this.memoryOffset + offset, data);
         }
 
         /// <summary>
@@ -142,11 +129,14 @@ namespace Pi.IO.Interop
         /// </summary>
         /// <param name="offset">Offset</param>
         /// <returns>The data.</returns>
-        public byte Read(int offset) {
-            if (offset < 0 || offset >= memoryLength) {
+        public byte Read(int offset)
+        {
+            if (offset < 0 || offset >= this.memoryLength)
+            {
                 throw new ArgumentOutOfRangeException("offset", offset, "invalid offset");
             }
-            return memory.Read(memoryOffset + offset);
+
+            return this.memory.Read(this.memoryOffset + offset);
         }
 
         /// <summary>
@@ -156,18 +146,23 @@ namespace Pi.IO.Interop
         /// <param name="sourceIndex">Copies the data starting from <paramref name="sourceIndex"/>.</param>
         /// <param name="destinationIndex">Copies the data starting at <paramref name="destinationIndex"/> to the memory.</param>
         /// <param name="length">Copies <paramref name="length"/> bytes.</param>
-        public void Copy(byte[] source, int sourceIndex, int destinationIndex, int length) {
-            if (destinationIndex < 0 || destinationIndex > memoryLength) {
-                var message = string.Format("destination index must be greater than 0 and lower or equal to {0}", 
-                    memoryLength);
-                throw new ArgumentOutOfRangeException("destinationIndex", destinationIndex, 
+        public void Copy(byte[] source, int sourceIndex, int destinationIndex, int length)
+        {
+            if (destinationIndex < 0 || destinationIndex > this.memoryLength)
+            {
+                var message = string.Format("destination index must be greater than 0 and lower or equal to {0}", this.memoryLength);
+                throw new ArgumentOutOfRangeException(
+                    "destinationIndex",
+                    destinationIndex,
                     message);
             }
-            if (destinationIndex + length > memoryLength) {
+
+            if (destinationIndex + length > this.memoryLength)
+            {
                 throw new ArgumentOutOfRangeException("length", length, "invalid length");
             }
 
-            memory.Copy(source, sourceIndex, memoryOffset + destinationIndex, length);
+            this.memory.Copy(source, sourceIndex, this.memoryOffset + destinationIndex, length);
         }
 
         /// <summary>
@@ -177,18 +172,41 @@ namespace Pi.IO.Interop
         /// <param name="destination">Destination byte array.</param>
         /// <param name="destinationIndex">Copies the data starting at <paramref name="destinationIndex"/> to the destination byte array.</param>
         /// <param name="length">Copies <paramref name="length"/> bytes.</param>
-        public void Copy(int sourceIndex, byte[] destination, int destinationIndex, int length) {
-            if (sourceIndex < 0 || sourceIndex > memoryLength) {
-                var message = string.Format("source index must be greater than 0 and lower or equal to {0}", 
-                    memoryLength);
+        public void Copy(int sourceIndex, byte[] destination, int destinationIndex, int length)
+        {
+            if (sourceIndex < 0 || sourceIndex > this.memoryLength)
+            {
+                var message = string.Format("source index must be greater than 0 and lower or equal to {0}", this.memoryLength);
                 throw new ArgumentOutOfRangeException("sourceIndex", sourceIndex, message);
             }
-            if (sourceIndex + length > memoryLength) {
+
+            if (sourceIndex + length > this.memoryLength)
+            {
                 throw new ArgumentOutOfRangeException("length", length, "invalid length");
             }
 
-            memory.Copy(memoryOffset + sourceIndex, destination, destinationIndex, length);
+            this.memory.Copy(this.memoryOffset + sourceIndex, destination, destinationIndex, length);
         }
-        #endregion
+
+        /// <summary>
+        /// Free managed memory. This method does nothing if it is not owner of origin memory block.
+        /// </summary>
+        /// <param name="disposing">If this instance is the owner of the memory block it will always release the origin memory block to avoid memory leaks. If you don't want this, don't call this method (<see cref="Dispose(bool)"/>) in your derived class.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // free managed here
+            }
+
+            if (this.owner)
+            {
+                this.memoryLength = 0;
+                this.memoryPointer = IntPtr.Zero;
+                this.memoryOffset = 0;
+                this.memory.Dispose();
+                this.owner = false;
+            }
+        }
     }
 }

@@ -1,12 +1,13 @@
-#region References
-
-using System;
-using Pi.IO.SerialPeripheralInterface;
-
-#endregion
+// <copyright file="Mcp3208SpiConnection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Converters.Mcp3208
 {
+    using global::System;
+    using SerialPeripheralInterface;
+
     /// <summary>
     /// Represents a connection to MCP3204/3208 ADC converter.
     /// </summary>
@@ -15,13 +16,7 @@ namespace Pi.IO.Components.Converters.Mcp3208
     /// </remarks>
     public class Mcp3208SpiConnection : IDisposable
     {
-        #region Fields
-
         private readonly SpiConnection spiConnection;
-
-        #endregion
-
-        #region Instance Management
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Mcp3208SpiConnection"/> class.
@@ -32,7 +27,7 @@ namespace Pi.IO.Components.Converters.Mcp3208
         /// <param name="mosiPin">The mosi pin.</param>
         public Mcp3208SpiConnection(IOutputBinaryPin clockPin, IOutputBinaryPin slaveSelectPin, IInputBinaryPin misoPin, IOutputBinaryPin mosiPin)
         {
-            spiConnection = new SpiConnection(clockPin, slaveSelectPin, misoPin, mosiPin, Endianness.LittleEndian);
+            this.spiConnection = new SpiConnection(clockPin, slaveSelectPin, misoPin, mosiPin, Endianness.LittleEndian);
         }
 
         /// <summary>
@@ -40,12 +35,8 @@ namespace Pi.IO.Components.Converters.Mcp3208
         /// </summary>
         void IDisposable.Dispose()
         {
-            Close();
+            this.Close();
         }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Reads the specified channel.
@@ -54,21 +45,21 @@ namespace Pi.IO.Components.Converters.Mcp3208
         /// <returns>The value</returns>
         public AnalogValue Read(Mcp3208Channel channel)
         {
-            using (spiConnection.SelectSlave())
+            using (this.spiConnection.SelectSlave())
             {
                 // Start bit
-                spiConnection.Write(true);
+                this.spiConnection.Write(true);
 
                 // Channel is single-ended
-                spiConnection.Write(true);
+                this.spiConnection.Write(true);
 
-                spiConnection.Write((byte)channel, 3);
+                this.spiConnection.Write((byte)channel, 3);
 
                 // Let one clock to sample
-                spiConnection.Synchronize();
+                this.spiConnection.Synchronize();
 
                 // Read 12 bits
-                var data = (int)spiConnection.Read(12);
+                var data = (int)this.spiConnection.Read(12);
 
                 return new AnalogValue(data, 0xFFF);
             }
@@ -79,9 +70,7 @@ namespace Pi.IO.Components.Converters.Mcp3208
         /// </summary>
         public void Close()
         {
-            spiConnection.Close();
+            this.spiConnection.Close();
         }
-
-        #endregion
     }
 }

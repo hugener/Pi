@@ -1,14 +1,15 @@
-﻿#region References
-
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
-
-#endregion
+﻿// <copyright file="Hd44780A00Encoding.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Displays.Hd44780
 {
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using global::System.Text;
+
     /// <summary>
     /// Represents encoding for HD44780 LCD with Japanese character set (ROM code A00)
     /// Based on http://lcd-linux.sourceforge.net/pdfdocs/hd44780.pdf
@@ -16,29 +17,15 @@ namespace Pi.IO.Components.Displays.Hd44780
     /// </summary>
     public class Hd44780A00Encoding : Encoding
     {
-        #region Fields
-
-        private static readonly Dictionary<char, byte> charMap = GetMap().GroupBy(p => p.Key, p => p.Value).ToDictionary(g => g.Key, g => g.First());
-        private static readonly Dictionary<byte, char> byteMap = GetMap().GroupBy(p => p.Value, p => p.Key).ToDictionary(g => g.Key, g => g.First());
-
-        private const byte missingChar = 0x3F;
-        private const char missingByte = '\uFFFD';
-
-        #endregion
-
-        #region Properties
+        private const byte MissingChar = 0x3F;
+        private const char MissingByte = '\uFFFD';
+        private static readonly Dictionary<char, byte> CharMap = GetMap().GroupBy(p => p.Key, p => p.Value).ToDictionary(g => g.Key, g => g.First());
+        private static readonly Dictionary<byte, char> ByteMap = GetMap().GroupBy(p => p.Value, p => p.Key).ToDictionary(g => g.Key, g => g.First());
 
         /// <summary>
         /// Gets the supported characters.
         /// </summary>
-        public static IEnumerable<char> SupportedCharacters
-        {
-            get { return charMap.Keys.Except(new[]{'\r', '\n'}); }
-        }
-
-        #endregion
-        
-        #region Methods
+        public static IEnumerable<char> SupportedCharacters => CharMap.Keys.Except(new[] { '\r', '\n' });
 
         /// <summary>
         /// When overridden in a derived class, calculates the number of bytes produced by encoding a set of characters from the specified character array.
@@ -74,7 +61,7 @@ namespace Pi.IO.Components.Displays.Hd44780
                     .Select(c =>
                                 {
                                     byte b;
-                                    return charMap.TryGetValue(c, out b) ? b : missingChar;
+                                    return CharMap.TryGetValue(c, out b) ? b : MissingChar;
                                 })
                     .ToArray(),
                 0,
@@ -119,7 +106,7 @@ namespace Pi.IO.Components.Displays.Hd44780
                     .Select(b =>
                                 {
                                     char c;
-                                    return byteMap.TryGetValue(b, out c) ? c : missingByte;
+                                    return ByteMap.TryGetValue(b, out c) ? c : MissingByte;
                                 })
                     .ToArray(),
                 0,
@@ -154,10 +141,6 @@ namespace Pi.IO.Components.Displays.Hd44780
             return byteCount;
         }
 
-        #endregion
-
-        #region Private Helpers
-
         private static IEnumerable<KeyValuePair<char, byte>> GetMap()
         {
             // CR/LF
@@ -173,34 +156,35 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>('\u0005', 0x05);
             yield return new KeyValuePair<char, byte>('\u0006', 0x06);
             yield return new KeyValuePair<char, byte>('\u0007', 0x07);
-/*
-            yield return new KeyValuePair<char, byte>(' ', 0x08);
-            yield return new KeyValuePair<char, byte>(' ', 0x09);
-            yield return new KeyValuePair<char, byte>(' ', 0x0A);
-            yield return new KeyValuePair<char, byte>(' ', 0x0B);
-            yield return new KeyValuePair<char, byte>(' ', 0x0C);
-            yield return new KeyValuePair<char, byte>(' ', 0x0D);
-            yield return new KeyValuePair<char, byte>(' ', 0x0E);
-            yield return new KeyValuePair<char, byte>(' ', 0x0F);
+            /*
+                        yield return new KeyValuePair<char, byte>(' ', 0x08);
+                        yield return new KeyValuePair<char, byte>(' ', 0x09);
+                        yield return new KeyValuePair<char, byte>(' ', 0x0A);
+                        yield return new KeyValuePair<char, byte>(' ', 0x0B);
+                        yield return new KeyValuePair<char, byte>(' ', 0x0C);
+                        yield return new KeyValuePair<char, byte>(' ', 0x0D);
+                        yield return new KeyValuePair<char, byte>(' ', 0x0E);
+                        yield return new KeyValuePair<char, byte>(' ', 0x0F);
 
-            yield return new KeyValuePair<char, byte>(' ', 0x10);
-            yield return new KeyValuePair<char, byte>(' ', 0x11);
-            yield return new KeyValuePair<char, byte>(' ', 0x12);
-            yield return new KeyValuePair<char, byte>(' ', 0x13);
-            yield return new KeyValuePair<char, byte>(' ', 0x14);
-            yield return new KeyValuePair<char, byte>(' ', 0x15);
-            yield return new KeyValuePair<char, byte>(' ', 0x16);
-            yield return new KeyValuePair<char, byte>(' ', 0x17);
-            yield return new KeyValuePair<char, byte>(' ', 0x18);
-            yield return new KeyValuePair<char, byte>(' ', 0x19);
-            yield return new KeyValuePair<char, byte>(' ', 0x1A);
-            yield return new KeyValuePair<char, byte>(' ', 0x1B);
-            yield return new KeyValuePair<char, byte>(' ', 0x1C);
-            yield return new KeyValuePair<char, byte>(' ', 0x1D);
-            yield return new KeyValuePair<char, byte>(' ', 0x1E);
-            yield return new KeyValuePair<char, byte>(' ', 0x1F);
-*/
+                        yield return new KeyValuePair<char, byte>(' ', 0x10);
+                        yield return new KeyValuePair<char, byte>(' ', 0x11);
+                        yield return new KeyValuePair<char, byte>(' ', 0x12);
+                        yield return new KeyValuePair<char, byte>(' ', 0x13);
+                        yield return new KeyValuePair<char, byte>(' ', 0x14);
+                        yield return new KeyValuePair<char, byte>(' ', 0x15);
+                        yield return new KeyValuePair<char, byte>(' ', 0x16);
+                        yield return new KeyValuePair<char, byte>(' ', 0x17);
+                        yield return new KeyValuePair<char, byte>(' ', 0x18);
+                        yield return new KeyValuePair<char, byte>(' ', 0x19);
+                        yield return new KeyValuePair<char, byte>(' ', 0x1A);
+                        yield return new KeyValuePair<char, byte>(' ', 0x1B);
+                        yield return new KeyValuePair<char, byte>(' ', 0x1C);
+                        yield return new KeyValuePair<char, byte>(' ', 0x1D);
+                        yield return new KeyValuePair<char, byte>(' ', 0x1E);
+                        yield return new KeyValuePair<char, byte>(' ', 0x1F);
+            */
             yield return new KeyValuePair<char, byte>(' ', 0x20);
+
             // Variants
             yield return new KeyValuePair<char, byte>('\u0009', 0x20);
             yield return new KeyValuePair<char, byte>('\u000B', 0x20);
@@ -229,7 +213,8 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>('!', 0x21);
 
             yield return new KeyValuePair<char, byte>('"', 0x22);
-            //Variants
+
+            // Variants
             yield return new KeyValuePair<char, byte>('“', 0x22);
             yield return new KeyValuePair<char, byte>('”', 0x22);
             yield return new KeyValuePair<char, byte>('„', 0x22);
@@ -241,6 +226,7 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>('&', 0x26);
 
             yield return new KeyValuePair<char, byte>('\'', 0x27);
+
             // Variants
             yield return new KeyValuePair<char, byte>('‘', 0x2F);
             yield return new KeyValuePair<char, byte>('’', 0x2F);
@@ -254,6 +240,7 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>(',', 0x2C);
 
             yield return new KeyValuePair<char, byte>('-', 0x2D);
+
             // Variants
             yield return new KeyValuePair<char, byte>('‐', 0x2D);
             yield return new KeyValuePair<char, byte>('‒', 0x2D);
@@ -264,6 +251,7 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>('.', 0x2E);
 
             yield return new KeyValuePair<char, byte>('/', 0x2F);
+
             // Variants
             yield return new KeyValuePair<char, byte>('⁄', 0x2F);
 
@@ -281,24 +269,29 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>(';', 0x3B);
 
             yield return new KeyValuePair<char, byte>('<', 0x3C);
+
             // Variant
             yield return new KeyValuePair<char, byte>('‹', 0x3C);
 
             yield return new KeyValuePair<char, byte>('=', 0x3D);
+
             // Variant
             yield return new KeyValuePair<char, byte>('゠', 0x3D);
 
             yield return new KeyValuePair<char, byte>('>', 0x3E);
+
             // Variant
             yield return new KeyValuePair<char, byte>('›', 0x3E);
 
             yield return new KeyValuePair<char, byte>('?', 0x3F);
+
             // Variant
             yield return new KeyValuePair<char, byte>('¿', 0x3F);
 
             yield return new KeyValuePair<char, byte>('@', 0x40);
 
             yield return new KeyValuePair<char, byte>('A', 0x41);
+
             // Variants
             yield return new KeyValuePair<char, byte>('À', 0x41);
             yield return new KeyValuePair<char, byte>('Á', 0x41);
@@ -310,12 +303,14 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>('B', 0x42);
 
             yield return new KeyValuePair<char, byte>('C', 0x43);
+
             // Variant
             yield return new KeyValuePair<char, byte>('Ç', 0x43);
 
             yield return new KeyValuePair<char, byte>('D', 0x44);
 
             yield return new KeyValuePair<char, byte>('E', 0x45);
+
             // Variants
             yield return new KeyValuePair<char, byte>('È', 0x45);
             yield return new KeyValuePair<char, byte>('É', 0x45);
@@ -327,6 +322,7 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>('H', 0x48);
 
             yield return new KeyValuePair<char, byte>('I', 0x49);
+
             // Variants
             yield return new KeyValuePair<char, byte>('Ì', 0x49);
             yield return new KeyValuePair<char, byte>('Í', 0x49);
@@ -339,10 +335,12 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>('M', 0x4D);
 
             yield return new KeyValuePair<char, byte>('N', 0x4E);
+
             // Variant
             yield return new KeyValuePair<char, byte>('Ñ', 0x4E);
 
             yield return new KeyValuePair<char, byte>('O', 0x4F);
+
             // Variants
             yield return new KeyValuePair<char, byte>('Ò', 0x4F);
             yield return new KeyValuePair<char, byte>('Ó', 0x4F);
@@ -358,6 +356,7 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>('T', 0x54);
 
             yield return new KeyValuePair<char, byte>('U', 0x55);
+
             // Variants
             yield return new KeyValuePair<char, byte>('Ù', 0x55);
             yield return new KeyValuePair<char, byte>('Ú', 0x55);
@@ -369,6 +368,7 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>('X', 0x58);
 
             yield return new KeyValuePair<char, byte>('Y', 0x59);
+
             // Variant
             yield return new KeyValuePair<char, byte>('Ý', 0x59);
 
@@ -379,12 +379,14 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>('^', 0x5E);
 
             yield return new KeyValuePair<char, byte>('_', 0x5F);
+
             // Variant
             yield return new KeyValuePair<char, byte>('‗', 0x5F);
 
             yield return new KeyValuePair<char, byte>('`', 0x60);
 
             yield return new KeyValuePair<char, byte>('a', 0x61);
+
             // Variants
             yield return new KeyValuePair<char, byte>('à', 0x61);
             yield return new KeyValuePair<char, byte>('á', 0x61);
@@ -395,12 +397,14 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>('b', 0x62);
 
             yield return new KeyValuePair<char, byte>('c', 0x63);
+
             // Variant
             yield return new KeyValuePair<char, byte>('ç', 0x63);
 
             yield return new KeyValuePair<char, byte>('d', 0x64);
 
             yield return new KeyValuePair<char, byte>('e', 0x65);
+
             // Variants
             yield return new KeyValuePair<char, byte>('è', 0x65);
             yield return new KeyValuePair<char, byte>('é', 0x65);
@@ -412,6 +416,7 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>('h', 0x68);
 
             yield return new KeyValuePair<char, byte>('i', 0x69);
+
             // Variants
             yield return new KeyValuePair<char, byte>('ì', 0x69);
             yield return new KeyValuePair<char, byte>('í', 0x69);
@@ -424,10 +429,12 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>('m', 0x6D);
 
             yield return new KeyValuePair<char, byte>('n', 0x6E);
+
             // Variant
             yield return new KeyValuePair<char, byte>('ñ', 0x6E);
 
             yield return new KeyValuePair<char, byte>('o', 0x6F);
+
             // Variants
             yield return new KeyValuePair<char, byte>('ò', 0x6F);
             yield return new KeyValuePair<char, byte>('ó', 0x6F);
@@ -443,6 +450,7 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>('t', 0x74);
 
             yield return new KeyValuePair<char, byte>('u', 0x75);
+
             // Variants
             yield return new KeyValuePair<char, byte>('ù', 0x75);
             yield return new KeyValuePair<char, byte>('ú', 0x75);
@@ -454,6 +462,7 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>('x', 0x78);
 
             yield return new KeyValuePair<char, byte>('y', 0x79);
+
             // Variants
             yield return new KeyValuePair<char, byte>('ý', 0x79);
             yield return new KeyValuePair<char, byte>('ÿ', 0x79);
@@ -501,8 +510,9 @@ namespace Pi.IO.Components.Displays.Hd44780
 
             yield return new KeyValuePair<char, byte>(' ', 0xA0);
             yield return new KeyValuePair<char, byte>('▫', 0xA1);
-//            yield return new KeyValuePair<char, byte>('', 0xA2);
-//            yield return new KeyValuePair<char, byte>('', 0xA3);
+
+            // yield return new KeyValuePair<char, byte>('', 0xA2);
+            //            yield return new KeyValuePair<char, byte>('', 0xA3);
             yield return new KeyValuePair<char, byte>('ヽ', 0xA4);
             yield return new KeyValuePair<char, byte>('・', 0xA5);
             yield return new KeyValuePair<char, byte>('ヲ', 0xA6);
@@ -568,16 +578,19 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>('゛', 0xDE);
 
             yield return new KeyValuePair<char, byte>('゜', 0xDF);
+
             // Variant
             yield return new KeyValuePair<char, byte>('°', 0xDF);
 
             yield return new KeyValuePair<char, byte>('α', 0xE0);
 
             yield return new KeyValuePair<char, byte>('ä', 0xE1);
+
             // Variant
             yield return new KeyValuePair<char, byte>('ӓ', 0xE1);
 
             yield return new KeyValuePair<char, byte>('β', 0xE2);
+
             // Variant
             yield return new KeyValuePair<char, byte>('ß', 0xE2);
 
@@ -587,41 +600,43 @@ namespace Pi.IO.Components.Displays.Hd44780
             yield return new KeyValuePair<char, byte>('ρ', 0xE6);
             yield return new KeyValuePair<char, byte>('ɡ', 0xE7);
             yield return new KeyValuePair<char, byte>('√', 0xE8);
-//            yield return new KeyValuePair<char, byte>('', 0xE9);
+
+            // yield return new KeyValuePair<char, byte>('', 0xE9);
             yield return new KeyValuePair<char, byte>('ј', 0xEA);
             yield return new KeyValuePair<char, byte>('\u033D', 0xEB);
 
             yield return new KeyValuePair<char, byte>('¢', 0xEC);
+
             // Variants
             yield return new KeyValuePair<char, byte>('\u023B', 0xEC);
             yield return new KeyValuePair<char, byte>('￠', 0xEC);
 
-//            yield return new KeyValuePair<char, byte>('', 0xED);
+            // yield return new KeyValuePair<char, byte>('', 0xED);
             yield return new KeyValuePair<char, byte>('ñ', 0xEE);
             yield return new KeyValuePair<char, byte>('ö', 0xEF);
 
             yield return new KeyValuePair<char, byte>('ρ', 0xF0);
-//            yield return new KeyValuePair<char, byte>('', 0xF1);
+
+            // yield return new KeyValuePair<char, byte>('', 0xF1);
             yield return new KeyValuePair<char, byte>('θ', 0xF2);
             yield return new KeyValuePair<char, byte>('∞', 0xF3);
             yield return new KeyValuePair<char, byte>('Ω', 0xF4);
             yield return new KeyValuePair<char, byte>('ü', 0xF5);
             yield return new KeyValuePair<char, byte>('Σ', 0xF6);
             yield return new KeyValuePair<char, byte>('π', 0xF7);
-//            yield return new KeyValuePair<char, byte>('', 0xF8);
 
+            // yield return new KeyValuePair<char, byte>('', 0xF8);
             yield return new KeyValuePair<char, byte>('У', 0xF9);
+
             // Variant
             yield return new KeyValuePair<char, byte>('у', 0xF9);
 
-//            yield return new KeyValuePair<char, byte>('', 0xFA);
-//            yield return new KeyValuePair<char, byte>('', 0xFB);
-//            yield return new KeyValuePair<char, byte>('', 0xFC);
+            // yield return new KeyValuePair<char, byte>('', 0xFA);
+            //            yield return new KeyValuePair<char, byte>('', 0xFB);
+            //            yield return new KeyValuePair<char, byte>('', 0xFC);
             yield return new KeyValuePair<char, byte>('÷', 0xFD);
             yield return new KeyValuePair<char, byte>(' ', 0xFE);
             yield return new KeyValuePair<char, byte>('█', 0xFF);
         }
-
-        #endregion
     }
 }

@@ -1,3 +1,8 @@
+// <copyright file="InputPinConfiguration.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
+
 namespace Pi.IO.GeneralPurpose
 {
     /// <summary>
@@ -5,25 +10,19 @@ namespace Pi.IO.GeneralPurpose
     /// </summary>
     public class InputPinConfiguration : PinConfiguration
     {
-        #region Instance Management
-
         /// <summary>
         /// Initializes a new instance of the <see cref="InputPinConfiguration"/> class.
         /// </summary>
         /// <param name="pin">The pin.</param>
-        public InputPinConfiguration(ProcessorPin pin) : base(pin){}
-
-        #endregion
-
-        #region Properties
+        public InputPinConfiguration(ProcessorPin pin)
+            : base(pin)
+        {
+        }
 
         /// <summary>
         /// Gets the direction.
         /// </summary>
-        public override PinDirection Direction
-        {
-            get { return PinDirection.Input; }
-        }
+        public override PinDirection Direction => PinDirection.Input;
 
         /// <summary>
         /// Gets or sets the resistor.
@@ -32,7 +31,5 @@ namespace Pi.IO.GeneralPurpose
         /// The resistor.
         /// </value>
         public PinResistor Resistor { get; set; }
-
-        #endregion
     }
 }

@@ -1,7 +1,12 @@
-﻿using System;
+﻿// <copyright file="SpiMode.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.SerialPeripheralInterface
 {
+    using global::System;
+
     /// <summary>
     /// SPI mode
     /// </summary>
@@ -11,63 +16,71 @@ namespace Pi.IO.SerialPeripheralInterface
         /// <summary>
         /// Clock phase, if set CPHA=1, otherwise CPHA=0.
         /// </summary>
-        ClockPhase = Interop.SPI_CPHA,
+        ClockPhase = Interop.SpiCpha,
 
         /// <summary>
         /// Clock polarity, if set CPOL=1, otherwise CPOL=0.
         /// </summary>
-        ClockPolarity = Interop.SPI_CPOL,
-        
+        ClockPolarity = Interop.SpiCpol,
+
         /// <summary>
         /// Chip select is a high signal.
         /// </summary>
-        ChipSelectActiveHigh = Interop.SPI_CS_HIGH,
+        ChipSelectActiveHigh = Interop.SpiCsHigh,
 
         /// <summary>
         /// The least significant bit comes first.
         /// </summary>
-        LeastSignificantBitFirst = Interop.SPI_LSB_FIRST,
-        
+        LeastSignificantBitFirst = Interop.SpiLsbFirst,
+
         /// <summary>
         /// Special 3-wire configuration.
         /// </summary>
-        ThreeWire = Interop.SPI_3WIRE,
+        ThreeWire = Interop.Spi3Wire,
+
         /// <summary>
         /// Three-wire serial buses
         /// </summary>
-        SlaveInOutShared = Interop.SPI_3WIRE,
+        SlaveInOutShared = Interop.Spi3Wire,
+
         /// <summary>
         /// Loopback
         /// </summary>
-        Loopback = Interop.SPI_LOOP,
+        Loopback = Interop.SpiLoop,
+
         /// <summary>
         /// Send no chip select signal.
         /// </summary>
-        NoChipSelect = Interop.SPI_NO_CS,
+        NoChipSelect = Interop.SpiNoCs,
+
         /// <summary>
         /// Slave pulls low to pause.
         /// </summary>
-        Ready = Interop.SPI_READY,
+        Ready = Interop.SpiReady,
+
         /// <summary>
         /// Slave pulls low to pause.
         /// </summary>
-        SlavePullsLowToPause = Interop.SPI_READY,
-        
+        SlavePullsLowToPause = Interop.SpiReady,
+
         /// <summary>
         /// CPOL=0, CPHA=0
         /// </summary>
-        Mode0 = Interop.SPI_MODE_0,
+        Mode0 = Interop.SpiMode0,
+
         /// <summary>
         /// CPOL=0, CPHA=1
         /// </summary>
-        Mode1 = Interop.SPI_MODE_1,
+        Mode1 = Interop.SpiMode1,
+
         /// <summary>
         /// CPOL =1, CPHA=0
         /// </summary>
-        Mode2 = Interop.SPI_MODE_2,
+        Mode2 = Interop.SpiMode2,
+
         /// <summary>
         /// CPOL=1, CPHA=1
         /// </summary>
-        Mode3 = Interop.SPI_MODE_3
+        Mode3 = Interop.SpiMode3
     }
 }

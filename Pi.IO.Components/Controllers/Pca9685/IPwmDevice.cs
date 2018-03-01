@@ -1,15 +1,18 @@
-﻿using System;
-using UnitsNet;
+﻿// <copyright file="IPwmDevice.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Controllers.Pca9685
 {
+    using global::System;
+    using UnitsNet;
+
     /// <summary>
     /// Provides an interface for PWM devices.
     /// </summary>
     public interface IPwmDevice : IDisposable
     {
-        #region Methods
-
         /// <summary>
         /// Sets the PWM update rate.
         /// </summary>
@@ -30,7 +33,5 @@ namespace Pi.IO.Components.Controllers.Pca9685
         /// <param name="channel">The channel.</param>
         /// <param name="fullOn">if set to <c>true</c>, all values are on; otherwise they are all off.</param>
         void SetFull(PwmChannel channel, bool fullOn);
-
-        #endregion
     }
 }

@@ -1,25 +1,20 @@
-﻿#region References
-
-using System;
-using UnitsNet;
-
-#endregion
+﻿// <copyright file="VariableResistiveDividerConnection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Sensors
 {
+    using global::System;
+    using UnitsNet;
+
     /// <summary>
     /// Represents a connection to an analog value coming from a resistive voltage divider
     /// </summary>
     public class VariableResistiveDividerConnection : IDisposable
     {
-        #region Fields
-
         private readonly IInputAnalogPin analogPin;
         private readonly Func<AnalogValue, ElectricResistance> resistorEvalFunc;
-
-        #endregion
-
-        #region Instance Management
 
         /// <summary>
         /// Initializes a new instance of the <see cref="VariableResistiveDividerConnection"/> class.
@@ -38,12 +33,8 @@ namespace Pi.IO.Components.Sensors
         /// </summary>
         void IDisposable.Dispose()
         {
-            Close();
+            this.Close();
         }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Gets the electric resistance.
@@ -51,8 +42,8 @@ namespace Pi.IO.Components.Sensors
         /// <returns>The resistance value.</returns>
         public ElectricResistance GetResistance()
         {
-            var value = analogPin.Read();
-            return resistorEvalFunc(value);
+            var value = this.analogPin.Read();
+            return this.resistorEvalFunc(value);
         }
 
         /// <summary>
@@ -60,9 +51,7 @@ namespace Pi.IO.Components.Sensors
         /// </summary>
         public void Close()
         {
-            analogPin.Dispose();
+            this.analogPin.Dispose();
         }
-
-        #endregion
     }
 }

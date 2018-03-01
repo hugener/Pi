@@ -1,15 +1,20 @@
-﻿using System;
-using Pi.Timers;
-using System.Collections.Generic;
-using Pi.System.Threading;
+﻿// <copyright file="GroveRgbConnection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Leds.GroveRgb
 {
+    using System.Threading;
+    using global::System;
+    using global::System.Collections.Generic;
+    using Timers;
+
     /// <summary>
     /// Represents a connection with Grove Chainable RGB Led modules.
     /// <see href="http://www.seeedstudio.com/wiki/Grove_-_Chainable_RGB_LED" />
     /// </summary>
-    public class GroveRgbConnection: IDisposable
+    public class GroveRgbConnection : IDisposable
     {
         private static readonly TimeSpan Delay = TimeSpanUtility.FromMicroseconds(20);
         private readonly IThread thread;
@@ -51,7 +56,7 @@ namespace Pi.IO.Components.Leds.GroveRgb
         /// </summary>
         /// <param name="ledNumber">Led number (zero based index).</param>
         /// <param name="color">The color.</param>
-        public void SetColor (int ledNumber, RgbColor color)
+        public void SetColor(int ledNumber, RgbColor color)
         {
             // Send data frame prefix (32x "0")
             this.SendByte(0x00);
@@ -64,9 +69,9 @@ namespace Pi.IO.Components.Leds.GroveRgb
             {
                 if (i == ledNumber)
                 {
-                    this.ledColors [i].Red = color.Red;
-                    this.ledColors [i].Green = color.Green;
-                    this.ledColors [i].Blue = color.Blue;
+                    this.ledColors[i].Red = color.Red;
+                    this.ledColors[i].Green = color.Green;
+                    this.ledColors[i].Blue = color.Blue;
                 }
 
                 // Start by sending a byte with the format "1 1 /B7 /B6 /G7 /G6 /R7 /R6"
@@ -104,9 +109,9 @@ namespace Pi.IO.Components.Leds.GroveRgb
                 this.SendByte(prefix);
 
                 // Now must send the 3 colors
-                this.SendByte(this.ledColors [i].Blue);
-                this.SendByte(this.ledColors [i].Green);
-                this.SendByte(this.ledColors [i].Red);
+                this.SendByte(this.ledColors[i].Blue);
+                this.SendByte(this.ledColors[i].Green);
+                this.SendByte(this.ledColors[i].Red);
             }
 
             // Terminate data frame (32x "0")
@@ -146,4 +151,3 @@ namespace Pi.IO.Components.Leds.GroveRgb
         }
     }
 }
-

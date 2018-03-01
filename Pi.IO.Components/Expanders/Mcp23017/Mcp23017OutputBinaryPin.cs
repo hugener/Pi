@@ -1,4 +1,7 @@
-using System;
+// <copyright file="Mcp23017OutputBinaryPin.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Expanders.Mcp23017
 {
@@ -7,14 +10,8 @@ namespace Pi.IO.Components.Expanders.Mcp23017
     /// </summary>
     public class Mcp23017OutputBinaryPin : IOutputBinaryPin
     {
-        #region Properties
-
-        private readonly Mcp23017I2cConnection connection;
+        private readonly Mcp23017I2CConnection connection;
         private readonly Mcp23017Pin pin;
-
-        #endregion
-
-        #region Instance Management
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Mcp23017OutputBinaryPin"/> class.
@@ -23,7 +20,9 @@ namespace Pi.IO.Components.Expanders.Mcp23017
         /// <param name="pin">The pin.</param>
         /// <param name="resistor">The resistor.</param>
         /// <param name="polarity">The polarity.</param>
-        public Mcp23017OutputBinaryPin(Mcp23017I2cConnection connection, Mcp23017Pin pin,
+        public Mcp23017OutputBinaryPin(
+            Mcp23017I2CConnection connection,
+            Mcp23017Pin pin,
             Mcp23017PinResistor resistor = Mcp23017PinResistor.None,
             Mcp23017PinPolarity polarity = Mcp23017PinPolarity.Normal)
         {
@@ -38,11 +37,9 @@ namespace Pi.IO.Components.Expanders.Mcp23017
         /// <summary>
         /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
         /// </summary>
-        public void Dispose(){}
-
-        #endregion
-
-        #region Methods
+        public void Dispose()
+        {
+        }
 
         /// <summary>
         /// Writes the value of the pin.
@@ -50,9 +47,7 @@ namespace Pi.IO.Components.Expanders.Mcp23017
         /// <param name="state">if set to <c>true</c>, pin is set to high state.</param>
         public void Write(bool state)
         {
-            connection.SetPinStatus(pin, state);
+            this.connection.SetPinStatus(this.pin, state);
         }
-
-        #endregion
     }
 }

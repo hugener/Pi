@@ -1,8 +1,13 @@
-using System;
-using Pi.System.Threading;
+// <copyright file="SpiConnection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.SerialPeripheralInterface
 {
+    using System.Threading;
+    using global::System;
+
     /// <summary>
     /// Represents a connection to a SPI device.
     /// </summary>
@@ -199,7 +204,7 @@ namespace Pi.IO.SerialPeripheralInterface
                 var bit = this.Read();
                 if (bit)
                 {
-                    data |= ((ulong)1 << index);
+                    data |= (ulong)1 << index;
                 }
             }
 

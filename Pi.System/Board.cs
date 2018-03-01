@@ -1,11 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using Pi.System.Threading;
+// <copyright file="Board.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi
 {
+    using System.Threading;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Globalization;
+    using global::System.IO;
+
     /// <summary>
     /// Represents the Raspberry Pi mainboard.
     /// </summary>
@@ -15,7 +20,7 @@ namespace Pi
     /// </remarks>
     public class Board
     {
-        private static readonly Lazy<Board> board = new Lazy<Board>(LoadBoard);
+        private static readonly Lazy<Board> BoardLazy = new Lazy<Board>(LoadBoard);
         private readonly Dictionary<string, string> settings;
         private readonly Lazy<Model> model;
         private readonly Lazy<string> processorName;
@@ -36,6 +41,11 @@ namespace Pi
         }
 
         /// <summary>
+        /// Gets the current mainboard configuration.
+        /// </summary>
+        public static Board Current => BoardLazy.Value;
+
+        /// <summary>
         /// Gets the thread factory.
         /// </summary>
         /// <value>
@@ -44,15 +54,10 @@ namespace Pi
         public IThreadFactory ThreadFactory => this.threadFactory.Value;
 
         /// <summary>
-        /// Gets the current mainboard configuration.
-        /// </summary>
-        public static Board Current => board.Value;
-
-        /// <summary>
         /// Gets a value indicating whether this instance is a Raspberry Pi.
         /// </summary>
         /// <value>
-        /// 	<c>true</c> if this instance is a Raspberry Pi; otherwise, <c>false</c>.
+        ///     <c>true</c> if this instance is a Raspberry Pi; otherwise, <c>false</c>.
         /// </value>
         public bool IsRaspberryPi => this.Processor != Processor.Unknown;
 
@@ -79,7 +84,7 @@ namespace Pi
         {
             get
             {
-                if (this.settings.TryGetValue("Revision", out var revision) && 
+                if (this.settings.TryGetValue("Revision", out var revision) &&
                     !string.IsNullOrEmpty(revision) &&
                     int.TryParse(revision, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var firmware))
                 {
@@ -96,7 +101,7 @@ namespace Pi
         public string SerialNumber
         {
             get
-            { 
+            {
                 if (this.settings.TryGetValue("Serial", out var serial) && !string.IsNullOrEmpty(serial))
                 {
                     return serial;
@@ -143,12 +148,12 @@ namespace Pi
             try
             {
                 const string filePath = "/proc/cpuinfo";
-                
+
                 var cpuInfo = File.ReadAllLines(filePath);
                 var settings = new Dictionary<string, string>();
                 var suffix = string.Empty;
-                
-                foreach(var l in cpuInfo)
+
+                foreach (var l in cpuInfo)
                 {
                     var separator = l.IndexOf(':');
 
@@ -157,12 +162,16 @@ namespace Pi
                         var key = l.Substring(0, separator).Trim();
                         var val = l.Substring(separator + 1).Trim();
                         if (string.Equals(key, "processor", StringComparison.InvariantCultureIgnoreCase))
+                        {
                             suffix = "." + val;
+                        }
 
                         settings.Add(key + suffix, val);
                     }
                     else
-                        suffix = "";
+                    {
+                        suffix = string.Empty;
+                    }
                 }
 
                 return new Board(settings);
@@ -219,7 +228,6 @@ namespace Pi
                     return Model.Unknown;
             }
         }
-
 
         private ConnectorPinout LoadConnectorPinout()
         {

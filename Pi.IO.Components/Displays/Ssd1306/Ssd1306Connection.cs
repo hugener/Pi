@@ -1,31 +1,25 @@
-#region References
-
-using System;
-using Pi.IO.InterIntegratedCircuit;
-using Pi.IO.Components.Displays.Ssd1306.Fonts;
-
-#endregion
+// <copyright file="Ssd1306Connection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Displays.Ssd1306
 {
+    using Fonts;
+    using global::System;
+    using InterIntegratedCircuit;
+
     /// <summary>
     /// Represents a connection with an Ssd1306 I2C OLED display.
     /// </summary>
     public class Ssd1306Connection
     {
-        #region Fields
-
+        private readonly object syncObject = new object();
         private readonly I2cDeviceConnection connection;
         private readonly int displayWidth;
         private readonly int displayHeight;
         private int cursorX;
         private int cursorY;
-
-        private readonly object syncObject = new object();
-
-        #endregion
-
-        #region Instance Management
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Ssd1306Connection"/> class.
@@ -38,22 +32,20 @@ namespace Pi.IO.Components.Displays.Ssd1306
             this.connection = connection;
             this.displayWidth = displayWidth;
             this.displayHeight = displayHeight;
-            Initialize();
+            this.Initialize();
         }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Clears the screen.
         /// </summary>
         public void ClearScreen()
         {
-            lock (syncObject)
+            lock (this.syncObject)
             {
-                for (var y = 0; y < displayWidth * displayHeight / 8; y++)
-                    connection.Write(0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
+                for (var y = 0; y < this.displayWidth * this.displayHeight / 8; y++)
+                {
+                    this.connection.Write(0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
+                }
             }
         }
 
@@ -62,7 +54,7 @@ namespace Pi.IO.Components.Displays.Ssd1306
         /// </summary>
         public void InvertDisplay()
         {
-            SendCommand(Command.DisplayInvert);
+            this.SendCommand(Command.DisplayInvert);
         }
 
         /// <summary>
@@ -70,7 +62,7 @@ namespace Pi.IO.Components.Displays.Ssd1306
         /// </summary>
         public void NormalDisplay()
         {
-            SendCommand(Command.DisplayNormal);
+            this.SendCommand(Command.DisplayNormal);
         }
 
         /// <summary>
@@ -78,7 +70,7 @@ namespace Pi.IO.Components.Displays.Ssd1306
         /// </summary>
         public void On()
         {
-            SendCommand(Command.DisplayOn);
+            this.SendCommand(Command.DisplayOn);
         }
 
         /// <summary>
@@ -86,7 +78,7 @@ namespace Pi.IO.Components.Displays.Ssd1306
         /// </summary>
         public void Off()
         {
-            SendCommand(Command.DisplayOff);
+            this.SendCommand(Command.DisplayOff);
         }
 
         /// <summary>
@@ -94,16 +86,15 @@ namespace Pi.IO.Components.Displays.Ssd1306
         /// </summary>
         /// <param name="column">Column.</param>
         /// <param name="row">Row.</param>
-        public void GotoXY(int column, int row)
+        public void GotoXy(int column, int row)
         {
-            SendCommand(
-                (byte)(0xB0 + row),							//set page address
-                (byte)(0x00 + (8 * column & 0x0F)),			//set column lower address
-                (byte)(0x10 + ((8 * column >> 4) & 0x0F))	//set column higher address
-            );
-            
-            cursorX = column;
-            cursorY = row;
+            this.SendCommand(
+                (byte)(0xB0 + row),                         // set page address
+                (byte)(0x00 + (8 * column & 0x0F)),         // set column lower address
+                (byte)(0x10 + (((8 * column) >> 4) & 0x0F))); // set column higher address
+
+            this.cursorX = column;
+            this.cursorY = row;
         }
 
         /// <summary>
@@ -117,7 +108,7 @@ namespace Pi.IO.Components.Displays.Ssd1306
             foreach (var character in text)
             {
                 var charIndex = -1;
-                for(var i = 0; i < charset.Length; i++)
+                for (var i = 0; i < charset.Length; i++)
                 {
                     if (charset[i][0] == character)
                     {
@@ -125,27 +116,29 @@ namespace Pi.IO.Components.Displays.Ssd1306
                         break;
                     }
                 }
+
                 if (charIndex == -1)
+                {
                     continue;
+                }
 
                 var fontData = charset[charIndex];
                 int fontWidth = fontData[1];
                 int fontLength = fontData[2];
-                for (var y = 0; y < (fontLength / fontWidth); y++)
+                for (var y = 0; y < fontLength / fontWidth; y++)
                 {
-                    SendCommand(
-                        (byte)(0xB0 + cursorY + y),    //set page address
-                        (byte)(0x00 + (cursorX & 0x0F)),    //set column lower address
-                        (byte)(0x10 + ((cursorX>>4) & 0x0F))  //set column higher address
-                    );      
+                    this.SendCommand(
+                        (byte)(0xB0 + this.cursorY + y), //// set page address
+                        (byte)(0x00 + (this.cursorX & 0x0F)), //// set column lower address
+                        (byte)(0x10 + ((this.cursorX >> 4) & 0x0F))); //// set column higher address
 
                     var data = new byte[fontWidth + 1];
                     data[0] = 0x40;
                     Array.Copy(fontData, (y * fontWidth) + 3, data, 1, fontWidth);
-                    DrawStride(data);
+                    this.DrawStride(data);
                 }
-                
-                cursorX += fontWidth;
+
+                this.cursorX += fontWidth;
             }
         }
 
@@ -159,7 +152,7 @@ namespace Pi.IO.Components.Displays.Ssd1306
             data[0] = 0x40;
             Array.Copy(image, 0, data, 1, image.Length);
 
-            DrawStride(data);
+            this.DrawStride(data);
         }
 
         /// <summary>
@@ -167,7 +160,7 @@ namespace Pi.IO.Components.Displays.Ssd1306
         /// </summary>
         public void ActivateScroll()
         {
-            SendCommand(Command.ActivateScroll);
+            this.SendCommand(Command.ActivateScroll);
         }
 
         /// <summary>
@@ -175,7 +168,7 @@ namespace Pi.IO.Components.Displays.Ssd1306
         /// </summary>
         public void DeactivateScroll()
         {
-            SendCommand(Command.DeactivateScroll);
+            this.SendCommand(Command.DeactivateScroll);
         }
 
         /// <summary>
@@ -187,7 +180,8 @@ namespace Pi.IO.Components.Displays.Ssd1306
         /// <param name="endLine">End line.</param>
         public void SetScrollProperties(ScrollDirection direction, ScrollSpeed scrollSpeed, int startLine, int endLine)
         {
-            SendCommand(new byte[] {
+            this.SendCommand(new byte[]
+            {
                 (byte)(Command.SetScrollDirection | (byte)direction),
                 0x00,
                 (byte)startLine,
@@ -204,58 +198,70 @@ namespace Pi.IO.Components.Displays.Ssd1306
         /// <param name="contrast">A number between 0 and 255. Contrast increases as the value increases.</param>
         public void SetContrast(int contrast)
         {
-            if (contrast < 0 || contrast > 255) throw new ArgumentOutOfRangeException("contrast", "Contrast must be between 0 and 255.");
-            SendCommand(Command.SetContrast, (byte)contrast);
+            if (contrast < 0 || contrast > 255)
+            {
+                throw new ArgumentOutOfRangeException("contrast", "Contrast must be between 0 and 255.");
+            }
+
+            this.SendCommand(Command.SetContrast, (byte)contrast);
         }
-
-        #endregion
-
-        #region Private Helpers
 
         private void SendCommand(params byte[] commands)
         {
-            lock (syncObject)
+            lock (this.syncObject)
             {
                 foreach (byte command in commands)
-                    connection.Write(0x00, command);
+                {
+                    this.connection.Write(0x00, command);
+                }
             }
         }
 
         private void Initialize()
         {
-            SendCommand(
+            this.SendCommand(
                 Command.DisplayOff,
-                Command.SetDisplayClockDivider, 0x80,
-                Command.SetMultiplex, 0x3F,
-                Command.SetDisplayOffset, 0x00,
+                Command.SetDisplayClockDivider,
+                0x80,
+                Command.SetMultiplex,
+                0x3F,
+                Command.SetDisplayOffset,
+                0x00,
                 Command.SetStartLine | 0x0,
-                Command.ChargePump, 0x14,
-                Command.MemoryMode, 0x00,
+                Command.ChargePump,
+                0x14,
+                Command.MemoryMode,
+                0x00,
                 Command.SegRemap | 0x1,
                 Command.ComScanDecrement,
-                Command.SetComPins, 0x12,
-                Command.SetContrast, 0x7F,
-                Command.SetPreCharge, 0x22,
-                Command.SetVComDetect, 0x40,
+                Command.SetComPins,
+                0x12,
+                Command.SetContrast,
+                0x7F,
+                Command.SetPreCharge,
+                0x22,
+                Command.SetVComDetect,
+                0x40,
                 Command.DisplayAllOnResume,
-                Command.DisplayNormal
-            );
+                Command.DisplayNormal);
 
-            SendCommand(
-                Command.ColumnAddress, 0, (byte)(displayWidth - 1),
-                Command.PageAddress, 0, (byte)((displayHeight / 8) - 1)
-            );
+            this.SendCommand(
+                Command.ColumnAddress,
+                0,
+                (byte)(this.displayWidth - 1),
+                Command.PageAddress,
+                0,
+                (byte)((this.displayHeight / 8) - 1));
 
-            ClearScreen();
+            this.ClearScreen();
         }
 
         private void DrawStride(byte[] data)
         {
-            lock(syncObject)
-            connection.Write(data);
+            lock (this.syncObject)
+            {
+                this.connection.Write(data);
+            }
         }
-
-        #endregion
     }
 }
-

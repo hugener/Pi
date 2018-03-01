@@ -1,11 +1,16 @@
-using System;
-using System.Globalization;
-using System.Runtime.InteropServices;
-using Pi.IO.GeneralPurpose;
-using Pi.System.Threading;
+// <copyright file="I2cDriver.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.InterIntegratedCircuit
 {
+    using System.Threading;
+    using GeneralPurpose;
+    using global::System;
+    using global::System.Globalization;
+    using global::System.Runtime.InteropServices;
+
     /// <summary>
     /// Represents a driver for I2C devices.
     /// </summary>
@@ -40,65 +45,47 @@ namespace Pi.IO.InterIntegratedCircuit
 
             var bscBase = GetBscBase(sdaPin, sclPin);
 
-            var memoryFile = Interop.open("/dev/mem", Interop.O_RDWR + Interop.O_SYNC);
+            var memoryFile = Interop.Open("/dev/mem", Interop.ORdwr + Interop.OSync);
             try
             {
-                this.gpioAddress = Interop.mmap(
-                    IntPtr.Zero, 
-                    Interop.BCM2835_BLOCK_SIZE, 
-                    Interop.PROT_READ | Interop.PROT_WRITE, 
-                    Interop.MAP_SHARED, 
-                    memoryFile, 
+                this.gpioAddress = Interop.Mmap(
+                    IntPtr.Zero,
+                    Interop.Bcm2835BlockSize,
+                    Interop.ProtRead | Interop.ProtWrite,
+                    Interop.MapShared,
+                    memoryFile,
                     GetProcessorGpioAddress(Board.Current.Processor));
 
-                this.bscAddress = Interop.mmap(
-                    IntPtr.Zero, 
-                    Interop.BCM2835_BLOCK_SIZE, 
-                    Interop.PROT_READ | Interop.PROT_WRITE, 
-                    Interop.MAP_SHARED, 
-                    memoryFile, 
+                this.bscAddress = Interop.Mmap(
+                    IntPtr.Zero,
+                    Interop.Bcm2835BlockSize,
+                    Interop.ProtRead | Interop.ProtWrite,
+                    Interop.MapShared,
+                    memoryFile,
                     bscBase);
             }
             finally
             {
-                Interop.close(memoryFile);
+                Interop.Close(memoryFile);
             }
 
-            if (this.bscAddress == (IntPtr) Interop.MAP_FAILED)
+            if (this.bscAddress == (IntPtr)Interop.MapFailed)
+            {
                 throw new InvalidOperationException("Unable to access device memory");
+            }
 
             // Set the I2C pins to the Alt 0 function to enable I2C access on them
             // remembers if the values were actually changed to clear them or not upon dispose
-            this.wasSdaPinSet = this.SetPinMode((uint)(int)sdaPin, Interop.BCM2835_GPIO_FSEL_ALT0); // SDA
-            this.wasSclPinSet = this.SetPinMode((uint) (int) sclPin, Interop.BCM2835_GPIO_FSEL_ALT0); // SCL
+            this.wasSdaPinSet = this.SetPinMode((uint)(int)sdaPin, Interop.Bcm2835GpioFselAlt0); // SDA
+            this.wasSclPinSet = this.SetPinMode((uint)(int)sclPin, Interop.Bcm2835GpioFselAlt0); // SCL
 
             // Read the clock divider register
-            var dividerAddress = this.bscAddress + (int) Interop.BCM2835_BSC_DIV;
-            var divider = (ushort) SafeReadUInt32(dividerAddress);
+            var dividerAddress = this.bscAddress + (int)Interop.Bcm2835BscDiv;
+            var divider = (ushort)SafeReadUInt32(dividerAddress);
             this.waitInterval = GetWaitInterval(divider);
 
-            var addressAddress = this.bscAddress + (int) Interop.BCM2835_BSC_A;
-            SafeWriteUInt32(addressAddress, (uint) this.currentDeviceAddress);
-        }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            // Set all the I2C/BSC1 pins back to original values if changed
-            if (this.wasSdaPinSet)
-            {
-                this.SetPinMode((uint)(int) this.sdaPin, Interop.BCM2835_GPIO_FSEL_INPT); // SDA
-            }
-            if (this.wasSclPinSet)
-            {
-                this.SetPinMode((uint)(int) this.sclPin, Interop.BCM2835_GPIO_FSEL_INPT); // SCL
-            }
-
-            Interop.munmap(this.gpioAddress, Interop.BCM2835_BLOCK_SIZE);
-            Interop.munmap(this.bscAddress, Interop.BCM2835_BLOCK_SIZE);
-            this.thread.Dispose();
+            var addressAddress = this.bscAddress + (int)Interop.Bcm2835BscA;
+            SafeWriteUInt32(addressAddress, (uint)this.currentDeviceAddress);
         }
 
         /// <summary>
@@ -111,15 +98,16 @@ namespace Pi.IO.InterIntegratedCircuit
         {
             get
             {
-                var dividerAddress = this.bscAddress + (int) Interop.BCM2835_BSC_DIV;
-                return (ushort) SafeReadUInt32(dividerAddress);
+                var dividerAddress = this.bscAddress + (int)Interop.Bcm2835BscDiv;
+                return (ushort)SafeReadUInt32(dividerAddress);
             }
+
             set
             {
-                var dividerAddress = this.bscAddress + (int) Interop.BCM2835_BSC_DIV;
-                SafeWriteUInt32(dividerAddress, (uint) value);
+                var dividerAddress = this.bscAddress + (int)Interop.Bcm2835BscDiv;
+                SafeWriteUInt32(dividerAddress, (uint)value);
 
-                var actualDivider = (ushort) SafeReadUInt32(dividerAddress);
+                var actualDivider = (ushort)SafeReadUInt32(dividerAddress);
                 this.waitInterval = GetWaitInterval(actualDivider);
             }
         }
@@ -135,23 +123,44 @@ namespace Pi.IO.InterIntegratedCircuit
         }
 
         /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            // Set all the I2C/BSC1 pins back to original values if changed
+            if (this.wasSdaPinSet)
+            {
+                this.SetPinMode((uint)(int)this.sdaPin, Interop.Bcm2835GpioFselInpt); // SDA
+            }
+
+            if (this.wasSclPinSet)
+            {
+                this.SetPinMode((uint)(int)this.sclPin, Interop.Bcm2835GpioFselInpt); // SCL
+            }
+
+            Interop.Munmap(this.gpioAddress, Interop.Bcm2835BlockSize);
+            Interop.Munmap(this.bscAddress, Interop.Bcm2835BlockSize);
+            this.thread.Dispose();
+        }
+
+        /// <summary>
         /// Executes the specified transaction.
         /// </summary>
         /// <param name="deviceAddress">The address of the device.</param>
         /// <param name="transaction">The transaction.</param>
-        internal void Execute(int deviceAddress, I2cTransaction transaction)
+        internal void Execute(int deviceAddress, I2CTransaction transaction)
         {
             lock (this.driverLock)
             {
-                var control = this.bscAddress + (int)Interop.BCM2835_BSC_C;
+                var control = this.bscAddress + (int)Interop.Bcm2835BscC;
 
-                foreach (I2cAction action in transaction.Actions)
+                foreach (I2CAction action in transaction.Actions)
                 {
-                    if (action is I2cWriteAction)
+                    if (action is I2CWriteAction)
                     {
                         this.Write(deviceAddress, action.Buffer);
                     }
-                    else if (action is I2cReadAction)
+                    else if (action is I2CReadAction)
                     {
                         this.Read(deviceAddress, action.Buffer);
                     }
@@ -161,130 +170,7 @@ namespace Pi.IO.InterIntegratedCircuit
                     }
                 }
 
-                WriteUInt32Mask(control, Interop.BCM2835_BSC_S_DONE, Interop.BCM2835_BSC_S_DONE);
-            }
-        }
-
-        private void Write(int deviceAddress, byte[] buffer)
-        {
-            this.EnsureDeviceAddress(deviceAddress);
-
-            var len = (uint)buffer.Length;
-
-            var dlen = this.bscAddress + (int)Interop.BCM2835_BSC_DLEN;
-            var fifo = this.bscAddress + (int)Interop.BCM2835_BSC_FIFO;
-            var status = this.bscAddress + (int)Interop.BCM2835_BSC_S;
-            var control = this.bscAddress + (int)Interop.BCM2835_BSC_C;
-
-            var remaining = len;
-            var i = 0;
-
-            // Clear FIFO
-            WriteUInt32Mask(control, Interop.BCM2835_BSC_C_CLEAR_1, Interop.BCM2835_BSC_C_CLEAR_1);
-
-            // Clear Status
-            WriteUInt32(status, Interop.BCM2835_BSC_S_CLKT | Interop.BCM2835_BSC_S_ERR | Interop.BCM2835_BSC_S_DONE);
-
-            // Set Data Length
-            WriteUInt32(dlen, len);
-
-            while (remaining != 0 && i < Interop.BCM2835_BSC_FIFO_SIZE)
-            {
-                WriteUInt32(fifo, buffer[i]);
-                i++;
-                remaining--;
-            }
-
-            // Enable device and start transfer
-            WriteUInt32(control, Interop.BCM2835_BSC_C_I2CEN | Interop.BCM2835_BSC_C_ST);
-
-            while ((ReadUInt32(status) & Interop.BCM2835_BSC_S_DONE) == 0)
-            {
-                while (remaining != 0 && (ReadUInt32(status) & Interop.BCM2835_BSC_S_TXD) != 0)
-                {
-                    // Write to FIFO, no barrier
-                    WriteUInt32(fifo, buffer[i]);
-                    i++;
-                    remaining--;
-                }
-
-                this.Wait(remaining);
-            }
-
-            if ((SafeReadUInt32(status) & Interop.BCM2835_BSC_S_ERR) != 0) // Received a NACK
-            {
-                throw new InvalidOperationException("Read operation failed with BCM2835_I2C_REASON_ERROR_NACK status");
-            }
-
-            if ((SafeReadUInt32(status) & Interop.BCM2835_BSC_S_CLKT) != 0) // Received Clock Stretch Timeout
-            {
-                throw new InvalidOperationException("Read operation failed with BCM2835_I2C_REASON_ERROR_CLKT status");
-            }
-
-            if (remaining != 0) // Not all data is sent
-            {
-                throw new InvalidOperationException(string.Format("Read operation failed with BCM2835_I2C_REASON_ERROR_DATA status, missing {0} bytes", remaining));
-            }
-        }
-
-        private void Read(int deviceAddress, byte[] buffer)
-        {
-            this.EnsureDeviceAddress(deviceAddress);
-
-            var dlen = this.bscAddress + (int)Interop.BCM2835_BSC_DLEN;
-            var fifo = this.bscAddress + (int)Interop.BCM2835_BSC_FIFO;
-            var status = this.bscAddress + (int)Interop.BCM2835_BSC_S;
-            var control = this.bscAddress + (int)Interop.BCM2835_BSC_C;
-
-            var remaining = (uint)buffer.Length;
-            uint i = 0;
-
-            // Clear FIFO
-            WriteUInt32Mask(control, Interop.BCM2835_BSC_C_CLEAR_1, Interop.BCM2835_BSC_C_CLEAR_1);
-
-            // Clear Status
-            WriteUInt32(status, Interop.BCM2835_BSC_S_CLKT | Interop.BCM2835_BSC_S_ERR | Interop.BCM2835_BSC_S_DONE);
-
-            // Set Data Length
-            WriteUInt32(dlen, (uint)buffer.Length);
-
-            // Start read
-            WriteUInt32(control, Interop.BCM2835_BSC_C_I2CEN | Interop.BCM2835_BSC_C_ST | Interop.BCM2835_BSC_C_READ);
-
-            while ((ReadUInt32(status) & Interop.BCM2835_BSC_S_DONE) == 0)
-            {
-                while ((ReadUInt32(status) & Interop.BCM2835_BSC_S_RXD) != 0)
-                {
-                    // Read from FIFO, no barrier
-                    buffer[i] = (byte)ReadUInt32(fifo);
-
-                    i++;
-                    remaining--;
-                }
-
-                this.Wait(remaining);
-            }
-
-            while (remaining != 0 && (ReadUInt32(status) & Interop.BCM2835_BSC_S_RXD) != 0)
-            {
-                buffer[i] = (byte)ReadUInt32(fifo);
-                i++;
-                remaining--;
-            }
-
-            if ((SafeReadUInt32(status) & Interop.BCM2835_BSC_S_ERR) != 0) // Received a NACK
-            {
-                throw new InvalidOperationException("Read operation failed with BCM2835_I2C_REASON_ERROR_NACK status");
-            }
-
-            if ((SafeReadUInt32(status) & Interop.BCM2835_BSC_S_CLKT) != 0) // Received Clock Stretch Timeout
-            {
-                throw new InvalidOperationException("Read operation failed with BCM2835_I2C_REASON_ERROR_CLKT status");
-            }
-
-            if (remaining != 0) // Not all data is received
-            {
-                throw new InvalidOperationException(string.Format("Read operation failed with BCM2835_I2C_REASON_ERROR_DATA status, missing {0} bytes", remaining));
+                WriteUInt32Mask(control, Interop.Bcm2835BscSDone, Interop.Bcm2835BscSDone);
             }
         }
 
@@ -293,12 +179,12 @@ namespace Pi.IO.InterIntegratedCircuit
             switch (processor)
             {
                 case Processor.Bcm2708:
-                    return Interop.BCM2835_BSC1_BASE;
+                    return Interop.Bcm2835Bsc1Base;
 
                 case Processor.Bcm2709:
                 case Processor.Bcm2835:
-                    return Interop.BCM2836_BSC1_BASE;
-                
+                    return Interop.Bcm2836Bsc1Base;
+
                 default:
                     throw new ArgumentOutOfRangeException("processor");
             }
@@ -309,34 +195,14 @@ namespace Pi.IO.InterIntegratedCircuit
             switch (processor)
             {
                 case Processor.Bcm2708:
-                    return Interop.BCM2835_GPIO_BASE;
+                    return Interop.Bcm2835GpioBase;
 
                 case Processor.Bcm2709:
                 case Processor.Bcm2835:
-                    return Interop.BCM2836_GPIO_BASE;
+                    return Interop.Bcm2836GpioBase;
 
                 default:
                     throw new ArgumentOutOfRangeException("processor");
-            }
-        }
-
-        private void EnsureDeviceAddress(int deviceAddress)
-        {
-            if (deviceAddress != this.currentDeviceAddress)
-            {
-                var addressAddress = this.bscAddress + (int)Interop.BCM2835_BSC_A;
-                SafeWriteUInt32(addressAddress, (uint)deviceAddress);
-
-                this.currentDeviceAddress = deviceAddress;
-            }
-        }
-
-        private void Wait(uint remaining)
-        {
-            // When remaining data is to be received, then wait for a fully FIFO
-            if (remaining != 0)
-            {
-                this.thread.Sleep(TimeSpan.FromMilliseconds(this.waitInterval * (remaining >= Interop.BCM2835_BSC_FIFO_SIZE ? Interop.BCM2835_BSC_FIFO_SIZE : remaining) / 1000d));
             }
         }
 
@@ -345,8 +211,7 @@ namespace Pi.IO.InterIntegratedCircuit
             // Calculate time for transmitting one byte
             // 1000000 = micros seconds in a second
             // 9 = Clocks per byte : 8 bits + ACK
-
-            return (int)((decimal)actualDivider * 1000000 * 9 / Interop.BCM2835_CORE_CLK_HZ);
+            return (int)((decimal)actualDivider * 1000000 * 9 / Interop.Bcm2835CoreClkHz);
         }
 
         private static uint GetBscBase(ProcessorPin sdaPin, ProcessorPin sclPin)
@@ -356,7 +221,7 @@ namespace Pi.IO.InterIntegratedCircuit
                 case ConnectorPinout.Rev1:
                     if (sdaPin == ProcessorPin.Pin0 && sclPin == ProcessorPin.Pin1)
                     {
-                        return Interop.BCM2835_BSC0_BASE;
+                        return Interop.Bcm2835Bsc0Base;
                     }
 
                     throw new InvalidOperationException("No I2C device exist on the specified pins");
@@ -364,12 +229,12 @@ namespace Pi.IO.InterIntegratedCircuit
                 case ConnectorPinout.Rev2:
                     if (sdaPin == ProcessorPin.Pin28 && sclPin == ProcessorPin.Pin29)
                     {
-                        return Interop.BCM2835_BSC0_BASE;
+                        return Interop.Bcm2835Bsc0Base;
                     }
 
                     if (sdaPin == ProcessorPin.Pin2 && sclPin == ProcessorPin.Pin3)
                     {
-                        return Interop.BCM2835_BSC1_BASE;
+                        return Interop.Bcm2835Bsc1Base;
                     }
 
                     throw new InvalidOperationException("No I2C device exist on the specified pins");
@@ -387,31 +252,6 @@ namespace Pi.IO.InterIntegratedCircuit
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="pin"></param>
-        /// <param name="mode"></param>
-        /// <returns>True when value was changed, false otherwise.</returns>
-        private bool SetPinMode(uint pin, uint mode)
-        {
-            // Function selects are 10 pins per 32 bit word, 3 bits per pin
-            var paddr = this.gpioAddress + (int) (Interop.BCM2835_GPFSEL0 + 4*(pin/10));
-            var shift = (pin%10)*3;
-            var mask = Interop.BCM2835_GPIO_FSEL_MASK << (int) shift;
-            var value = mode << (int) shift;
-
-            var existing = ReadUInt32(paddr) & mask;
-            if (existing != value)
-            {
-                //Console.WriteLine($"existing is {x} masked:{x & mask} vs mask:{mask} value:{value}");
-                WriteUInt32Mask(paddr, value, mask);
-                return true;
-            }
-
-            return false;
-        }
-
         private static void WriteUInt32Mask(IntPtr address, uint value, uint mask)
         {
             var v = SafeReadUInt32(address);
@@ -425,18 +265,18 @@ namespace Pi.IO.InterIntegratedCircuit
             // if subsequent code changes to a different peripheral
             unchecked
             {
-                var returnValue = (uint) Marshal.ReadInt32(address);
+                var returnValue = (uint)Marshal.ReadInt32(address);
                 Marshal.ReadInt32(address);
 
                 return returnValue;
             }
         }
-        
+
         private static uint ReadUInt32(IntPtr address)
         {
             unchecked
             {
-                return (uint) Marshal.ReadInt32(address);
+                return (uint)Marshal.ReadInt32(address);
             }
         }
 
@@ -457,6 +297,176 @@ namespace Pi.IO.InterIntegratedCircuit
             {
                 Marshal.WriteInt32(address, (int)value);
             }
+        }
+
+        private void EnsureDeviceAddress(int deviceAddress)
+        {
+            if (deviceAddress != this.currentDeviceAddress)
+            {
+                var addressAddress = this.bscAddress + (int)Interop.Bcm2835BscA;
+                SafeWriteUInt32(addressAddress, (uint)deviceAddress);
+
+                this.currentDeviceAddress = deviceAddress;
+            }
+        }
+
+        private void Write(int deviceAddress, byte[] buffer)
+        {
+            this.EnsureDeviceAddress(deviceAddress);
+
+            var len = (uint)buffer.Length;
+
+            var dlen = this.bscAddress + (int)Interop.Bcm2835BscDlen;
+            var fifo = this.bscAddress + (int)Interop.Bcm2835BscFifo;
+            var status = this.bscAddress + (int)Interop.Bcm2835BscS;
+            var control = this.bscAddress + (int)Interop.Bcm2835BscC;
+
+            var remaining = len;
+            var i = 0;
+
+            // Clear FIFO
+            WriteUInt32Mask(control, Interop.Bcm2835BscCClear1, Interop.Bcm2835BscCClear1);
+
+            // Clear Status
+            WriteUInt32(status, Interop.Bcm2835BscSClkt | Interop.Bcm2835BscSErr | Interop.Bcm2835BscSDone);
+
+            // Set Data Length
+            WriteUInt32(dlen, len);
+
+            while (remaining != 0 && i < Interop.Bcm2835BscFifoSize)
+            {
+                WriteUInt32(fifo, buffer[i]);
+                i++;
+                remaining--;
+            }
+
+            // Enable device and start transfer
+            WriteUInt32(control, Interop.Bcm2835BscCI2Cen | Interop.Bcm2835BscCSt);
+
+            while ((ReadUInt32(status) & Interop.Bcm2835BscSDone) == 0)
+            {
+                while (remaining != 0 && (ReadUInt32(status) & Interop.Bcm2835BscSTxd) != 0)
+                {
+                    // Write to FIFO, no barrier
+                    WriteUInt32(fifo, buffer[i]);
+                    i++;
+                    remaining--;
+                }
+
+                this.Wait(remaining);
+            }
+
+            if ((SafeReadUInt32(status) & Interop.Bcm2835BscSErr) != 0) //// Received a NACK
+            {
+                throw new InvalidOperationException("Read operation failed with BCM2835_I2C_REASON_ERROR_NACK status");
+            }
+
+            if ((SafeReadUInt32(status) & Interop.Bcm2835BscSClkt) != 0) //// Received Clock Stretch Timeout
+            {
+                throw new InvalidOperationException("Read operation failed with BCM2835_I2C_REASON_ERROR_CLKT status");
+            }
+
+            if (remaining != 0) //// Not all data is sent
+            {
+                throw new InvalidOperationException(string.Format("Read operation failed with BCM2835_I2C_REASON_ERROR_DATA status, missing {0} bytes", remaining));
+            }
+        }
+
+        private void Read(int deviceAddress, byte[] buffer)
+        {
+            this.EnsureDeviceAddress(deviceAddress);
+
+            var dlen = this.bscAddress + (int)Interop.Bcm2835BscDlen;
+            var fifo = this.bscAddress + (int)Interop.Bcm2835BscFifo;
+            var status = this.bscAddress + (int)Interop.Bcm2835BscS;
+            var control = this.bscAddress + (int)Interop.Bcm2835BscC;
+
+            var remaining = (uint)buffer.Length;
+            uint i = 0;
+
+            // Clear FIFO
+            WriteUInt32Mask(control, Interop.Bcm2835BscCClear1, Interop.Bcm2835BscCClear1);
+
+            // Clear Status
+            WriteUInt32(status, Interop.Bcm2835BscSClkt | Interop.Bcm2835BscSErr | Interop.Bcm2835BscSDone);
+
+            // Set Data Length
+            WriteUInt32(dlen, (uint)buffer.Length);
+
+            // Start read
+            WriteUInt32(control, Interop.Bcm2835BscCI2Cen | Interop.Bcm2835BscCSt | Interop.Bcm2835BscCRead);
+
+            while ((ReadUInt32(status) & Interop.Bcm2835BscSDone) == 0)
+            {
+                while ((ReadUInt32(status) & Interop.Bcm2835BscSRxd) != 0)
+                {
+                    // Read from FIFO, no barrier
+                    buffer[i] = (byte)ReadUInt32(fifo);
+
+                    i++;
+                    remaining--;
+                }
+
+                this.Wait(remaining);
+            }
+
+            while (remaining != 0 && (ReadUInt32(status) & Interop.Bcm2835BscSRxd) != 0)
+            {
+                buffer[i] = (byte)ReadUInt32(fifo);
+                i++;
+                remaining--;
+            }
+
+            if ((SafeReadUInt32(status) & Interop.Bcm2835BscSErr) != 0) //// Received a NACK
+            {
+                throw new InvalidOperationException("Read operation failed with BCM2835_I2C_REASON_ERROR_NACK status");
+            }
+
+            if ((SafeReadUInt32(status) & Interop.Bcm2835BscSClkt) != 0) //// Received Clock Stretch Timeout
+            {
+                throw new InvalidOperationException("Read operation failed with BCM2835_I2C_REASON_ERROR_CLKT status");
+            }
+
+            if (remaining != 0) //// Not all data is received
+            {
+                throw new InvalidOperationException(string.Format("Read operation failed with BCM2835_I2C_REASON_ERROR_DATA status, missing {0} bytes", remaining));
+            }
+        }
+
+        private void Wait(uint remaining)
+        {
+            // When remaining data is to be received, then wait for a fully FIFO
+            if (remaining != 0)
+            {
+                this.thread.Sleep(TimeSpan.FromMilliseconds(this.waitInterval * (remaining >= Interop.Bcm2835BscFifoSize ? Interop.Bcm2835BscFifoSize : remaining) / 1000d));
+            }
+        }
+
+        /// <summary>
+        /// Sets the pin mode.
+        /// </summary>
+        /// <param name="pin">The pin.</param>
+        /// <param name="mode">The mode.</param>
+        /// <returns>
+        /// True when value was changed, false otherwise.
+        /// </returns>
+        private bool SetPinMode(uint pin, uint mode)
+        {
+            // Function selects are 10 pins per 32 bit word, 3 bits per pin
+            var paddr = this.gpioAddress + (int)(Interop.Bcm2835Gpfsel0 + (4 * (pin / 10)));
+            var shift = (pin % 10) * 3;
+            var mask = Interop.Bcm2835GpioFselMask << (int)shift;
+            var value = mode << (int)shift;
+
+            var existing = ReadUInt32(paddr) & mask;
+            if (existing != value)
+            {
+                // Console.WriteLine($"existing is {x} masked:{x & mask} vs mask:{mask} value:{value}");
+                WriteUInt32Mask(paddr, value, mask);
+                return true;
+            }
+
+            return false;
         }
     }
 }

@@ -1,70 +1,65 @@
-#region References
-
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-
-#endregion
+// <copyright file="ConnectedPins.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.GeneralPurpose
 {
+    using global::System.Collections;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+
     /// <summary>
     /// Represents connected pins.
     /// </summary>
     public class ConnectedPins : IEnumerable<ConnectedPin>
     {
-        #region Fields
-
         private readonly GpioConnection connection;
-
-        #endregion
-
-        #region Instance Management
 
         internal ConnectedPins(GpioConnection connection)
         {
             this.connection = connection;
         }
 
-        #endregion
-
-        #region Properties
+        /// <summary>
+        /// Gets the status of the specified pin.
+        /// </summary>
+        /// <value>
+        /// The <see cref="ConnectedPin"/>.
+        /// </value>
+        /// <param name="pin">The pin.</param>
+        /// <returns>The <see cref="ConnectedPin"/></returns>
+        public ConnectedPin this[ProcessorPin pin] => new ConnectedPin(this.connection, this.connection.GetConfiguration(pin));
 
         /// <summary>
         /// Gets the status of the specified pin.
         /// </summary>
-        public ConnectedPin this[ProcessorPin pin]
-        {
-            get { return new ConnectedPin(connection, connection.GetConfiguration(pin)); }
-        }
+        /// <value>
+        /// The <see cref="ConnectedPin"/>.
+        /// </value>
+        /// <param name="name">The name.</param>
+        /// <returns>The <see cref="ConnectedPin"/></returns>
+        public ConnectedPin this[string name] => new ConnectedPin(this.connection, this.connection.GetConfiguration(name));
 
         /// <summary>
         /// Gets the status of the specified pin.
         /// </summary>
-        public ConnectedPin this[string name]
-        {
-            get { return new ConnectedPin(connection, connection.GetConfiguration(name)); }
-        }
+        /// <value>
+        /// The <see cref="ConnectedPin"/>.
+        /// </value>
+        /// <param name="pin">The pin.</param>
+        /// <returns>The <see cref="ConnectedPin"/></returns>
+        public ConnectedPin this[ConnectorPin pin] => this[pin.ToProcessor()];
 
         /// <summary>
         /// Gets the status of the specified pin.
         /// </summary>
-        public ConnectedPin this[ConnectorPin pin]
-        {
-            get { return this[pin.ToProcessor()]; }
-        }
-
-        /// <summary>
-        /// Gets the status of the specified pin.
-        /// </summary>
-        public ConnectedPin this[PinConfiguration pin]
-        {
-            get { return new ConnectedPin(connection, pin); }
-        }
-
-        #endregion
-
-        #region Methods
+        /// <value>
+        /// The <see cref="ConnectedPin"/>.
+        /// </value>
+        /// <param name="pin">The pin.</param>
+        /// <returns>The <see cref="ConnectedPin"/></returns>
+        public ConnectedPin this[PinConfiguration pin] => new ConnectedPin(this.connection, pin);
 
         /// <summary>
         /// Returns an enumerator that iterates through a collection.
@@ -74,7 +69,7 @@ namespace Pi.IO.GeneralPurpose
         /// </returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumerator();
+            return this.GetEnumerator();
         }
 
         /// <summary>
@@ -83,9 +78,7 @@ namespace Pi.IO.GeneralPurpose
         /// <returns>The enumerator.</returns>
         public IEnumerator<ConnectedPin> GetEnumerator()
         {
-            return connection.Configurations.Select(c => new ConnectedPin(connection, c)).GetEnumerator();
+            return this.connection.Configurations.Select(c => new ConnectedPin(this.connection, c)).GetEnumerator();
         }
-
-        #endregion
     }
 }

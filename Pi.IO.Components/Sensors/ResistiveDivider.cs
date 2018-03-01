@@ -1,8 +1,16 @@
-﻿using System;
-using UnitsNet;
+﻿// <copyright file="ResistiveDivider.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Sensors
 {
+    using global::System;
+    using UnitsNet;
+
+    /// <summary>
+    /// Functions for resistive dividers.
+    /// </summary>
     public static class ResistiveDivider
     {
         /// <summary>

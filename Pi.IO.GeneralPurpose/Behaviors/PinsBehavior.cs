@@ -1,11 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Pi.System.Threading;
-using Pi.Timers;
+﻿// <copyright file="PinsBehavior.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.GeneralPurpose.Behaviors
 {
+    using System.Threading;
+    using global::System;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using Timers;
+
     /// <summary>
     /// Represents the pins behavior base class.
     /// </summary>
@@ -47,36 +52,17 @@ namespace Pi.IO.GeneralPurpose.Behaviors
             set => this.timer.Interval = value;
         }
 
+        /// <summary>
+        /// Gets the connection.
+        /// </summary>
+        protected GpioConnection Connection { get; private set; }
+
         /// <inheritdoc />
         public void Dispose()
         {
             Timer.Dispose(this.timer);
             this.thread.Dispose();
         }
-
-        /// <summary>
-        /// Gets the connection.
-        /// </summary>
-        protected GpioConnection Connection { get; private set; }
-
-        /// <summary>
-        /// Gets the first step.
-        /// </summary>
-        /// <returns>The first step.</returns>
-        protected abstract int GetFirstStep();
-
-        /// <summary>
-        /// Processes the step.
-        /// </summary>
-        /// <param name="step">The step.</param>
-        protected abstract void ProcessStep(int step);
-
-        /// <summary>
-        /// Tries to get the next step.
-        /// </summary>
-        /// <param name="step">The step.</param>
-        /// <returns><c>true</c> if the behavior may continue; otherwise behavior will be stopped.</returns>
-        protected abstract bool TryGetNextStep(ref int step);
 
         internal void Start(GpioConnection connection)
         {
@@ -99,6 +85,25 @@ namespace Pi.IO.GeneralPurpose.Behaviors
                 this.Connection[pinConfiguration] = false;
             }
         }
+
+        /// <summary>
+        /// Gets the first step.
+        /// </summary>
+        /// <returns>The first step.</returns>
+        protected abstract int GetFirstStep();
+
+        /// <summary>
+        /// Processes the step.
+        /// </summary>
+        /// <param name="step">The step.</param>
+        protected abstract void ProcessStep(int step);
+
+        /// <summary>
+        /// Tries to get the next step.
+        /// </summary>
+        /// <param name="step">The step.</param>
+        /// <returns><c>true</c> if the behavior may continue; otherwise behavior will be stopped.</returns>
+        protected abstract bool TryGetNextStep(ref int step);
 
         private void OnTimer(object sender, EventArgs e)
         {

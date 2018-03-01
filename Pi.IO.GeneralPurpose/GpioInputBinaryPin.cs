@@ -1,20 +1,19 @@
-using System;
+// <copyright file="GpioInputBinaryPin.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.GeneralPurpose
 {
+    using global::System;
+
     /// <summary>
     /// Represents a GPIO input binary pin.
     /// </summary>
     public class GpioInputBinaryPin : IInputBinaryPin
     {
-        #region Fields
-
         private readonly IGpioConnectionDriver driver;
         private readonly ProcessorPin pin;
-
-        #endregion
-
-        #region Instance Management
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GpioInputBinaryPin"/> class.
@@ -29,9 +28,14 @@ namespace Pi.IO.GeneralPurpose
 
             driver.Allocate(pin, PinDirection.Input);
             if ((driver.GetCapabilities() & GpioConnectionDriverCapabilities.CanSetPinResistor) > 0)
+            {
                 driver.SetPinResistor(pin, resistor);
+            }
+
             if ((driver.GetCapabilities() & GpioConnectionDriverCapabilities.CanSetPinDetectedEdges) > 0)
+            {
                 driver.SetPinDetectedEdges(pin, PinDetectedEdges.Both);
+            }
         }
 
         /// <summary>
@@ -39,12 +43,8 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         public void Dispose()
         {
-            driver.Release(pin);
+            this.driver.Release(this.pin);
         }
-
-        #endregion
-
-        #region Methods
 
         /// <summary>
         /// Reads the state of the pin.
@@ -54,7 +54,7 @@ namespace Pi.IO.GeneralPurpose
         /// </returns>
         public bool Read()
         {
-            return driver.Read(pin);
+            return this.driver.Read(this.pin);
         }
 
         /// <summary>
@@ -63,11 +63,9 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="waitForUp">if set to <c>true</c> waits for the pin to be up. Default value is <c>true</c>.</param>
         /// <param name="timeout">The timeout. Default value is <see cref="TimeSpan.Zero"/>.</param>
         /// <remarks>If <c>timeout</c> is set to <see cref="TimeSpan.Zero"/>, a default timeout is used instead.</remarks>
-        public void Wait(bool waitForUp = true, TimeSpan timeout = new TimeSpan())
+        public void Wait(bool waitForUp = true, TimeSpan timeout = default(TimeSpan))
         {
-            driver.Wait(pin, waitForUp, timeout);
+            this.driver.Wait(this.pin, waitForUp, timeout);
         }
-
-        #endregion
     }
 }

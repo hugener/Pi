@@ -1,7 +1,12 @@
-﻿using System;
+﻿// <copyright file="SpiTransferMode.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.SerialPeripheralInterface
 {
+    using global::System;
+
     /// <summary>
     /// Selects if data should be read, written or both.
     /// </summary>

@@ -1,11 +1,16 @@
-﻿using System;
-using Common.Logging;
-using Pi.IO.InterIntegratedCircuit;
-using Pi.System.Threading;
-using UnitsNet;
+﻿// <copyright file="Pca9685Connection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Controllers.Pca9685
 {
+    using System.Threading;
+    using Common.Logging;
+    using global::System;
+    using InterIntegratedCircuit;
+    using UnitsNet;
+
     /// <summary>
     /// Driver for Adafruit 16-channel PWM/Servo Shield which uses the
     /// NXP PCA9685 16-channel, 12-bit PWM Fm+ I2C-bus LED controller
@@ -31,7 +36,25 @@ namespace Pi.IO.Components.Controllers.Pca9685
             this.thread = ThreadFactory.EnsureThreadFactory(threadFactory).Create();
 
             Log.Info(m => m("Resetting PCA9685"));
-            this.WriteRegister(Register.MODE1, 0x00);
+            this.WriteRegister(Register.Mode1, 0x00);
+        }
+
+        private enum Register
+        {
+            // SUBADR1 = 0x02,
+            // SUBADR2 = 0x03,
+            // SUBADR3 = 0x04,
+            Mode1 = 0x00,
+            Prescale = 0xFE,
+            Led0OnL = 0x06,
+            Led0OnH = 0x07,
+            Led0OffL = 0x08,
+            Led0OffH = 0x09,
+
+            // ALLLED_ON_L = 0xFA,
+            // ALLLED_ON_H = 0xFB,
+            // ALLLED_OFF_L = 0xFC,
+            // ALLLED_OFF_H = 0xFD,
         }
 
         /// <summary>
@@ -54,18 +77,17 @@ namespace Pi.IO.Components.Controllers.Pca9685
 
             Log.Trace(m => m("Final pre-maximum: {0}", prescale));
 
-            var oldmode = this.ReadRegister(Register.MODE1);
-            var newmode = (byte) ((oldmode & 0x7F) | 0x10); // sleep
+            var oldmode = this.ReadRegister(Register.Mode1);
+            var newmode = (byte)((oldmode & 0x7F) | 0x10); // sleep
 
+            this.WriteRegister(Register.Mode1, newmode); // go to sleep
 
-            this.WriteRegister(Register.MODE1, newmode); // go to sleep
-
-            this.WriteRegister(Register.PRESCALE, (byte) Math.Floor(prescale));
-            this.WriteRegister(Register.MODE1, oldmode);
+            this.WriteRegister(Register.Prescale, (byte)Math.Floor(prescale));
+            this.WriteRegister(Register.Mode1, oldmode);
 
             this.thread.Sleep(Delay);
 
-            this.WriteRegister(Register.MODE1, oldmode | 0x80);
+            this.WriteRegister(Register.Mode1, oldmode | 0x80);
         }
 
         /// <summary>
@@ -76,10 +98,10 @@ namespace Pi.IO.Components.Controllers.Pca9685
         /// <param name="off">The off values.</param>
         public void SetPwm(PwmChannel channel, int on, int off)
         {
-            this.WriteRegister(Register.LED0_ON_L + 4*(int) channel, on & 0xFF);
-            this.WriteRegister(Register.LED0_ON_H + 4*(int) channel, on >> 8);
-            this.WriteRegister(Register.LED0_OFF_L + 4*(int) channel, off & 0xFF);
-            this.WriteRegister(Register.LED0_OFF_H + 4*(int) channel, off >> 8);
+            this.WriteRegister(Register.Led0OnL + (4 * (int)channel), on & 0xFF);
+            this.WriteRegister(Register.Led0OnH + (4 * (int)channel), on >> 8);
+            this.WriteRegister(Register.Led0OffL + (4 * (int)channel), off & 0xFF);
+            this.WriteRegister(Register.Led0OffH + (4 * (int)channel), off >> 8);
         }
 
         /// <summary>
@@ -105,48 +127,31 @@ namespace Pi.IO.Components.Controllers.Pca9685
             this.thread.Dispose();
         }
 
-        private enum Register
-        {
-            //SUBADR1 = 0x02,
-            //SUBADR2 = 0x03,
-            //SUBADR3 = 0x04,
-            MODE1 = 0x00,
-            PRESCALE = 0xFE,
-            LED0_ON_L = 0x06,
-            LED0_ON_H = 0x07,
-            LED0_OFF_L = 0x08,
-            LED0_OFF_H = 0x09,
-            //ALLLED_ON_L = 0xFA,
-            //ALLLED_ON_H = 0xFB,
-            //ALLLED_OFF_L = 0xFC,
-            //ALLLED_OFF_H = 0xFD,
-        }
-
         private void SetFullOn(PwmChannel channel)
         {
-            this.WriteRegister(Register.LED0_ON_H + 4*(int) channel, 0x10);
-            this.WriteRegister(Register.LED0_OFF_H + 4*(int) channel, 0x00);
+            this.WriteRegister(Register.Led0OnH + (4 * (int)channel), 0x10);
+            this.WriteRegister(Register.Led0OffH + (4 * (int)channel), 0x00);
         }
 
         private void SetFullOff(PwmChannel channel)
         {
-            this.WriteRegister(Register.LED0_ON_H + 4*(int) channel, 0x00);
-            this.WriteRegister(Register.LED0_OFF_H + 4*(int) channel, 0x10);
+            this.WriteRegister(Register.Led0OnH + (4 * (int)channel), 0x00);
+            this.WriteRegister(Register.Led0OffH + (4 * (int)channel), 0x10);
         }
 
         private void WriteRegister(Register register, byte data)
         {
-            this.connection.Write(new[] {(byte) register, data});
+            this.connection.Write(new[] { (byte)register, data });
         }
 
         private void WriteRegister(Register register, int data)
         {
-            this.WriteRegister(register, (byte) data);
+            this.WriteRegister(register, (byte)data);
         }
 
         private byte ReadRegister(Register register)
         {
-            this.connection.Write((byte) register);
+            this.connection.Write((byte)register);
             var value = this.connection.ReadByte();
             return value;
         }

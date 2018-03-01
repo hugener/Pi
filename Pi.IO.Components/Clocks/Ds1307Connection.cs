@@ -1,10 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using Pi.IO.InterIntegratedCircuit;
-using System.Collections;
+﻿// <copyright file="Ds1307Connection.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Clocks.Ds1307
 {
+    using global::System;
+    using global::System.Collections;
+    using global::System.Collections.Generic;
+    using InterIntegratedCircuit;
+
     /// <summary>
     /// Provides functionality for the DS1307 Real-Time Clock.
     /// </summary>
@@ -16,15 +21,139 @@ namespace Pi.IO.Components.Clocks.Ds1307
     /// </remarks>
     public class Ds1307Connection
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Ds1307Connection"/> class.
+        /// </summary>
+        /// <param name="connection">The connection.</param>
+        public Ds1307Connection(I2cDeviceConnection connection)
+        {
+            this.Connection = connection;
+        }
+
+        /// <summary>
+        /// Gets or sets the connection.
+        /// </summary>
+        /// <value>
+        /// The connection.
+        /// </value>
         public I2cDeviceConnection Connection { get; set; }
 
         /// <summary>
-        /// Creates a new instance of the class using the provided I2C Connection.
+        /// Reads the Date and Time from the Ds1307 and returns it.
         /// </summary>
-        /// <param name="connection">I2C Connection to the Clock.</param>
-        public Ds1307Connection(I2cDeviceConnection connection)
+        /// <returns>Date.</returns>
+        public DateTime GetDate()
         {
-            Connection = connection;
+            return this.GetDate(this.ReadAll());
+        }
+
+        /// <summary>
+        /// Writes the provided Date and Time to the Ds1307.
+        /// </summary>
+        /// <param name="date">The Date that should be set.</param>
+        public void SetDate(DateTime date)
+        {
+            List<byte> toWrite = new List<byte>();
+
+            toWrite.Add(0x00);
+            toWrite.Add(this.SetEnabledDisableRtc(IntToNibble(date.Second), !this.IsRtcEnabled()));
+            toWrite.Add(IntToNibble(date.Minute));
+            toWrite.Add(IntToNibble(date.Hour));
+            toWrite.Add(Convert.ToByte(date.DayOfWeek));
+            toWrite.Add(IntToNibble(date.Day));
+            toWrite.Add(IntToNibble(date.Month));
+            toWrite.Add(IntToNibble(Convert.ToInt16(date.ToString("yy"), 10)));
+
+            this.Connection.Write(toWrite.ToArray());
+        }
+
+        /// <summary>
+        /// Enables the Clock.
+        /// </summary>
+        public void EnableRtc()
+        {
+            // CH=1: Disabled, CH=0: Enabled
+            byte seconds = this.ReadSeconds();
+            if (this.IsRtcEnabled(seconds))
+            {
+                return;
+            }
+
+            this.Connection.Write(0x00, this.SetEnabledDisableRtc(seconds, false));
+        }
+
+        /// <summary>
+        /// Disables the Clock. When the Clock is diabled, it not ticking.
+        /// </summary>
+        public void DisableRtc()
+        {
+            byte seconds = this.ReadSeconds();
+            if (!this.IsRtcEnabled(seconds))
+            {
+                return;
+            }
+
+            this.Connection.Write(0x00, this.SetEnabledDisableRtc(seconds, true));
+        }
+
+        /// <summary>
+        /// Returns true, if the Clock is enabled, otherwise false is returned.
+        /// </summary>
+        /// <returns>
+        /// true: Clock is enabled, false: Clock is diabled.
+        /// </returns>
+        public bool IsRtcEnabled()
+        {
+            return this.IsRtcEnabled(this.ReadSeconds());
+        }
+
+        /// <summary>
+        /// Resets the Clock to the Factory Defaults.
+        /// </summary>
+        public void ResetToFactoryDefaults()
+        {
+            // The Factory Default is: 80,00,00,01,01,01,00,B3
+            this.Connection.Write(0x00, 0x80, 0x00, 0x00, 0x01, 0x01, 0x01, 0x00);
+        }
+
+        /// <summary>
+        /// Writes the current System Date to the Clock.
+        /// </summary>
+        public void SystemTimeToRtc()
+        {
+            this.SetDate(DateTime.Now);
+        }
+
+        /// <summary>
+        /// Converts the specified two-nibble-byte to an integer.
+        /// </summary>
+        /// <param name="nibble">Nibble that should be converted.</param>
+        /// <returns>Integer representation of the nibble.</returns>
+        private static int NibbleToInt(byte nibble)
+        {
+            int result = 0;
+            result *= 100;
+            result += 10 * (nibble >> 4);
+            result += nibble & 0xf;
+            return result;
+        }
+
+        /// <summary>
+        /// Converts the specified integer to a two-nibble-byte.
+        /// </summary>
+        /// <param name="number">The integer that should be converted. Maximum is 99.</param>
+        /// <returns>A byte with two nibbles that contains the integer.</returns>
+        private static byte IntToNibble(int number)
+        {
+            int bcd = 0;
+            for (int digit = 0; digit < 4; ++digit)
+            {
+                int nibble = number % 10;
+                bcd |= nibble << (digit * 4);
+                number /= 10;
+            }
+
+            return (byte)(bcd & 0xff);
         }
 
         /// <summary>
@@ -33,8 +162,8 @@ namespace Pi.IO.Components.Clocks.Ds1307
         /// <returns>The Seconds-Byte including the CH-Flag in bit 7.</returns>
         private byte ReadSeconds()
         {
-            Connection.Write(0x00);
-            return Connection.ReadByte();
+            this.Connection.Write(0x00);
+            return this.Connection.ReadByte();
         }
 
         /// <summary>
@@ -43,17 +172,28 @@ namespace Pi.IO.Components.Clocks.Ds1307
         /// <returns>7 Bytes from the Clock.</returns>
         private byte[] ReadAll()
         {
-            Connection.Write(0x00);
-            return Connection.Read(7);
+            this.Connection.Write(0x00);
+            return this.Connection.Read(7);
         }
 
         /// <summary>
-        /// Reads the Date and Time from the Ds1307 and returns it.
+        /// Disables or enables the Clock.
         /// </summary>
-        /// <returns>Date.</returns>
-        public DateTime GetDate()
+        /// <param name="seconds">The byte that contains the seconds and the CH-Flag.</param>
+        /// <param name="disable">true will disable the Clock, false will enable it.</param>
+        /// <returns>The seconds with rtc enabled or disabled.</returns>
+        /// <remarks>
+        /// The disable/enabled-Flag is stored in bit 7 within the seconds-byte.
+        /// </remarks>
+        private byte SetEnabledDisableRtc(byte seconds, bool disable)
         {
-            return GetDate(ReadAll());
+            BitArray bits = new BitArray(new[] { seconds });
+            bits.Set(7, disable);
+
+            byte[] result = new byte[1];
+            bits.CopyTo(result, 0);
+
+            return result[0];
         }
 
         /// <summary>
@@ -74,7 +214,10 @@ namespace Pi.IO.Components.Clocks.Ds1307
              */
 
             int seconds = input[0];
-            if (!IsRtcEnabled(input[0])) seconds = seconds - 128;  // Remove "CH"-bit from the seconds if present 
+            if (!this.IsRtcEnabled(input[0]))
+            {
+                seconds = seconds - 128;  // Remove "CH"-bit from the seconds if present
+            }
 
             seconds = NibbleToInt((byte)seconds);
 
@@ -84,15 +227,15 @@ namespace Pi.IO.Components.Clocks.Ds1307
             if ((hours & 64) == 64)
             {
                 throw new NotImplementedException("AM/PM Time is currently not supported.");
-                // 12 h Format
-                //if ((hours & 32) == 32)
-                //{
-                //    //PM
-                //}
-                //else
-                //{
-                //    //AM
-                //}
+                //// 12 h Format
+                //// if ((hours & 32) == 32)
+                //// {
+                ////     //PM
+                //// }
+                //// else
+                //// {
+                ////     //AM
+                //// }
             }
 
             int dayOfWeek = NibbleToInt(input[3]);
@@ -101,79 +244,12 @@ namespace Pi.IO.Components.Clocks.Ds1307
             int month = NibbleToInt(input[5]);
             int year = NibbleToInt(input[6]);
 
-            if (year == 0) return new DateTime();
+            if (year == 0)
+            {
+                return default(DateTime);
+            }
 
             return new DateTime(year + 2000, month, day, hours, minutes, seconds);
-        }
-
-        /// <summary>
-        /// Writes the provided Date and Time to the Ds1307.
-        /// </summary>
-        /// <param name="date">The Date that should be set.</param>
-        public void SetDate(DateTime date)
-        {
-            List<byte> toWrite = new List<byte>();
-
-            toWrite.Add(0x00);
-            toWrite.Add(SetEnabledDisableRtc(IntToNibble(date.Second), !IsRtcEnabled()));
-            toWrite.Add(IntToNibble(date.Minute));
-            toWrite.Add(IntToNibble(date.Hour));
-            toWrite.Add(Convert.ToByte(date.DayOfWeek));
-            toWrite.Add(IntToNibble(date.Day));
-            toWrite.Add(IntToNibble(date.Month));
-            toWrite.Add(IntToNibble(Convert.ToInt16(date.ToString("yy"), 10)));
-
-            Connection.Write(toWrite.ToArray());
-        }
-
-        /// <summary>
-        /// Enables the Clock.
-        /// </summary>
-        public void EnableRtc()
-        {
-            // CH=1: Disabled, CH=0: Enabled
-            byte seconds = ReadSeconds();
-            if (IsRtcEnabled(seconds)) return;
-
-            Connection.Write(0x00, SetEnabledDisableRtc(seconds, false));
-        }
-
-        /// <summary>
-        /// Disables the Clock. When the Clock is diabled, it not ticking.
-        /// </summary>
-        public void DisableRtc()
-        {
-            byte seconds = ReadSeconds();
-            if (!IsRtcEnabled(seconds)) return;
-
-            Connection.Write(0x00, SetEnabledDisableRtc(seconds, true));
-        }
-
-        /// <summary>
-        /// Disables or enables the Clock.
-        /// </summary>
-        /// <param name="seconds">The byte that contains the seconds and the CH-Flag.</param>
-        /// <param name="disable">true will disable the Clock, false will enable it.</param>
-        /// <returns></returns>
-        /// <remarks>The disable/enabled-Flag is stored in bit 7 within the seconds-byte.</remarks>
-        private byte SetEnabledDisableRtc(byte seconds, bool disable)
-        {
-            BitArray bits = new BitArray(new byte[] { seconds });
-            bits.Set(7, disable);
-
-            byte[] result = new byte[1];
-            bits.CopyTo(result, 0);
-
-            return result[0];
-        }
-
-        /// <summary>
-        /// Returns true, if the Clock is enabled, otherwise false is returned.
-        /// </summary>
-        /// <returns>true: Clock is enabled, false: Clock is diabled.</returns>
-        public bool IsRtcEnabled()
-        {
-            return IsRtcEnabled(ReadSeconds());
         }
 
         /// <summary>
@@ -183,55 +259,7 @@ namespace Pi.IO.Components.Clocks.Ds1307
         /// <returns>true: Clock is enabled, false: Clock is diabled.</returns>
         private bool IsRtcEnabled(byte seconds)
         {
-            return !((seconds & 128) == 128);
-        }
-
-        /// <summary>
-        /// Resets the Clock to the Factory Defaults.
-        /// </summary>
-        public void ResetToFactoryDefaults()
-        {
-            // The Factory Default is: 80,00,00,01,01,01,00,B3
-            Connection.Write(0x00, 0x80, 0x00, 0x00, 0x01, 0x01, 0x01, 0x00);
-        }
-
-        /// <summary>
-        /// Writes the current System Date to the Clock.
-        /// </summary>
-        public void SystemTimeToRtc()
-        {
-            SetDate(DateTime.Now);
-        }
-
-        /// <summary>
-        /// Converts the specified two-nibble-byte to an integer.
-        /// </summary>
-        /// <param name="nibble">Nibble that should be converted.</param>
-        /// <returns>Integer representation of the nibble.</returns>
-        private static int NibbleToInt(byte nibble)
-        {
-            int result = 0;
-            result *= 100;
-            result += (10 * (nibble >> 4));
-            result += nibble & 0xf;
-            return result;
-        }
-
-        /// <summary>
-        /// Converts the specified integer to a two-nibble-byte.
-        /// </summary>
-        /// <param name="number">The integer that should be converted. Maximum is 99.</param>
-        /// <returns>A byte with two nibbles that contains the integer.</returns>
-        private static byte IntToNibble(int number)
-        {
-            int bcd = 0;
-            for (int digit = 0; digit < 4; ++digit)
-            {
-                int nibble = number % 10;
-                bcd |= nibble << (digit * 4);
-                number /= 10;
-            }
-            return (byte)(bcd & 0xff);
+            return (seconds & 128) != 128;
         }
     }
 }

@@ -1,90 +1,84 @@
-﻿#region References
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using Pi.IO.Interop;
-
-#endregion
+﻿// <copyright file="Tlc59711Cluster.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.Components.Controllers.Tlc59711
 {
+    using global::System;
+    using global::System.Collections;
+    using global::System.Collections.Generic;
+    using global::System.Linq;
+    using Interop;
+
     /// <summary>
-    /// A chained cluster of Adafruit's 12-channel 16bit PWM/LED driver TLC59711. 
+    /// A chained cluster of Adafruit's 12-channel 16bit PWM/LED driver TLC59711.
     /// The devices should be connected together with their SDTI/SDTO pins.
     /// </summary>
     public class Tlc59711Cluster : ITlc59711Cluster
     {
-        #region Constants
-        private const int COMMAND_SIZE = Tlc59711Device.COMMAND_SIZE;
-        #endregion
+        private const int CommandSize = Tlc59711Device.CommandSize;
 
-        #region Fields
         private readonly ITlc59711Device[] devices;
         private readonly IPwmChannels channels;
-        #endregion
-
-        #region Instance Management
 
         /// <summary>
-        /// Creates a new instance of the <see cref="Tlc59711Cluster"/> class.
+        /// Initializes a new instance of the <see cref="Tlc59711Cluster"/> class.
         /// </summary>
         /// <param name="memory">Memory to work with.</param>
-        /// <param name="numberOfDevices">Number of <see cref="ITlc59711Device"/>s connected together.</param>
-        public Tlc59711Cluster(IMemory memory, int numberOfDevices) {
+        /// <param name="numberOfDevices">Number of <see cref="ITlc59711Device" />s connected together.</param>
+        /// <exception cref="ArgumentNullException">memory</exception>
+        /// <exception cref="ArgumentOutOfRangeException">numberOfDevices - You cannot create a cluster with less than one device.</exception>
+        /// <exception cref="InsufficientMemoryException">Thrown in memory is insufficient.</exception>
+        public Tlc59711Cluster(IMemory memory, int numberOfDevices)
+        {
             if (ReferenceEquals(memory, null))
+            {
                 throw new ArgumentNullException("memory");
-            if (numberOfDevices <= 0)
-                throw new ArgumentOutOfRangeException("numberOfDevices", "You cannot create a cluster with less than one device.");
+            }
 
-            var minimumRequiredMemorySize = (numberOfDevices * COMMAND_SIZE);
-            if (memory.Length < minimumRequiredMemorySize) {
+            if (numberOfDevices <= 0)
+            {
+                throw new ArgumentOutOfRangeException("numberOfDevices", "You cannot create a cluster with less than one device.");
+            }
+
+            var minimumRequiredMemorySize = numberOfDevices * CommandSize;
+            if (memory.Length < minimumRequiredMemorySize)
+            {
                 var message = string.Format("For {0} device(s) you have to provide a minimum of {1} bytes of memory.", numberOfDevices, minimumRequiredMemorySize);
                 throw new InsufficientMemoryException(message);
             }
-            
-            devices = CreateDevices(memory, numberOfDevices).ToArray();
-            channels = new Tlc59711ClusterChannels(devices);
+
+            this.devices = CreateDevices(memory, numberOfDevices).ToArray();
+            this.channels = new Tlc59711ClusterChannels(this.devices);
         }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="Tlc59711Cluster"/> class.
+        /// Initializes a new instance of the <see cref="Tlc59711Cluster"/> class.
         /// </summary>
-        /// <param name="devices">The devices, that are chained together</param>
-        public Tlc59711Cluster(IEnumerable<ITlc59711Device> devices) {
+        /// <param name="devices">The devices.</param>
+        public Tlc59711Cluster(IEnumerable<ITlc59711Device> devices)
+        {
             this.devices = devices.ToArray();
-            channels = new Tlc59711ClusterChannels(this.devices);
+            this.channels = new Tlc59711ClusterChannels(this.devices);
         }
 
-        #endregion
-
-        #region Properties
         /// <summary>
-        /// Number of TLC59711 devices chained together
+        /// Gets the number of TLC59711 devices chained together
         /// </summary>
-        public int Count {
-            get { return devices.Length; }
-        }
+        public int Count => this.devices.Length;
+
+        /// <summary>
+        /// Gets the PWM channels
+        /// </summary>
+        public IPwmChannels Channels => this.channels;
 
         /// <summary>
         /// Returns the TLC59711 device at the requested position
         /// </summary>
         /// <param name="index">TLC59711 index</param>
         /// <returns>TLC59711 device</returns>
-        public ITlc59711Device this[int index] {
-            get { return devices[index]; }
-        }
-
-        /// <summary>
-        /// The PWM channels
-        /// </summary>
-        public IPwmChannels Channels {
-            get { return channels; }
-        }
-        #endregion
-
-        #region Methods
+        public ITlc59711Device this[int index] => this.devices[index];
 
         /// <summary>
         /// Returns an enumerator
@@ -93,8 +87,9 @@ namespace Pi.IO.Components.Controllers.Tlc59711
         /// An <see cref="T:System.Collections.IEnumerator"/> object.
         /// </returns>
         /// <filterpriority>2</filterpriority>
-        IEnumerator IEnumerable.GetEnumerator() {
-            return GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
         }
 
         /// <summary>
@@ -104,8 +99,9 @@ namespace Pi.IO.Components.Controllers.Tlc59711
         /// An <see cref="T:System.Collections.Generic.IEnumerator`1"/> object.
         /// </returns>
         /// <filterpriority>1</filterpriority>
-        public IEnumerator<ITlc59711Device> GetEnumerator() {
-            return ((IEnumerable<ITlc59711Device>) devices)
+        public IEnumerator<ITlc59711Device> GetEnumerator()
+        {
+            return ((IEnumerable<ITlc59711Device>)this.devices)
                 .GetEnumerator();
         }
 
@@ -114,28 +110,30 @@ namespace Pi.IO.Components.Controllers.Tlc59711
         /// </summary>
         /// <param name="index">TLC59711 index</param>
         /// <returns>TLC59711 device</returns>
-        public ITlc59711Device Get(int index) {
-            return devices[index];
+        public ITlc59711Device Get(int index)
+        {
+            return this.devices[index];
         }
 
         /// <summary>
         /// Set BLANK on/off at all connected devices.
         /// </summary>
         /// <param name="blank">If set to <c>true</c> all outputs are forced off.</param>
-        public void Blank(bool blank) {
-            foreach (var device in devices) {
+        public void Blank(bool blank)
+        {
+            foreach (var device in this.devices)
+            {
                 device.Blank = blank;
             }
         }
-        #endregion
 
-        #region Private Helpers
-        private static IEnumerable<ITlc59711Device> CreateDevices(IMemory memory, int numberOfDevices) {
-            for (var i = 0; i < numberOfDevices; i++) {
-                var subset = new MemorySubset(memory, i * COMMAND_SIZE, COMMAND_SIZE, false);
+        private static IEnumerable<ITlc59711Device> CreateDevices(IMemory memory, int numberOfDevices)
+        {
+            for (var i = 0; i < numberOfDevices; i++)
+            {
+                var subset = new MemorySubset(memory, i * CommandSize, CommandSize, false);
                 yield return new Tlc59711Device(subset);
             }
         }
-        #endregion
     }
 }

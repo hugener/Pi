@@ -1,17 +1,18 @@
-﻿namespace Pi.IO.Components.Controllers.Tlc59711
+﻿// <copyright file="IPwmDevice.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
+
+namespace Pi.IO.Components.Controllers.Tlc59711
 {
     /// <summary>
     /// A pulse-width modulation (PWM) device
     /// </summary>
-    public interface IPwmDevice 
+    public interface IPwmDevice
     {
-        #region Properties
-
         /// <summary>
-        /// The PWM channels
+        /// Gets the PWM channels
         /// </summary>
         IPwmChannels Channels { get; }
-
-        #endregion
     }
 }

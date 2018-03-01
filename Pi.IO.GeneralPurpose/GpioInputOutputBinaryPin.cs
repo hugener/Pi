@@ -1,22 +1,21 @@
-using System;
+// <copyright file="GpioInputOutputBinaryPin.cs" company="Pi">
+// Copyright (c) Pi. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+// </copyright>
 
 namespace Pi.IO.GeneralPurpose
 {
+    using global::System;
+
     /// <summary>
     /// Represents a bidirectional pin on GPIO interface.
     /// </summary>
     public class GpioInputOutputBinaryPin : IInputOutputBinaryPin
     {
-        #region Fields
-
         private readonly IGpioConnectionDriver driver;
         private readonly ProcessorPin pin;
         private readonly PinResistor resistor;
         private PinDirection? direction;
-
-        #endregion
-
-        #region Instance Management
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GpioInputOutputBinaryPin"/> class.
@@ -31,17 +30,15 @@ namespace Pi.IO.GeneralPurpose
             this.resistor = resistor;
         }
 
-        #endregion
-
-        #region Methods
-
         /// <summary>
         /// Releases unmanaged and - optionally - managed resources.
         /// </summary>
         public void Dispose()
         {
-            if (direction.HasValue)
-                driver.Release(pin);
+            if (this.direction.HasValue)
+            {
+                this.driver.Release(this.pin);
+            }
         }
 
         /// <summary>
@@ -50,8 +47,8 @@ namespace Pi.IO.GeneralPurpose
         /// <returns>The value.</returns>
         public bool Read()
         {
-            SetDirection(PinDirection.Input);
-            return driver.Read(pin);
+            this.SetDirection(PinDirection.Input);
+            return this.driver.Read(this.pin);
         }
 
         /// <summary>
@@ -59,7 +56,7 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         public void AsInput()
         {
-            SetDirection(PinDirection.Input);
+            this.SetDirection(PinDirection.Input);
         }
 
         /// <summary>
@@ -67,7 +64,7 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         public void AsOutput()
         {
-            SetDirection(PinDirection.Output);
+            this.SetDirection(PinDirection.Output);
         }
 
         /// <summary>
@@ -76,10 +73,10 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="waitForUp">if set to <c>true</c> waits for the pin to be up. Default value is <c>true</c>.</param>
         /// <param name="timeout">The timeout. Default value is <see cref="TimeSpan.Zero"/>.</param>
         /// <remarks>If <c>timeout</c> is set to <see cref="TimeSpan.Zero"/>, a default timeout is used instead.</remarks>
-        public void Wait(bool waitForUp = true, TimeSpan timeout = new TimeSpan())
+        public void Wait(bool waitForUp = true, TimeSpan timeout = default(TimeSpan))
         {
-            SetDirection(PinDirection.Input);
-            driver.Wait(pin, waitForUp, timeout);
+            this.SetDirection(PinDirection.Input);
+            this.driver.Wait(this.pin, waitForUp, timeout);
         }
 
         /// <summary>
@@ -88,31 +85,31 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="state">the state.</param>
         public void Write(bool state)
         {
-            SetDirection(PinDirection.Output);
-            driver.Write(pin, state);
+            this.SetDirection(PinDirection.Output);
+            this.driver.Write(this.pin, state);
         }
-
-        #endregion
-
-        #region Private Helpers
 
         private void SetDirection(PinDirection newDirection)
         {
-            if (direction == newDirection)
+            if (this.direction == newDirection)
+            {
                 return;
+            }
 
-            if (direction.HasValue)
-                driver.Release(pin);
+            if (this.direction.HasValue)
+            {
+                this.driver.Release(this.pin);
+            }
 
-            driver.Allocate(pin, newDirection);
+            this.driver.Allocate(this.pin, newDirection);
             if (newDirection == PinDirection.Input
-                && resistor != PinResistor.None
-                && (driver.GetCapabilities() & GpioConnectionDriverCapabilities.CanSetPinResistor) != GpioConnectionDriverCapabilities.None)
-                driver.SetPinResistor(pin, resistor);
+                && this.resistor != PinResistor.None
+                && (this.driver.GetCapabilities() & GpioConnectionDriverCapabilities.CanSetPinResistor) != GpioConnectionDriverCapabilities.None)
+            {
+                this.driver.SetPinResistor(this.pin, this.resistor);
+            }
 
-            direction = newDirection;
+            this.direction = newDirection;
         }
-
-        #endregion
     }
 }
