@@ -65,15 +65,7 @@ namespace Pi.System.Threading
 
                 // Use nanosleep if interval is higher than 450µs
                 t1.TvSec = IntPtr.Zero;
-                try
-                {
-                    t1.TvNsec = (IntPtr)((delay.Ticks * 100) - NanoSleepOffset);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e + " - " + delay);
-                    throw;
-                }
+                t1.TvNsec = (IntPtr)((delay.Ticks * 100) - NanoSleepOffset);
 
                 Interop.Nanosleep(ref t1, ref t2);
                 return true;
@@ -89,9 +81,9 @@ namespace Pi.System.Threading
         private static long Calibrate()
         {
             const int referenceCount = 1000;
+            const long calibrationDelayNanoSeconds = 1000000;
             var stopwatch = new Stopwatch();
             var ticksPerNanoSecond = Stopwatch.Frequency / 1000_000_000;
-            Console.WriteLine("Calibrating " + Stopwatch.Frequency);
             return Enumerable.Range(0, referenceCount)
                 .Aggregate(
                     (long)0,
@@ -101,12 +93,12 @@ namespace Pi.System.Threading
                         var t2 = default(Interop.Timespec);
 
                         t1.TvSec = IntPtr.Zero;
-                        t1.TvNsec = (IntPtr)1000000;
+                        t1.TvNsec = (IntPtr)calibrationDelayNanoSeconds;
 
                         stopwatch.Restart();
                         Interop.Nanosleep(ref t1, ref t2);
                         stopwatch.Stop();
-                        return a + ((stopwatch.ElapsedTicks * ticksPerNanoSecond) - 1000000);
+                        return a + ((stopwatch.ElapsedTicks * ticksPerNanoSecond) - calibrationDelayNanoSeconds);
                     },
                     a => a / referenceCount);
         }
