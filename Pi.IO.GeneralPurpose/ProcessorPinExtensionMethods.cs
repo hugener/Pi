@@ -23,7 +23,7 @@ namespace Pi.IO.GeneralPurpose
         {
             return (Enum.GetValues(typeof(ProcessorPin)) as ProcessorPin[] ?? new ProcessorPin[0])
                 .Distinct()
-                .Where(p => (pins & (ProcessorPins)((uint)1 << (int)p)) != ProcessorPins.None)
+                .Where(p => (pins & (ProcessorPins)(1U << (int)p)) != ProcessorPins.None)
                 .ToArray();
         }
     }

@@ -18,6 +18,6 @@ namespace Pi.IO.SerialPeripheralInterface
         /// <summary>
         /// The communication is big endian.
         /// </summary>
-        BigEndian
+        BigEndian,
     }
 }

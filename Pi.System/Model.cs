@@ -58,6 +58,6 @@ namespace Pi
         /// <summary>
         /// Pi 3 Model B.
         /// </summary>
-        B3
+        B3,
     }
 }

@@ -23,10 +23,7 @@ namespace Pi.IO.GeneralPurpose
         {
             var mapping = /* Value is not used but required for anonymous type */ new[]
             {
-                new
-            {
-                Processor = ProcessorPin.Pin0, Connector = ConnectorPin.P1Pin03
-            }
+                new { Processor = ProcessorPin.Pin0, Connector = ConnectorPin.P1Pin03, },
             };
 
             var uname = GetUname();
@@ -63,7 +60,7 @@ namespace Pi.IO.GeneralPurpose
                     new { Processor = ProcessorPin.Pin29, Connector = ConnectorPin.Cb3Cn9Pin11 },
                     new { Processor = ProcessorPin.Pin30, Connector = ConnectorPin.Cb3Cn9Pin12 },
                     new { Processor = ProcessorPin.Pin31, Connector = ConnectorPin.Cb3Cn9Pin13 },
-                    new { Processor = ProcessorPin.Pin32, Connector = ConnectorPin.Cb3Cn9Pin14 }
+                    new { Processor = ProcessorPin.Pin32, Connector = ConnectorPin.Cb3Cn9Pin14 },
                 };
             }
             else
@@ -88,7 +85,7 @@ namespace Pi.IO.GeneralPurpose
                         new { Processor = ProcessorPin.Pin22, Connector = ConnectorPin.P1Pin15 },
                         new { Processor = ProcessorPin.Pin23, Connector = ConnectorPin.P1Pin16 },
                         new { Processor = ProcessorPin.Pin24, Connector = ConnectorPin.P1Pin18 },
-                        new { Processor = ProcessorPin.Pin25, Connector = ConnectorPin.P1Pin22 }
+                        new { Processor = ProcessorPin.Pin25, Connector = ConnectorPin.P1Pin22 },
                     };
                 }
                 else if (GpioConnectionSettings.ConnectorPinout == ConnectorPinout.Rev2)
@@ -115,7 +112,7 @@ namespace Pi.IO.GeneralPurpose
                         new { Processor = ProcessorPin.Pin28, Connector = ConnectorPin.P5Pin3 },
                         new { Processor = ProcessorPin.Pin29, Connector = ConnectorPin.P5Pin4 },
                         new { Processor = ProcessorPin.Pin30, Connector = ConnectorPin.P5Pin5 },
-                        new { Processor = ProcessorPin.Pin31, Connector = ConnectorPin.P5Pin6 }
+                        new { Processor = ProcessorPin.Pin31, Connector = ConnectorPin.P5Pin6 },
                     };
                 }
                 else //// if (GpioConnectionSettings.ConnectorPinout == ConnectorPinout.Plus)
@@ -147,7 +144,7 @@ namespace Pi.IO.GeneralPurpose
                         new { Processor = ProcessorPin.Pin24, Connector = ConnectorPin.P1Pin18 },
                         new { Processor = ProcessorPin.Pin25, Connector = ConnectorPin.P1Pin22 },
                         new { Processor = ProcessorPin.Pin26, Connector = ConnectorPin.P1Pin37 },
-                        new { Processor = ProcessorPin.Pin27, Connector = ConnectorPin.P1Pin13 }
+                        new { Processor = ProcessorPin.Pin27, Connector = ConnectorPin.P1Pin13 },
                     };
                 }
             }

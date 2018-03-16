@@ -176,6 +176,6 @@ namespace Pi.IO.GeneralPurpose
         /// <summary>
         /// Pin 31 selected.
         /// </summary>
-        Pin31 = (uint)1 << 31
+        Pin31 = 1U << 31,
     }
 }

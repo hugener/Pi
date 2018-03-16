@@ -23,6 +23,6 @@ namespace Pi.IO.GeneralPurpose
         /// <summary>
         /// A pull-up resistor is enabled.
         /// </summary>
-        PullUp
+        PullUp,
     }
 }

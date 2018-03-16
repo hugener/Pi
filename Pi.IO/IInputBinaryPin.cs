@@ -5,7 +5,7 @@
 
 namespace Pi.IO
 {
-    using System;
+    using global::System;
 
     /// <summary>
     /// Provides an interface for input, binary pins.

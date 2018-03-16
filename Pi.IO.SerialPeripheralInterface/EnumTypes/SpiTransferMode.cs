@@ -26,6 +26,6 @@ namespace Pi.IO.SerialPeripheralInterface
         /// <summary>
         /// Write and read data simultaneously.
         /// </summary>
-        ReadWrite = 3
+        ReadWrite = 3,
     }
 }

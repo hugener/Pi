@@ -4,6 +4,8 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageVersion>0.0.2-preview1</PackageVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.0.0-pre000</Version>
+    <PackageId>Pi.IO.InterIntegratedCircuit.SundewFork</PackageId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -27,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" />
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta006" />
   </ItemGroup>
 
   <ItemGroup>

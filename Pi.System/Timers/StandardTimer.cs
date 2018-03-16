@@ -79,6 +79,16 @@ namespace Pi.Timers
         }
 
         /// <summary>
+        /// Restarts the specified start delay.
+        /// </summary>
+        /// <param name="startDelay">The start delay.</param>
+        public void Restart(TimeSpan startDelay)
+        {
+            this.Stop();
+            this.Start(startDelay);
+        }
+
+        /// <summary>
         /// Stops this instance.
         /// </summary>
         public void Stop()

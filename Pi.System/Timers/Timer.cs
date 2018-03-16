@@ -13,11 +13,14 @@ namespace Pi.Timers
         /// <summary>
         /// Creates a timer.
         /// </summary>
-        /// <returns>The timer.</returns>
+        /// <param name="name">The name.</param>
+        /// <returns>
+        /// The timer.
+        /// </returns>
         /// <remarks>
         /// The created timer is the most suitable for the current platform.
         /// </remarks>
-        public static ITimer Create()
+        public static ITimer Create(string name = null)
         {
             return Board.Current.IsRaspberryPi
                        ? (ITimer)new HighResolutionTimer()

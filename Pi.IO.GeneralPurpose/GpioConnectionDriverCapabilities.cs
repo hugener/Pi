@@ -36,6 +36,6 @@ namespace Pi.IO.GeneralPurpose
         /// <summary>
         /// The driver can work on third-party computers (not only Raspberry Pi)
         /// </summary>
-        CanWorkOnThirdPartyComputers = 8
+        CanWorkOnThirdPartyComputers = 8,
     }
 }

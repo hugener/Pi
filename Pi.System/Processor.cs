@@ -28,6 +28,6 @@ namespace Pi
         /// <summary>
         /// Processor is a BCM2835.
         /// </summary>
-        Bcm2835
+        Bcm2835,
     }
 }

@@ -198,7 +198,7 @@ namespace Pi.IO.GeneralPurpose
         public ProcessorPins Read(ProcessorPins pins)
         {
             return pins.Enumerate()
-                .Select(p => this.Read(p) ? (ProcessorPins)((uint)1 << (int)p) : ProcessorPins.None)
+                .Select(p => this.Read(p) ? (ProcessorPins)(1U << (int)p) : ProcessorPins.None)
                     .Aggregate(
                         ProcessorPins.None,
                         (a, p) => a | p);

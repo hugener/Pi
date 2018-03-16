@@ -86,7 +86,7 @@ namespace Pi.System.Threading
             var ticksPerNanoSecond = Stopwatch.Frequency / 1000_000_000;
             return Enumerable.Range(0, referenceCount)
                 .Aggregate(
-                    (long)0,
+                    0L,
                     (a, i) =>
                     {
                         var t1 = default(Interop.Timespec);

@@ -21,6 +21,6 @@ namespace Pi.IO.Interop
         /// <summary>
         /// The shared
         /// </summary>
-        Shared = 1
+        Shared = 1,
     }
 }

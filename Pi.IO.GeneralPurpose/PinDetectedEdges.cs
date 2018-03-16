@@ -31,6 +31,6 @@ namespace Pi.IO.GeneralPurpose
         /// <summary>
         /// Both changes are detected.
         /// </summary>
-        Both = Rising | Falling
+        Both = Rising | Falling,
     }
 }

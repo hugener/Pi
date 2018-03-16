@@ -31,6 +31,6 @@ namespace Pi.IO.Interop
         /// <summary>
         /// The file is opened for synchronous I/O.
         /// </summary>
-        Synchronized = 10000
+        Synchronized = 10000,
     }
 }

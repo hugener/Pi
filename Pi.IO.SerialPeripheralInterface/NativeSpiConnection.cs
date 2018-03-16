@@ -149,7 +149,7 @@ namespace Pi.IO.SerialPeripheralInterface
             {
                 BitsPerWord = this.bitsPerWord,
                 Delay = this.delay,
-                Speed = this.maxSpeed
+                Speed = this.maxSpeed,
             };
         }
 

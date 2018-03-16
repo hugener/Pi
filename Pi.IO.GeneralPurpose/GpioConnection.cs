@@ -392,7 +392,7 @@ namespace Pi.IO.GeneralPurpose
 
                 this.pinValues.Remove(configuration.Pin);
 
-                var pin = (ProcessorPins)((uint)1 << (int)configuration.Pin);
+                var pin = (ProcessorPins)(1U << (int)configuration.Pin);
                 this.inputPins = this.inputPins & ~pin;
                 this.pinRawValues = this.pinRawValues & ~pin;
             }
@@ -532,7 +532,7 @@ namespace Pi.IO.GeneralPurpose
                 var inputConfiguration = (InputPinConfiguration)configuration;
                 var pinValue = this.gpioConnectionDriver.Read(inputConfiguration.Pin);
 
-                var pin = (ProcessorPins)((uint)1 << (int)inputConfiguration.Pin);
+                var pin = (ProcessorPins)(1U << (int)inputConfiguration.Pin);
                 this.inputPins = this.inputPins | pin;
                 this.pinRawValues = this.gpioConnectionDriver.Read(this.inputPins);
 
@@ -586,7 +586,7 @@ namespace Pi.IO.GeneralPurpose
             var notifiedConfigurations = new List<PinConfiguration>();
             foreach (var np in changes.Enumerate())
             {
-                var processorPin = (ProcessorPins)((uint)1 << (int)np);
+                var processorPin = (ProcessorPins)(1U << (int)np);
                 var oldPinValue = (this.pinRawValues & processorPin) != ProcessorPins.None;
                 var newPinValue = (newPinValues & processorPin) != ProcessorPins.None;
 

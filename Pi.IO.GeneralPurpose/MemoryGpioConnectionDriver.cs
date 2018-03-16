@@ -87,8 +87,7 @@ namespace Pi.IO.GeneralPurpose
 
             if (direction == PinDirection.Input)
             {
-                PinResistor pinResistor;
-                if (!this.pinResistors.TryGetValue(pin, out pinResistor) || pinResistor != PinResistor.None)
+                if (!this.pinResistors.TryGetValue(pin, out PinResistor pinResistor) || pinResistor != PinResistor.None)
                 {
                     this.SetPinResistor(pin, PinResistor.None);
                 }
@@ -201,11 +200,10 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="value">The pin status.</param>
         public void Write(ProcessorPin pin, bool value)
         {
-            int shift;
-            var offset = Math.DivRem((int)pin, 32, out shift);
+            var offset = Math.DivRem((int)pin, 32, out int shift);
 
             var pinGroupAddress = this.gpioAddress + (int)((value ? Interop.Bcm2835Gpset0 : Interop.Bcm2835Gpclr0) + offset);
-            SafeWriteUInt32(pinGroupAddress, (uint)1 << shift);
+            SafeWriteUInt32(pinGroupAddress, 1U << shift);
         }
 
         /// <summary>
@@ -217,8 +215,7 @@ namespace Pi.IO.GeneralPurpose
         /// </returns>
         public bool Read(ProcessorPin pin)
         {
-            int shift;
-            var offset = Math.DivRem((int)pin, 32, out shift);
+            var offset = Math.DivRem((int)pin, 32, out int shift);
 
             var pinGroupAddress = this.gpioAddress + (int)(Interop.Bcm2835Gplev0 + offset);
             var value = SafeReadUInt32(pinGroupAddress);
@@ -235,7 +232,7 @@ namespace Pi.IO.GeneralPurpose
         /// </returns>
         public ProcessorPins Read(ProcessorPins pins)
         {
-            var pinGroupAddress = this.gpioAddress + (int)(Interop.Bcm2835Gplev0 + ((uint)0 * 4));
+            var pinGroupAddress = this.gpioAddress + (int)(Interop.Bcm2835Gplev0 + (0U * 4));
             var value = SafeReadUInt32(pinGroupAddress);
 
             return (ProcessorPins)((uint)pins & value);
@@ -300,8 +297,7 @@ namespace Pi.IO.GeneralPurpose
 
         private void SetPinResistorClock(ProcessorPin pin, bool on)
         {
-            int shift;
-            var offset = Math.DivRem((int)pin, 32, out shift);
+            var offset = Math.DivRem((int)pin, 32, out int shift);
 
             var clockAddress = this.gpioAddress + (int)(Interop.Bcm2835Gppudclk0 + offset);
             SafeWriteUInt32(clockAddress, (uint)(on ? 1 : 0) << shift);

@@ -83,6 +83,16 @@ namespace Pi.Timers
             this.timerActions.Add(this.StopTimer);
         }
 
+        /// <summary>
+        /// Restarts the specified start delay.
+        /// </summary>
+        /// <param name="startDelay">The start delay.</param>
+        public void Restart(TimeSpan startDelay)
+        {
+            this.Stop();
+            this.Start(startDelay);
+        }
+
         /// <inheritdoc />
         public void Dispose()
         {
@@ -107,13 +117,11 @@ namespace Pi.Timers
             {
                 while (this.SetStoppedAndWaitForStart(disposeCancellationToken))
                 {
-                    var lastActionTime = DateTime.Now;
                     if (!this.timerRunningEvent.IsSet)
                     {
                         continue;
                     }
 
-                    var beginDelay = DateTime.Now;
                     if (!PiThread.Sleep(this.delay, this.sleepAutoResetEvent))
                     {
                         disposeCancellationToken.ThrowIfCancellationRequested();
@@ -144,7 +152,6 @@ namespace Pi.Timers
                             break;
                         }
 
-                        var interval = DateTime.Now;
                         if (!PiThread.Sleep(this.Interval, this.sleepAutoResetEvent))
                         {
                             disposeCancellationToken.ThrowIfCancellationRequested();

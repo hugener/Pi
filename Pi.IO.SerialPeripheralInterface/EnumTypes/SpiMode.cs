@@ -81,6 +81,6 @@ namespace Pi.IO.SerialPeripheralInterface
         /// <summary>
         /// CPOL=1, CPHA=1
         /// </summary>
-        Mode3 = Interop.SpiMode3
+        Mode3 = Interop.SpiMode3,
     }
 }

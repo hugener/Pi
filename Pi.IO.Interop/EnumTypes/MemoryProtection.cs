@@ -31,6 +31,6 @@ namespace Pi.IO.Interop
         /// <summary>
         /// The read write
         /// </summary>
-        ReadWrite = Read | Write
+        ReadWrite = Read | Write,
     }
 }

@@ -18,6 +18,6 @@ namespace Pi.IO.GeneralPurpose
         /// <summary>
         /// Pin is an output pin.
         /// </summary>
-        Output
+        Output,
     }
 }

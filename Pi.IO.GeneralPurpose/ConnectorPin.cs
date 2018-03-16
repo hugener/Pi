@@ -426,6 +426,6 @@ namespace Pi.IO.GeneralPurpose
         /// <summary>
         /// Connector CN9, Pin 14 (PG11)
         /// </summary>
-        Cb3Cn9Pin14
+        Cb3Cn9Pin14,
     }
 }

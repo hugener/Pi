@@ -204,7 +204,7 @@ namespace Pi.IO.SerialPeripheralInterface
                 var bit = this.Read();
                 if (bit)
                 {
-                    data |= (ulong)1 << index;
+                    data |= 1UL << index;
                 }
             }
 
@@ -224,7 +224,7 @@ namespace Pi.IO.SerialPeripheralInterface
                                 ? i
                                 : bitCount - 1 - i;
 
-                var bit = data & ((ulong)1 << index);
+                var bit = data & (1UL << index);
                 this.Write(bit != 0);
             }
         }
