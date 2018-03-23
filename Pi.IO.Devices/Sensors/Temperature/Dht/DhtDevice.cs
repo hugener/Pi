@@ -5,11 +5,9 @@
 
 namespace Pi.IO.Devices.Sensors.Temperature.Dht
 {
-    using global::Common.Logging;
     using global::Pi.IO.GeneralPurpose;
     using global::Pi.System.Threading;
     using global::System;
-    using global::System.Globalization;
 
     /// <summary>
     /// Represents a base class for connections to a DHT-11 or DHT-22 humidity / temperature sensor.
@@ -25,6 +23,7 @@ namespace Pi.IO.Devices.Sensors.Temperature.Dht
         private static readonly TimeSpan BitSetUptime = new TimeSpan(10 * (26 + 70) / 2); // 26µs for "0", 70µs for "1"
 
         private readonly IInputOutputBinaryPin pin;
+        private readonly IDhtDeviceReporter dhtDeviceReporter;
         private readonly IThread thread;
         private TimeSpan samplingInterval;
         private DateTime previousRead;
@@ -36,10 +35,12 @@ namespace Pi.IO.Devices.Sensors.Temperature.Dht
         /// <param name="pin">The pin.</param>
         /// <param name="autoStart">if set to <c>true</c>, DHT is automatically started. Default value is <c>true</c>.</param>
         /// <param name="threadFactory">The thread factory.</param>
-        protected DhtDevice(IInputOutputBinaryPin pin, bool autoStart = true, IThreadFactory threadFactory = null)
+        /// <param name="dhtDeviceReporter">The DHT device reporter.</param>
+        protected DhtDevice(IInputOutputBinaryPin pin, bool autoStart = true, IThreadFactory threadFactory = null, IDhtDeviceReporter dhtDeviceReporter = null)
         {
             this.thread = ThreadFactory.EnsureThreadFactory(threadFactory).Create();
             this.pin = pin;
+            this.dhtDeviceReporter = dhtDeviceReporter;
 
             if (autoStart)
             {
@@ -129,11 +130,7 @@ namespace Pi.IO.Devices.Sensors.Temperature.Dht
                 }
                 catch (Exception ex)
                 {
-                    var logger = LogManager.GetLogger<DhtDevice>();
-                    logger.Error(
-                        CultureInfo.InvariantCulture,
-                        h => h("Failed to read data from DHT11, try {0}", tryCount),
-                        ex);
+                    this.dhtDeviceReporter?.FailToReadData(tryCount, ex);
                 }
             }
 

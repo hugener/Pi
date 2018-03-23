@@ -6,6 +6,7 @@
 namespace Pi.IO.Devices.Sensors.Temperature.Dht
 {
     using global::System;
+    using Pi.System.Threading;
     using UnitsNet;
 
     /// <summary>
@@ -14,12 +15,14 @@ namespace Pi.IO.Devices.Sensors.Temperature.Dht
     public class Dht22Device : DhtDevice
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="Dht22Device"/> class.
+        /// Initializes a new instance of the <see cref="Dht22Device" /> class.
         /// </summary>
         /// <param name="pin">The pin.</param>
         /// <param name="autoStart">if set to <c>true</c> [automatic start].</param>
-        public Dht22Device(IInputOutputBinaryPin pin, bool autoStart = true)
-            : base(pin, autoStart)
+        /// <param name="threadFactory">The thread factory.</param>
+        /// <param name="dhtDeviceReporter">The DHT device reporter.</param>
+        public Dht22Device(IInputOutputBinaryPin pin, bool autoStart = true, IThreadFactory threadFactory = null, IDhtDeviceReporter dhtDeviceReporter = null)
+            : base(pin, autoStart, threadFactory, dhtDeviceReporter)
         {
         }
 

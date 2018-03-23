@@ -5,7 +5,6 @@
 
 namespace Pi.IO.Devices.Controllers.HT16K33
 {
-    using Common.Logging;
     using global::System;
     using Pi.IO.InterIntegratedCircuit;
 
@@ -30,8 +29,8 @@ namespace Pi.IO.Devices.Controllers.HT16K33
         /// </summary>
         public const byte Ht16K33DisplayOn = 0x01;
 
-        private static readonly ILog Log = LogManager.GetLogger<Ht16K33Device>();
         private readonly I2cDeviceConnection connection;
+        private readonly IHt16K33DeviceReporter ht16K33DeviceReporter;
 
         /// <summary>
         /// Initializes a new instance of the
@@ -39,12 +38,14 @@ namespace Pi.IO.Devices.Controllers.HT16K33
         /// </summary>
         /// <param name="connection">I2c connection.</param>
         /// <param name="rowCount">Rows in use (1 to 16)</param>
-        public Ht16K33Device(I2cDeviceConnection connection, int rowCount)
+        /// <param name="ht16K33DeviceReporter">The HT16 K33 device reporter.</param>
+        public Ht16K33Device(I2cDeviceConnection connection, int rowCount, IHt16K33DeviceReporter ht16K33DeviceReporter = null)
         {
             this.LedBuffer = new byte[rowCount];
             this.connection = connection;
+            this.ht16K33DeviceReporter = ht16K33DeviceReporter;
 
-            Log.Info(m => m("Resetting HT16K33"));
+            this.ht16K33DeviceReporter?.Resetting();
 
             connection.Write((byte)Command.SystemSetup | (byte)Ht16K33Oscillator); //// Turn on the oscillator.
             connection.Write((byte)Command.Flash | (byte)Ht16K33DisplayOn | (byte)Flash.Off);

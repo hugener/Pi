@@ -5,7 +5,6 @@
 
 namespace Pi.IO.Devices.Controllers.Pca9685
 {
-    using Common.Logging;
     using global::Pi.IO.InterIntegratedCircuit;
     using global::Pi.System.Threading;
     using global::System;
@@ -19,10 +18,10 @@ namespace Pi.IO.Devices.Controllers.Pca9685
     /// </summary>
     public class Pca9685Device : IPwmDevice
     {
-        private static readonly ILog Log = LogManager.GetLogger<Pca9685Device>();
         private static readonly TimeSpan Delay = TimeSpan.FromMilliseconds(5);
 
         private readonly I2cDeviceConnection connection;
+        private readonly IPca9685DeviceReporter pca9685DeviceReporter;
         private readonly IThread thread;
 
         /// <summary>
@@ -30,12 +29,14 @@ namespace Pi.IO.Devices.Controllers.Pca9685
         /// </summary>
         /// <param name="connection">The I2C connection.</param>
         /// <param name="threadFactory">The thread factory.</param>
-        public Pca9685Device(I2cDeviceConnection connection, IThreadFactory threadFactory = null)
+        /// <param name="pca9685DeviceReporter">The pca9685 device reporter.</param>
+        public Pca9685Device(I2cDeviceConnection connection, IThreadFactory threadFactory = null, IPca9685DeviceReporter pca9685DeviceReporter = null)
         {
             this.connection = connection;
+            this.pca9685DeviceReporter = pca9685DeviceReporter;
             this.thread = ThreadFactory.EnsureThreadFactory(threadFactory).Create();
 
-            Log.Info(m => m("Resetting PCA9685"));
+            this.pca9685DeviceReporter?.Resetting();
             this.WriteRegister(Register.Mode1, 0x00);
         }
 
@@ -70,12 +71,12 @@ namespace Pi.IO.Devices.Controllers.Pca9685
 
             preScale -= 1.0m;
 
-            Log.Trace(m => m("Setting PWM frequency to {0} Hz", frequency));
-            Log.Trace(m => m("Estimated pre-maximum: {0}", preScale));
+            this.pca9685DeviceReporter?.SettingFrequency(frequency);
+            this.pca9685DeviceReporter?.EstimatedPremaximum(preScale);
 
             var prescale = Math.Floor(preScale + 0.5m);
 
-            Log.Trace(m => m("Final pre-maximum: {0}", prescale));
+            this.pca9685DeviceReporter?.FinalPremaximum(preScale);
 
             var oldmode = this.ReadRegister(Register.Mode1);
             var newmode = (byte)((oldmode & 0x7F) | 0x10); // sleep
