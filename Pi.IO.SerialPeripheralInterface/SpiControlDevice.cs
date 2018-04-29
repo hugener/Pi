@@ -5,8 +5,8 @@
 
 namespace Pi.IO.SerialPeripheralInterface
 {
+    using global::Pi.IO.Interop;
     using global::System.Runtime.InteropServices;
-    using IO.Interop;
 
     /// <summary>
     /// A Linux I/O control device that additionally can send/receive SPI data structures.

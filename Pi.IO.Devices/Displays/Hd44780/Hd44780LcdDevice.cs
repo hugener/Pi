@@ -355,7 +355,7 @@ namespace Pi.IO.Devices.Displays.Hd44780
         /// </summary>
         /// <param name="value">The value.</param>
         /// <param name="animationDelay">The animation delay.</param>
-        public void WriteLine(object value, TimeSpan animationDelay = default(TimeSpan))
+        public void WriteLine(object value, TimeSpan animationDelay = default)
         {
             this.WriteLine("{0}", value, animationDelay);
         }
@@ -365,7 +365,7 @@ namespace Pi.IO.Devices.Displays.Hd44780
         /// </summary>
         /// <param name="text">The text.</param>
         /// <param name="animationDelay">The animation delay.</param>
-        public void WriteLine(string text, TimeSpan animationDelay = default(TimeSpan))
+        public void WriteLine(string text, TimeSpan animationDelay = default)
         {
             this.Write(text + Environment.NewLine, animationDelay);
         }
@@ -375,7 +375,7 @@ namespace Pi.IO.Devices.Displays.Hd44780
         /// </summary>
         /// <param name="value">The value.</param>
         /// <param name="animationDelay">The animation delay.</param>
-        public void Write(object value, TimeSpan animationDelay = default(TimeSpan))
+        public void Write(object value, TimeSpan animationDelay = default)
         {
             this.Write("{0}", value, animationDelay);
         }
@@ -427,7 +427,7 @@ namespace Pi.IO.Devices.Displays.Hd44780
         /// </summary>
         /// <param name="text">The text.</param>
         /// <param name="animationDelay">The animation delay.</param>
-        public void Write(string text, TimeSpan animationDelay = default(TimeSpan))
+        public void Write(string text, TimeSpan animationDelay = default)
         {
             var lines = text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
 

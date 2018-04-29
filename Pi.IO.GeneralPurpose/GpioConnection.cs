@@ -439,7 +439,7 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         /// <param name="pinName">Name of the pin.</param>
         /// <param name="duration">The duration.</param>
-        public void Blink(string pinName, TimeSpan duration = default(TimeSpan))
+        public void Blink(string pinName, TimeSpan duration = default)
         {
             this.Toggle(pinName);
             this.Sleep(duration);
@@ -451,7 +451,7 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         /// <param name="pin">The pin.</param>
         /// <param name="duration">The duration.</param>
-        public void Blink(ProcessorPin pin, TimeSpan duration = default(TimeSpan))
+        public void Blink(ProcessorPin pin, TimeSpan duration = default)
         {
             this.Toggle(pin);
             this.Sleep(duration);
@@ -463,7 +463,7 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         /// <param name="pin">The pin.</param>
         /// <param name="duration">The duration.</param>
-        public void Blink(ConnectorPin pin, TimeSpan duration = default(TimeSpan))
+        public void Blink(ConnectorPin pin, TimeSpan duration = default)
         {
             this.Toggle(pin);
             this.Sleep(duration);
@@ -475,7 +475,7 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         /// <param name="configuration">The pin configuration.</param>
         /// <param name="duration">The duration.</param>
-        public void Blink(PinConfiguration configuration, TimeSpan duration = default(TimeSpan))
+        public void Blink(PinConfiguration configuration, TimeSpan duration = default)
         {
             this.Toggle(configuration);
             this.Sleep(duration);
