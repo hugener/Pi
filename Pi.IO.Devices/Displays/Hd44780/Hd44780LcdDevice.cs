@@ -171,6 +171,14 @@ namespace Pi.IO.Devices.Displays.Hd44780
         }
 
         /// <summary>
+        /// Gets a value indicating whether this instance has backlight.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance has backlight; otherwise, <c>false</c>.
+        /// </value>
+        public bool HasBacklight => this.pins.Backlight != null;
+
+        /// <summary>
         /// Gets or sets a value indicating whether backlight is enabled.
         /// </summary>
         /// <value>
@@ -181,13 +189,11 @@ namespace Pi.IO.Devices.Displays.Hd44780
             get => this.backlightEnabled;
             set
             {
-                if (this.pins.Backlight == null)
+                if (this.HasBacklight)
                 {
-                    return;
+                    this.pins.Backlight.Write(value);
+                    this.backlightEnabled = value;
                 }
-
-                this.pins.Backlight.Write(value);
-                this.backlightEnabled = value;
             }
         }
 
