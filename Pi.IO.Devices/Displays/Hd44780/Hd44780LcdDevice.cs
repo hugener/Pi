@@ -147,6 +147,14 @@ namespace Pi.IO.Devices.Displays.Hd44780
         }
 
         /// <summary>
+        /// Gets the cursor position.
+        /// </summary>
+        /// <value>
+        /// The cursor position.
+        /// </value>
+        public Hd44780Position CursorPosition => this.currentPosition;
+
+        /// <summary>
         /// Gets or sets a value indicating whether display is enabled.
         /// </summary>
         /// <value>
