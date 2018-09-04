@@ -23,12 +23,12 @@ namespace Pi.IO.SerialPeripheralInterface
         uint MaxSpeed { get; }
 
         /// <summary>
-        /// Gets the SPI mode
+        /// Gets the SPI mode.
         /// </summary>
         SpiMode Mode { get; }
 
         /// <summary>
-        /// Gets the device's wordsize
+        /// Gets the device's wordsize.
         /// </summary>
         byte BitsPerWord { get; }
 
@@ -41,19 +41,19 @@ namespace Pi.IO.SerialPeripheralInterface
         /// <summary>
         /// Sets the maximum clock speed.
         /// </summary>
-        /// <param name="maxSpeedInHz">The speed in Hz</param>
+        /// <param name="maxSpeedInHz">The speed in Hz.</param>
         void SetMaxSpeed(uint maxSpeedInHz);
 
         /// <summary>
         /// Sets the device's wordsize <see cref="INativeSpiConnection.BitsPerWord"/>.
         /// </summary>
-        /// <param name="wordSize">Bits per word</param>
+        /// <param name="wordSize">Bits per word.</param>
         void SetBitsPerWord(byte wordSize);
 
         /// <summary>
         /// Sets the <see cref="SpiMode"/>.
         /// </summary>
-        /// <param name="spiMode">SPI mode</param>
+        /// <param name="spiMode">SPI mode.</param>
         void SetSpiMode(SpiMode spiMode);
 
         /// <summary>

@@ -9,7 +9,7 @@ namespace Pi.IO.Devices.Controllers.Tlc59711
     using Pi.IO.Interop;
 
     /// <summary>
-    /// The PWM channels of a TLC59711
+    /// The PWM channels of a TLC59711.
     /// </summary>
     internal sealed class Tlc59711Channels : IPwmChannels
     {
@@ -37,8 +37,8 @@ namespace Pi.IO.Devices.Controllers.Tlc59711
         /// <summary>
         /// Indexer, which will allow client code to use [] notation on the class instance itself to modify PWM channel values.
         /// </summary>
-        /// <param name="index">channel index</param>
-        /// <returns>The current PWM value from <paramref name="index"/></returns>
+        /// <param name="index">channel index.</param>
+        /// <returns>The current PWM value from <paramref name="index"/>.</returns>
         public ushort this[int index]
         {
             get => this.Get(index);
@@ -48,8 +48,8 @@ namespace Pi.IO.Devices.Controllers.Tlc59711
         /// <summary>
         /// Returns the PWM value at the specified channel <paramref name="index"/>.
         /// </summary>
-        /// <param name="index">Channel index</param>
-        /// <returns>The PWM value at the specified channel <paramref name="index"/></returns>
+        /// <param name="index">Channel index.</param>
+        /// <returns>The PWM value at the specified channel <paramref name="index"/>.</returns>
         public ushort Get(int index)
         {
             ThrowOnInvalidChannelIndex(index);
@@ -65,8 +65,8 @@ namespace Pi.IO.Devices.Controllers.Tlc59711
         /// <summary>
         /// Sets the PWM value at channel <paramref name="index"/>.
         /// </summary>
-        /// <param name="index">Channel index</param>
-        /// <param name="value">The PWM value</param>
+        /// <param name="index">Channel index.</param>
+        /// <param name="value">The PWM value.</param>
         public void Set(int index, ushort value)
         {
             ThrowOnInvalidChannelIndex(index);

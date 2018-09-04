@@ -15,7 +15,7 @@ namespace Pi.IO.Devices.Sensors.Pressure.Bmp085
     public class Bmp085Device
     {
         /// <summary>
-        /// The default address
+        /// The default address.
         /// </summary>
         public const int DefaultAddress = 0x77;
 

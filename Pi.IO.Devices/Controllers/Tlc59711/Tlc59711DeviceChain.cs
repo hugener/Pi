@@ -28,7 +28,7 @@ namespace Pi.IO.Devices.Controllers.Tlc59711
         /// <param name="connection">The connection.</param>
         /// <param name="initializeWithDefault">if set to <c>true</c> [initialize with default].</param>
         /// <param name="numberOfDevices">The number of devices.</param>
-        /// <exception cref="ArgumentNullException">connection</exception>
+        /// <exception cref="ArgumentNullException">connection.</exception>
         /// <exception cref="ArgumentOutOfRangeException">numberOfDevices - You need at least one device.</exception>
         public Tlc59711DeviceChain(INativeSpiConnection connection, bool initializeWithDefault, int numberOfDevices)
         {
@@ -74,7 +74,7 @@ namespace Pi.IO.Devices.Controllers.Tlc59711
         /// <summary>
         /// Releases all managed resources. The SPI connection will be closed.
         /// </summary>
-        /// <filterpriority>2</filterpriority>
+        /// <filterpriority>2.</filterpriority>
         public void Dispose()
         {
             this.Dispose(true);

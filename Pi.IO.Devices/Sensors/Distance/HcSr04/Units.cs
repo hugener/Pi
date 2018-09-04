@@ -11,12 +11,12 @@ namespace Pi.IO.Devices.Sensors.Distance.HcSr04
     internal static class Units
     {
         /// <summary>
-        /// Velocity related conversions
+        /// Velocity related conversions.
         /// </summary>
         public static class Velocity
         {
             /// <summary>
-            /// Sound velocity related conversions
+            /// Sound velocity related conversions.
             /// </summary>
             public static class Sound
             {

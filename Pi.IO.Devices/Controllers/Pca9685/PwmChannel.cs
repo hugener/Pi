@@ -6,7 +6,7 @@
 namespace Pi.IO.Devices.Controllers.Pca9685
 {
     /// <summary>
-    /// Denotes available PWM channels
+    /// Denotes available PWM channels.
     /// </summary>
     public enum PwmChannel
     {

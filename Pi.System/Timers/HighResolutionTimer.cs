@@ -5,11 +5,11 @@
 
 namespace Pi.Timers
 {
-    using System.Threading;
     using global::System;
     using global::System.Collections.Concurrent;
     using global::System.Threading;
     using global::System.Threading.Tasks;
+    using Pi.System.Threading;
 
     /// <summary>
     /// Represents a high-resolution timer.

@@ -27,7 +27,7 @@ namespace Pi.IO.Devices.Controllers.Tlc59711
         /// </summary>
         /// <param name="memory">Memory to work with.</param>
         /// <param name="numberOfDevices">Number of <see cref="ITlc59711Device" />s connected together.</param>
-        /// <exception cref="ArgumentNullException">memory</exception>
+        /// <exception cref="ArgumentNullException">memory.</exception>
         /// <exception cref="ArgumentOutOfRangeException">numberOfDevices - You cannot create a cluster with less than one device.</exception>
         /// <exception cref="InsufficientMemoryException">Thrown in memory is insufficient.</exception>
         public Tlc59711Cluster(IMemory memory, int numberOfDevices)
@@ -64,41 +64,41 @@ namespace Pi.IO.Devices.Controllers.Tlc59711
         }
 
         /// <summary>
-        /// Gets the number of TLC59711 devices chained together
+        /// Gets the number of TLC59711 devices chained together.
         /// </summary>
         public int Count => this.devices.Length;
 
         /// <summary>
-        /// Gets the PWM channels
+        /// Gets the PWM channels.
         /// </summary>
         public IPwmChannels Channels => this.channels;
 
         /// <summary>
-        /// Returns the TLC59711 device at the requested position
+        /// Returns the TLC59711 device at the requested position.
         /// </summary>
-        /// <param name="index">TLC59711 index</param>
-        /// <returns>TLC59711 device</returns>
+        /// <param name="index">TLC59711 index.</param>
+        /// <returns>TLC59711 device.</returns>
         public ITlc59711Device this[int index] => this.devices[index];
 
         /// <summary>
-        /// Returns an enumerator
+        /// Returns an enumerator.
         /// </summary>
         /// <returns>
         /// An <see cref="T:System.Collections.IEnumerator"/> object.
         /// </returns>
-        /// <filterpriority>2</filterpriority>
+        /// <filterpriority>2.</filterpriority>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return this.GetEnumerator();
         }
 
         /// <summary>
-        /// Returns an enumerator
+        /// Returns an enumerator.
         /// </summary>
         /// <returns>
         /// An <see cref="T:System.Collections.Generic.IEnumerator`1"/> object.
         /// </returns>
-        /// <filterpriority>1</filterpriority>
+        /// <filterpriority>1.</filterpriority>
         public IEnumerator<ITlc59711Device> GetEnumerator()
         {
             return ((IEnumerable<ITlc59711Device>)this.devices)
@@ -106,10 +106,10 @@ namespace Pi.IO.Devices.Controllers.Tlc59711
         }
 
         /// <summary>
-        /// Returns the TLC59711 device at the requested position
+        /// Returns the TLC59711 device at the requested position.
         /// </summary>
-        /// <param name="index">TLC59711 index</param>
-        /// <returns>TLC59711 device</returns>
+        /// <param name="index">TLC59711 index.</param>
+        /// <returns>TLC59711 device.</returns>
         public ITlc59711Device Get(int index)
         {
             return this.devices[index];

@@ -9,14 +9,14 @@ namespace Pi.IO.Devices.Hats.PiFaceDigital
     using global::System.Collections.Generic;
 
     /// <summary>
-    /// Represents the pins on a PiFace Digital board
+    /// Represents the pins on a PiFace Digital board.
     /// </summary>
     public abstract class PiFacePin
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PiFacePin"/> class.
         /// </summary>
-        /// <param name="pinNumber">Number of the pin in the range 0 to 7</param>
+        /// <param name="pinNumber">Number of the pin in the range 0 to 7.</param>
         internal PiFacePin(int pinNumber)
         {
             if (pinNumber < 0 || pinNumber > 7)
@@ -47,10 +47,10 @@ namespace Pi.IO.Devices.Hats.PiFaceDigital
         public virtual bool State { get; protected set; }
 
         /// <summary>
-        /// Returns a byte representing the state of all pins
+        /// Returns a byte representing the state of all pins.
         /// </summary>
-        /// <param name="pins">collection of pins to aggregate over</param>
-        /// <returns>byte of all pin state</returns>
+        /// <param name="pins">collection of pins to aggregate over.</param>
+        /// <returns>byte of all pin state.</returns>
         internal static byte AllPinState(IEnumerable<PiFacePin> pins)
         {
             byte allPinState = 0;
@@ -66,9 +66,9 @@ namespace Pi.IO.Devices.Hats.PiFaceDigital
         }
 
         /// <summary>
-        /// Update this pin based on a byte that contains the data for every pin
+        /// Update this pin based on a byte that contains the data for every pin.
         /// </summary>
-        /// <param name="allPinState">byte with all pin values</param>
+        /// <param name="allPinState">byte with all pin values.</param>
         internal virtual void Update(byte allPinState)
         {
             this.State = (allPinState & this.Mask) > 0;

@@ -5,8 +5,8 @@
 
 namespace Pi.IO.SerialPeripheralInterface
 {
-    using System.Threading;
     using global::System;
+    using Pi.System.Threading;
 
     /// <summary>
     /// Represents a connection to a SPI device.

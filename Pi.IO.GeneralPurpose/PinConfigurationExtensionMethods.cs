@@ -56,7 +56,7 @@ namespace Pi.IO.GeneralPurpose
         /// Configures the specified input pin as a switch.
         /// </summary>
         /// <param name="pin">The pin.</param>
-        /// <returns>The pin configuration</returns>
+        /// <returns>The pin configuration.</returns>
         public static SwitchInputPinConfiguration Switch(this InputPinConfiguration pin)
         {
             return new SwitchInputPinConfiguration(pin);

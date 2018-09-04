@@ -8,7 +8,7 @@ namespace Pi.IO.GeneralPurpose
     using global::System;
 
     /// <summary>
-    /// Represents a set of pins on the Raspberry Pi Processor
+    /// Represents a set of pins on the Raspberry Pi Processor.
     /// </summary>
     [Flags]
     public enum ProcessorPins : uint

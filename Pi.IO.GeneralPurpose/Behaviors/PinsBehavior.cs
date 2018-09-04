@@ -5,11 +5,11 @@
 
 namespace Pi.IO.GeneralPurpose.Behaviors
 {
-    using System.Threading;
     using global::System;
     using global::System.Collections.Generic;
     using global::System.Linq;
-    using Timers;
+    using Pi.System.Threading;
+    using Pi.Timers;
 
     /// <summary>
     /// Represents the pins behavior base class.

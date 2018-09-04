@@ -6,7 +6,7 @@
 namespace Pi.IO.SerialPeripheralInterface
 {
     /// <summary>
-    /// SPI connection parameters
+    /// SPI connection parameters.
     /// </summary>
     public class SpiConnectionSettings
     {
@@ -15,7 +15,7 @@ namespace Pi.IO.SerialPeripheralInterface
         private byte bitsPerWord = 8;
 
         /// <summary>
-        /// Gets or sets the clock speed in Hz
+        /// Gets or sets the clock speed in Hz.
         /// </summary>
         public uint MaxSpeed
         {
@@ -24,7 +24,7 @@ namespace Pi.IO.SerialPeripheralInterface
         }
 
         /// <summary>
-        /// Gets or sets the delay (in µ seconds) after the last bit transfer before optionally deselecting the device before the next transfer
+        /// Gets or sets the delay (in µ seconds) after the last bit transfer before optionally deselecting the device before the next transfer.
         /// </summary>
         public ushort Delay
         {
@@ -33,7 +33,7 @@ namespace Pi.IO.SerialPeripheralInterface
         }
 
         /// <summary>
-        /// Gets or sets the device's word size
+        /// Gets or sets the device's word size.
         /// </summary>
         public byte BitsPerWord
         {
@@ -42,7 +42,7 @@ namespace Pi.IO.SerialPeripheralInterface
         }
 
         /// <summary>
-        /// Gets or sets the SPI mode
+        /// Gets or sets the SPI mode.
         /// </summary>
         public SpiMode Mode { get; set; }
     }

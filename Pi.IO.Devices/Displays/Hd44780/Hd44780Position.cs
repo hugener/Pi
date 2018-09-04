@@ -11,7 +11,7 @@ namespace Pi.IO.Devices.Displays.Hd44780
     public struct Hd44780Position
     {
         /// <summary>
-        /// The zero
+        /// The zero.
         /// </summary>
         public static Hd44780Position Zero = new Hd44780Position { Row = 0, Column = 0 };
 

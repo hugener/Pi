@@ -28,7 +28,7 @@ namespace Pi.IO.GeneralPurpose
         /// The <see cref="ConnectedPin"/>.
         /// </value>
         /// <param name="pin">The pin.</param>
-        /// <returns>The <see cref="ConnectedPin"/></returns>
+        /// <returns>The <see cref="ConnectedPin"/> based on Processor pin.</returns>
         public ConnectedPin this[ProcessorPin pin] => new ConnectedPin(this.connection, this.connection.GetConfiguration(pin));
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Pi.IO.GeneralPurpose
         /// The <see cref="ConnectedPin"/>.
         /// </value>
         /// <param name="name">The name.</param>
-        /// <returns>The <see cref="ConnectedPin"/></returns>
+        /// <returns>The <see cref="ConnectedPin"/> based on name.</returns>
         public ConnectedPin this[string name] => new ConnectedPin(this.connection, this.connection.GetConfiguration(name));
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace Pi.IO.GeneralPurpose
         /// The <see cref="ConnectedPin"/>.
         /// </value>
         /// <param name="pin">The pin.</param>
-        /// <returns>The <see cref="ConnectedPin"/></returns>
+        /// <returns>The <see cref="ConnectedPin"/> based on Connector pin.</returns>
         public ConnectedPin this[ConnectorPin pin] => this[pin.ToProcessor()];
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Pi.IO.GeneralPurpose
         /// The <see cref="ConnectedPin"/>.
         /// </value>
         /// <param name="pin">The pin.</param>
-        /// <returns>The <see cref="ConnectedPin"/></returns>
+        /// <returns>The <see cref="ConnectedPin"/> based on Pin configuration.</returns>
         public ConnectedPin this[PinConfiguration pin] => new ConnectedPin(this.connection, pin);
 
         /// <summary>

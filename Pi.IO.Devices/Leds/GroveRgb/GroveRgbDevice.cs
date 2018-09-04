@@ -12,7 +12,7 @@ namespace Pi.IO.Devices.Leds.GroveRgb
 
     /// <summary>
     /// Represents a connection with Grove Chainable RGB Led modules.
-    /// <see href="http://www.seeedstudio.com/wiki/Grove_-_Chainable_RGB_LED" />
+    /// More info: <see href="http://www.seeedstudio.com/wiki/Grove_-_Chainable_RGB_LED" />.
     /// </summary>
     public class GroveRgbDevice : IDisposable
     {

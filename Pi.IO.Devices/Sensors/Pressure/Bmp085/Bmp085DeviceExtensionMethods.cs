@@ -30,7 +30,7 @@ namespace Pi.IO.Devices.Sensors.Pressure.Bmp085
         /// </summary>
         /// <param name="connection">The BMP085 connection.</param>
         /// <param name="sealevelPressure">The sealevel pressure.</param>
-        /// <returns>The altitude</returns>
+        /// <returns>The altitude.</returns>
         public static Length GetAltitude(this Bmp085Device connection, UnitsNet.Pressure sealevelPressure)
         {
             var pressure = connection.GetPressure();

@@ -9,7 +9,7 @@ namespace Pi.System.Threading
     using global::System.Diagnostics;
     using global::System.Linq;
     using global::System.Threading;
-    using Timers;
+    using Pi.Timers;
 
     internal class PiThread : IDisposableThread
     {

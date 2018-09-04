@@ -24,13 +24,13 @@ namespace Pi.IO.Interop
         /// <summary>
         /// Initializes a new instance of the <see cref="MemorySubset"/> class.
         /// </summary>
-        /// <param name="memoryBlock">The origin memory block</param>
-        /// <param name="startOffset">Start offset of the origin memory block</param>
-        /// <param name="length">Length of this memory subset in bytes</param>
+        /// <param name="memoryBlock">The origin memory block.</param>
+        /// <param name="startOffset">Start offset of the origin memory block.</param>
+        /// <param name="length">Length of this memory subset in bytes.</param>
         /// <param name="isOwner">If <c>true</c> the origin <paramref name="memoryBlock"/> will be disposed on <see cref="Dispose()"/>.</param>
         public MemorySubset(IMemory memoryBlock, int startOffset, int length, bool isOwner)
         {
-            if (ReferenceEquals(memoryBlock, null))
+            if (memoryBlock is null)
             {
                 throw new ArgumentNullException("memoryBlock");
             }
@@ -59,14 +59,14 @@ namespace Pi.IO.Interop
         public IntPtr Pointer => this.memoryPointer;
 
         /// <summary>
-        /// Gets the size in bytes
+        /// Gets the size in bytes.
         /// </summary>
         public int Length => this.memoryLength;
 
         /// <summary>
         /// Indexer, which will allow client code to use [] notation on the class instance itself.
         /// </summary>
-        /// <param name="index">Offset to memory</param>
+        /// <param name="index">Offset to memory.</param>
         /// <returns>Byte at/from the specified position <paramref name="index"/>.</returns>
         public byte this[int index]
         {
@@ -84,10 +84,10 @@ namespace Pi.IO.Interop
         }
 
         /// <summary>
-        /// Returns an enumerator
+        /// Returns an enumerator.
         /// </summary>
         /// <returns>
-        /// A <see cref="T:System.Collections.Generic.IEnumerator`1"/>
+        /// A <see cref="T:System.Collections.Generic.IEnumerator`1"/>.
         /// </returns>
         public IEnumerator<byte> GetEnumerator()
         {
@@ -99,10 +99,10 @@ namespace Pi.IO.Interop
         }
 
         /// <summary>
-        /// Returns an enumerator
+        /// Returns an enumerator.
         /// </summary>
         /// <returns>
-        /// A <see cref="T:System.Collections.Generic.IEnumerator`1"/>
+        /// A <see cref="T:System.Collections.Generic.IEnumerator`1"/>.
         /// </returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
@@ -112,7 +112,7 @@ namespace Pi.IO.Interop
         /// <summary>
         /// Writes <paramref name="data"/> at <paramref name="offset"/>.
         /// </summary>
-        /// <param name="offset">Offset</param>
+        /// <param name="offset">Offset.</param>
         /// <param name="data">Data that shall be written.</param>
         public void Write(int offset, byte data)
         {
@@ -127,7 +127,7 @@ namespace Pi.IO.Interop
         /// <summary>
         /// Reads a byte at <paramref name="offset"/>.
         /// </summary>
-        /// <param name="offset">Offset</param>
+        /// <param name="offset">Offset.</param>
         /// <returns>The data.</returns>
         public byte Read(int offset)
         {

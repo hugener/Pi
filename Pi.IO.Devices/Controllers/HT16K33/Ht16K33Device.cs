@@ -10,22 +10,22 @@ namespace Pi.IO.Devices.Controllers.HT16K33
 
     /// <summary>
     /// Driver for Holtek HT16K33 LED Matrix driver
-    /// As used by Adafruit devices
+    /// As used by Adafruit devices.
     /// </summary>
     public class Ht16K33Device // : IPwmDevice
     {
         /// <summary>
-        /// The default address
+        /// The default address.
         /// </summary>
         public const byte DefaultAddress = 0x70;
 
         /// <summary>
-        /// The HT16 K33 oscillator
+        /// The HT16 K33 oscillator.
         /// </summary>
         public const byte Ht16K33Oscillator = 0x01;
 
         /// <summary>
-        /// The HT16 K33 display on
+        /// The HT16 K33 display on.
         /// </summary>
         public const byte Ht16K33DisplayOn = 0x01;
 
@@ -37,7 +37,7 @@ namespace Pi.IO.Devices.Controllers.HT16K33
         /// <see cref="Ht16K33Device" /> class.
         /// </summary>
         /// <param name="connection">I2c connection.</param>
-        /// <param name="rowCount">Rows in use (1 to 16)</param>
+        /// <param name="rowCount">Rows in use (1 to 16).</param>
         /// <param name="ht16K33DeviceReporter">The HT16 K33 device reporter.</param>
         public Ht16K33Device(I2cDeviceConnection connection, int rowCount, IHt16K33DeviceReporter ht16K33DeviceReporter = null)
         {
@@ -163,7 +163,7 @@ namespace Pi.IO.Devices.Controllers.HT16K33
         }
 
         /// <summary>
-        /// Sets specified LED (0-[row-count] rows, 0 to 7 leds)
+        /// Sets specified LED (0-[row-count] rows, 0 to 7 leds).
         /// </summary>
         /// <param name="row">The row.</param>
         /// <param name="led">The led.</param>
@@ -171,7 +171,7 @@ namespace Pi.IO.Devices.Controllers.HT16K33
         /// <exception cref="Exception">
         /// Row out of range
         /// or
-        /// LED out of range 0 to 7
+        /// LED out of range 0 to 7.
         /// </exception>
         public void SetLed(uint row, uint led, bool outputOn)
         {

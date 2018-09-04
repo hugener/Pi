@@ -43,7 +43,7 @@ namespace Pi.IO.Interop
         }
 
         /// <summary>
-        /// Gets the file descriptor
+        /// Gets the file descriptor.
         /// </summary>
         public int Descriptor => this.descriptor;
 
@@ -80,7 +80,7 @@ namespace Pi.IO.Interop
         /// the process, are removed (regardless of the file descriptor that was used to obtain the lock).
         /// </summary>
         /// <param name="fileDescriptor">The file descriptor the shall be closed.</param>
-        /// <returns><c>true</c> on success</returns>
+        /// <returns><c>true</c> on success.</returns>
         /// <remarks>
         /// If <paramref name="fileDescriptor"/> is the last file descriptor referring to the underlying open file description, the resources associated with
         /// the open file description are freed; if the descriptor was the last reference to a file which has been removed using unlink the file is deleted.

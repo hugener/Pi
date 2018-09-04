@@ -14,22 +14,22 @@ namespace Pi.IO.Devices.Controllers.Tlc59711
     public interface ITlc59711Cluster : IEnumerable<ITlc59711Device>, IPwmDevice
     {
         /// <summary>
-        /// Gets the number of TLC59711 devices chained together
+        /// Gets the number of TLC59711 devices chained together.
         /// </summary>
         int Count { get; }
 
         /// <summary>
-        /// Returns the TLC59711 device at the requested position
+        /// Returns the TLC59711 device at the requested position.
         /// </summary>
-        /// <param name="index">TLC59711 index</param>
-        /// <returns>TLC59711 device</returns>
+        /// <param name="index">TLC59711 index.</param>
+        /// <returns>TLC59711 device.</returns>
         ITlc59711Device this[int index] { get; }
 
         /// <summary>
-        /// Returns the TLC59711 device at the requested position
+        /// Returns the TLC59711 device at the requested position.
         /// </summary>
-        /// <param name="index">TLC59711 index</param>
-        /// <returns>TLC59711 device</returns>
+        /// <param name="index">TLC59711 index.</param>
+        /// <returns>TLC59711 device.</returns>
         ITlc59711Device Get(int index);
 
         /// <summary>

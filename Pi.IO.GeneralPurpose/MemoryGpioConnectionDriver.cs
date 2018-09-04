@@ -5,13 +5,13 @@
 
 namespace Pi.IO.GeneralPurpose
 {
-    using System.Threading;
     using global::System;
     using global::System.Collections.Generic;
     using global::System.Globalization;
     using global::System.Runtime.InteropServices;
-    using IO.Interop;
-    using Timers;
+    using Pi.IO.Interop;
+    using Pi.System.Threading;
+    using Pi.Timers;
 
     /// <summary>
     /// Represents a connection driver that uses memory.
@@ -167,7 +167,7 @@ namespace Pi.IO.GeneralPurpose
         /// <remarks>
         /// If <c>timeout</c> is set to <see cref="TimeSpan.Zero" />, a default timeout of <see cref="DefaultTimeout"/> is used.
         /// </remarks>
-        public void Wait(ProcessorPin pin, bool waitForUp = true, TimeSpan timeout = default(TimeSpan))
+        public void Wait(ProcessorPin pin, bool waitForUp = true, TimeSpan timeout = default)
         {
             var startWait = DateTime.UtcNow;
             if (timeout == TimeSpan.Zero)

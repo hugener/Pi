@@ -9,7 +9,7 @@ namespace Pi.IO.Devices.Sensors
     using UnitsNet;
 
     /// <summary>
-    /// Represents a connection to an analog value coming from a resistive voltage divider
+    /// Represents a connection to an analog value coming from a resistive voltage divider.
     /// </summary>
     public class VariableResistiveDividerConnection : IDisposable
     {

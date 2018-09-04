@@ -17,8 +17,8 @@ namespace Pi.IO.Interop
     /// <seealso cref="Pi.IO.Interop.IMemory" />
     public class ManagedMemory : IMemory
     {
-        private byte[] byteArray;
-        private GCHandle handle;
+        private readonly byte[] byteArray;
+        private readonly GCHandle handle;
         private IntPtr memoryPointer;
 
         /// <summary>
@@ -46,14 +46,14 @@ namespace Pi.IO.Interop
         public IntPtr Pointer => this.memoryPointer;
 
         /// <summary>
-        /// Gets the size in bytes
+        /// Gets the size in bytes.
         /// </summary>
         public int Length => this.byteArray.Length;
 
         /// <summary>
         /// Indexer, which will allow client code to use [] notation on the class instance itself.
         /// </summary>
-        /// <param name="index">Offset to memory</param>
+        /// <param name="index">Offset to memory.</param>
         /// <returns>Byte at/from the specified position <paramref name="index"/>.</returns>
         public byte this[int index]
         {
@@ -64,7 +64,7 @@ namespace Pi.IO.Interop
         /// <summary>
         /// Allocates unmanaged memory for <paramref name="structure"/> and copies its content into it.
         /// </summary>
-        /// <typeparam name="T">Structure type</typeparam>
+        /// <typeparam name="T">Structure type.</typeparam>
         /// <param name="structure">The structure that shall be copied into the requested memory buffer.</param>
         /// <returns>The unmanaged memory buffer containing <paramref name="structure"/>.</returns>
         public static ManagedMemory CreateAndCopy<T>(T structure)
@@ -80,7 +80,7 @@ namespace Pi.IO.Interop
         /// <summary>
         /// Allocates unmanaged memory with the size of <typeparamref name="T"/>.
         /// </summary>
-        /// <typeparam name="T">Structure type</typeparam>
+        /// <typeparam name="T">Structure type.</typeparam>
         /// <returns>The unmanaged memory buffer of size <typeparamref name="T"/>.</returns>
         public static ManagedMemory CreateFor<T>()
         {
@@ -91,7 +91,7 @@ namespace Pi.IO.Interop
         /// <summary>
         /// Writes <paramref name="data"/> at <paramref name="offset"/>.
         /// </summary>
-        /// <param name="offset">Offset</param>
+        /// <param name="offset">Offset.</param>
         /// <param name="data">Data that shall be written.</param>
         public void Write(int offset, byte data)
         {
@@ -101,7 +101,7 @@ namespace Pi.IO.Interop
         /// <summary>
         /// Reads a byte at <paramref name="offset"/>.
         /// </summary>
-        /// <param name="offset">Offset</param>
+        /// <param name="offset">Offset.</param>
         /// <returns>The data.</returns>
         public byte Read(int offset)
         {
@@ -133,18 +133,18 @@ namespace Pi.IO.Interop
         }
 
         /// <summary>
-        /// Returns an enumerator;
+        /// Returns an enumerator;.
         /// </summary>
-        /// <returns>An enumerator</returns>
+        /// <returns>An enumerator.</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return this.GetEnumerator();
         }
 
         /// <summary>
-        /// Returns an enumerator;
+        /// Returns an enumerator;.
         /// </summary>
-        /// <returns>An enumerator</returns>
+        /// <returns>An enumerator.</returns>
         public IEnumerator<byte> GetEnumerator()
         {
             return ((IEnumerable<byte>)this.byteArray)
@@ -181,7 +181,6 @@ namespace Pi.IO.Interop
             }
 
             this.memoryPointer = IntPtr.Zero;
-            this.byteArray = new byte[0];
         }
     }
 }

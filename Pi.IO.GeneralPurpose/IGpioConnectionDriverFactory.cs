@@ -5,15 +5,24 @@
 
 namespace Pi.IO.GeneralPurpose
 {
+    using global::System;
+
     /// <summary>
-    /// Interface for implementing a factory for <see cref="IGpioConnectionDriver"/>.
+    /// Interface for implementing a factory for <see cref="IGpioConnectionDriver" />.
     /// </summary>
-    public interface IGpioConnectionDriverFactory
+    /// <seealso cref="IDisposable" />
+    public interface IGpioConnectionDriverFactory : IDisposable
     {
         /// <summary>
         /// Creates an <see cref="IGpioConnectionDriver"/>.
         /// </summary>
         /// <returns>A new <see cref="IGpioConnectionDriver"/>.</returns>
-        IGpioConnectionDriver Create();
+        IGpioConnectionDriver Get();
+
+        /// <summary>
+        /// Disposes the specified gpio connection driver if created by the factory.
+        /// </summary>
+        /// <param name="gpioConnectionDriver">The gpio connection driver.</param>
+        void Dispose(IGpioConnectionDriver gpioConnectionDriver);
     }
 }

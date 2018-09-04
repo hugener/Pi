@@ -6,7 +6,7 @@
 namespace Pi.IO.SerialPeripheralInterface
 {
     using global::System;
-    using IO.Interop;
+    using Pi.IO.Interop;
 
     /// <summary>
     /// A transfer buffer used to read from / write to the SPI bus.
@@ -14,7 +14,7 @@ namespace Pi.IO.SerialPeripheralInterface
     public interface ISpiTransferBuffer : IDisposable
     {
         /// <summary>
-        /// Gets or sets the temporary override of the device's wordsize
+        /// Gets or sets the temporary override of the device's wordsize.
         /// </summary>
         /// <value>
         /// The bits per word.
@@ -22,7 +22,7 @@ namespace Pi.IO.SerialPeripheralInterface
         byte BitsPerWord { get; set; }
 
         /// <summary>
-        /// Gets or sets the temporary override of the device's bitrate (in Hz)
+        /// Gets or sets the temporary override of the device's bitrate (in Hz).
         /// </summary>
         /// <value>
         /// The speed.
@@ -54,7 +54,7 @@ namespace Pi.IO.SerialPeripheralInterface
         uint Pad { get; set; }
 
         /// <summary>
-        /// Gets the spi transfer mode (read and/or write). <see cref="SpiTransferMode" />
+        /// Gets the spi transfer mode (read and/or write). <see cref="SpiTransferMode" />.
         /// </summary>
         /// <value>
         /// The transfer mode.
@@ -62,7 +62,7 @@ namespace Pi.IO.SerialPeripheralInterface
         SpiTransferMode TransferMode { get; }
 
         /// <summary>
-        /// Gets the length of <see cref="Tx" /> and <see cref="Rx" /> buffers, in bytes
+        /// Gets the length of <see cref="Tx" /> and <see cref="Rx" /> buffers, in bytes.
         /// </summary>
         /// <value>
         /// The length.
@@ -70,7 +70,7 @@ namespace Pi.IO.SerialPeripheralInterface
         int Length { get; }
 
         /// <summary>
-        /// Gets the pointer to userspace buffer with transmit data, or <c>null</c>. If no data is provided, zeroes are shifted out
+        /// Gets the pointer to userspace buffer with transmit data, or <c>null</c>. If no data is provided, zeroes are shifted out.
         /// </summary>
         /// <value>
         /// The tx.
@@ -78,7 +78,7 @@ namespace Pi.IO.SerialPeripheralInterface
         IMemory Tx { get; }
 
         /// <summary>
-        /// Gets the pointer to userspace buffer for receive data, or <c>null</c>
+        /// Gets the pointer to userspace buffer for receive data, or <c>null</c>.
         /// </summary>
         /// <value>
         /// The rx.
@@ -86,7 +86,7 @@ namespace Pi.IO.SerialPeripheralInterface
         IMemory Rx { get; }
 
         /// <summary>
-        /// Gets the IOCTL structure that contains control information for a single SPI transfer
+        /// Gets the IOCTL structure that contains control information for a single SPI transfer.
         /// </summary>
         /// <value>
         /// The control structure.

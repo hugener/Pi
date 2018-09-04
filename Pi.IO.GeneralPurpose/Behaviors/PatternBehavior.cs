@@ -5,9 +5,9 @@
 
 namespace Pi.IO.GeneralPurpose.Behaviors
 {
-    using System.Threading;
     using global::System.Collections.Generic;
     using global::System.Linq;
+    using Pi.System.Threading;
 
     /// <summary>
     /// Represents a pattern behavior.

@@ -21,9 +21,9 @@ namespace Pi.IO.SerialPeripheralInterface
         /// <summary>
         /// Initializes a new instance of the <see cref="SpiTransferBufferCollection"/> class.
         /// </summary>
-        /// <param name="numberOfMessages">Number of tranfer messages</param>
-        /// <param name="messageLengthInBytes">Message size in bytes</param>
-        /// <param name="transferMode">Transfer mode</param>
+        /// <param name="numberOfMessages">Number of tranfer messages.</param>
+        /// <param name="messageLengthInBytes">Message size in bytes.</param>
+        /// <param name="transferMode">Transfer mode.</param>
         public SpiTransferBufferCollection(int numberOfMessages, int messageLengthInBytes, SpiTransferMode transferMode)
         {
             if (numberOfMessages <= 0)
@@ -54,8 +54,8 @@ namespace Pi.IO.SerialPeripheralInterface
         /// <summary>
         /// Can be used to request a specific <see cref="ISpiTransferBuffer"/> from the collection.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <returns>The requested <see cref="ISpiTransferBuffer"/></returns>
+        /// <param name="index">Index.</param>
+        /// <returns>The requested <see cref="ISpiTransferBuffer"/>.</returns>
         public ISpiTransferBuffer this[int index] => this.transferBuffers[index];
 
         /// <summary>
@@ -70,8 +70,8 @@ namespace Pi.IO.SerialPeripheralInterface
         /// <summary>
         /// A method that returns a specific <see cref="ISpiTransferBuffer"/> from the collection.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <returns>The requested <see cref="ISpiTransferBuffer"/></returns>
+        /// <param name="index">Index.</param>
+        /// <returns>The requested <see cref="ISpiTransferBuffer"/>.</returns>
         public ISpiTransferBuffer Get(int index)
         {
             return this.transferBuffers[index];
@@ -80,7 +80,7 @@ namespace Pi.IO.SerialPeripheralInterface
         /// <summary>
         /// Returns an enumerator.
         /// </summary>
-        /// <returns>An enumerator</returns>
+        /// <returns>An enumerator.</returns>
         public IEnumerator<ISpiTransferBuffer> GetEnumerator()
         {
             return this.transferBuffers.OfType<ISpiTransferBuffer>().GetEnumerator();
@@ -89,7 +89,7 @@ namespace Pi.IO.SerialPeripheralInterface
         /// <summary>
         /// Returns an enumerator.
         /// </summary>
-        /// <returns>An enumerator</returns>
+        /// <returns>An enumerator.</returns>
         IEnumerator IEnumerable.GetEnumerator()
         {
             return this.GetEnumerator();

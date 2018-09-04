@@ -19,7 +19,7 @@ namespace Pi.IO
         /// Converts a byte array/enumerable to a bit string.
         /// </summary>
         /// <param name="bytes">bytes to be converted.</param>
-        /// <returns>A bit string</returns>
+        /// <returns>A bit string.</returns>
         public static string ToBitString(this IEnumerable<byte> bytes)
         {
             var sb = new StringBuilder(255);

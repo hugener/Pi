@@ -10,7 +10,7 @@ namespace Pi.IO.Devices.Controllers.Tlc59711
     using Pi.IO.Interop;
 
     /// <summary>
-    /// Adafruit 12-channel 16bit PWM/LED driver TLC59711
+    /// Adafruit 12-channel 16bit PWM/LED driver TLC59711.
     /// </summary>
     public class Tlc59711Device : ITlc59711Device
     {
@@ -47,7 +47,7 @@ namespace Pi.IO.Devices.Controllers.Tlc59711
         /// </summary>
         /// <param name="memory">The memory.</param>
         /// <param name="settings">The settings.</param>
-        /// <exception cref="ArgumentNullException">memory</exception>
+        /// <exception cref="ArgumentNullException">memory.</exception>
         /// <exception cref="ArgumentException">thrown if memory is too small.</exception>
         public Tlc59711Device(IMemory memory, ITlc59711Settings settings = null)
         {

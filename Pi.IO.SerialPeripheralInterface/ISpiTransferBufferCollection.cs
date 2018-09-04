@@ -21,15 +21,15 @@ namespace Pi.IO.SerialPeripheralInterface
         /// <summary>
         /// Can be used to request a specific <see cref="ISpiTransferBuffer"/> from the collection.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <returns>The requested <see cref="ISpiTransferBuffer"/></returns>
+        /// <param name="index">Index.</param>
+        /// <returns>The requested <see cref="ISpiTransferBuffer"/>.</returns>
         ISpiTransferBuffer this[int index] { get; }
 
         /// <summary>
         /// A method that returns a specific <see cref="ISpiTransferBuffer"/> from the collection.
         /// </summary>
-        /// <param name="index">Index</param>
-        /// <returns>The requested <see cref="ISpiTransferBuffer"/></returns>
+        /// <param name="index">Index.</param>
+        /// <returns>The requested <see cref="ISpiTransferBuffer"/>.</returns>
         ISpiTransferBuffer Get(int index);
     }
 }

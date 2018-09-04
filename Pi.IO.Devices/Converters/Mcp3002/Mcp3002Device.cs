@@ -39,7 +39,7 @@ namespace Pi.IO.Devices.Converters.Mcp3002
         /// Reads the specified channel.
         /// </summary>
         /// <param name="channel">The channel.</param>
-        /// <returns>The value</returns>
+        /// <returns>The value.</returns>
         public AnalogValue Read(Mcp3002Channel channel)
         {
             using (this.spiConnection.SelectSlave())

@@ -5,8 +5,8 @@
 
 namespace Pi.IO.GeneralPurpose.Behaviors
 {
-    using System.Threading;
     using global::System.Collections.Generic;
+    using Pi.System.Threading;
 
     /// <summary>
     /// Represents a simple blink behavior.

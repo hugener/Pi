@@ -12,7 +12,7 @@ namespace Pi.IO.GeneralPurpose
     using global::System.Linq;
 
     /// <summary>
-    /// Provides helper methods for mapping pins between processor and connectors
+    /// Provides helper methods for mapping pins between processor and connectors.
     /// </summary>
     public static class PinMapping
     {

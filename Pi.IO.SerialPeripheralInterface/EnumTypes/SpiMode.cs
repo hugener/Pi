@@ -8,7 +8,7 @@ namespace Pi.IO.SerialPeripheralInterface
     using global::System;
 
     /// <summary>
-    /// SPI mode
+    /// SPI mode.
     /// </summary>
     [Flags]
     public enum SpiMode : uint

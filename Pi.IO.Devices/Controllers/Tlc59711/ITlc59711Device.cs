@@ -6,7 +6,7 @@
 namespace Pi.IO.Devices.Controllers.Tlc59711
 {
     /// <summary>
-    /// Adafruit 12-Channel 16-bit PWM LED Driver TLC59711
+    /// Adafruit 12-Channel 16-bit PWM LED Driver TLC59711.
     /// </summary>
     public interface ITlc59711Device : IPwmDevice, ITlc59711Settings
     {

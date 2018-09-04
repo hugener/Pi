@@ -13,7 +13,7 @@ namespace Pi.IO.Devices.Displays.Hd44780
     /// <summary>
     /// Represents encoding for HD44780 LCD with Japanese character set (ROM code A00)
     /// Based on http://lcd-linux.sourceforge.net/pdfdocs/hd44780.pdf
-    /// And http://en.wikipedia.org/wiki/Katakana
+    /// And http://en.wikipedia.org/wiki/Katakana.
     /// </summary>
     public class Hd44780A00Encoding : Encoding
     {

@@ -8,7 +8,7 @@ namespace Pi.IO.Devices.Sensors.Temperature.Dht
     using global::System;
 
     /// <summary>
-    /// Reports information for <see cref="DhtDevice"/>
+    /// Reports information for <see cref="DhtDevice"/>.
     /// </summary>
     public interface IDhtDeviceReporter
     {

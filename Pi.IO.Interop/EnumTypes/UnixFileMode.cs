@@ -8,7 +8,7 @@ namespace Pi.IO.Interop
     using System;
 
     /// <summary>
-    /// File access mode
+    /// File access mode.
     /// </summary>
     [Flags]
     public enum UnixFileMode

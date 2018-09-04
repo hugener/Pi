@@ -6,7 +6,7 @@
 namespace Pi.IO.Devices.Controllers.Tlc59711
 {
     /// <summary>
-    /// TLC59711 settings
+    /// TLC59711 settings.
     /// </summary>
     public interface ITlc59711Settings
     {

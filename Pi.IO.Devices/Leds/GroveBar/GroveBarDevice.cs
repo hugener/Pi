@@ -11,7 +11,7 @@ namespace Pi.IO.Devices.Leds.GroveBar
 
     /// <summary>
     /// Represents a connection with Grove Led Bar module.
-    /// @see http://www.seeedstudio.com/wiki/Grove_-_LED_Bar
+    /// @see http://www.seeedstudio.com/wiki/Grove_-_LED_Bar.
     /// </summary>
     public class GroveBarDevice : IDisposable
     {
@@ -46,7 +46,7 @@ namespace Pi.IO.Devices.Leds.GroveBar
         }
 
         /// <summary>
-        /// Sets status of leds from a binary string eg: "0010101011", where "0" is off and "1" is on
+        /// Sets status of leds from a binary string eg: "0010101011", where "0" is off and "1" is on.
         /// </summary>
         /// <param name="ledsString">Leds string.</param>
         public void SetFromString(string ledsString)
@@ -88,7 +88,7 @@ namespace Pi.IO.Devices.Leds.GroveBar
         }
 
         /// <summary>
-        /// Turn on a single led at a given position (0-9)
+        /// Turn on a single led at a given position (0-9).
         /// </summary>
         /// <param name="position">Position.</param>
         public void On(int position)
@@ -100,7 +100,7 @@ namespace Pi.IO.Devices.Leds.GroveBar
         }
 
         /// <summary>
-        /// Turn off a single led at a given position (0-9)
+        /// Turn off a single led at a given position (0-9).
         /// </summary>
         /// <param name="position">Position.</param>
         public void Off(int position)

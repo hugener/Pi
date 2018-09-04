@@ -5,11 +5,11 @@
 
 namespace Pi
 {
-    using System.Threading;
     using global::System;
     using global::System.Collections.Generic;
     using global::System.Globalization;
     using global::System.IO;
+    using Pi.System.Threading;
 
     /// <summary>
     /// Represents the Raspberry Pi mainboard.

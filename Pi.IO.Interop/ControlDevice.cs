@@ -43,12 +43,12 @@ namespace Pi.IO.Interop
         }
 
         /// <summary>
-        /// Gets the Device file used for communication
+        /// Gets the Device file used for communication.
         /// </summary>
         protected IFile File { get; }
 
         /// <summary>
-        /// Gets a value indicating whether the <see cref="File"/> will be disposed on <see cref="ControlDevice.Dispose()"/>
+        /// Gets a value indicating whether the <see cref="File"/> will be disposed on <see cref="ControlDevice.Dispose()"/>.
         /// </summary>
         protected bool DisposeFile { get; }
 
@@ -102,7 +102,7 @@ namespace Pi.IO.Interop
         }
 
         /// <summary>
-        /// Dispose
+        /// Dispose.
         /// </summary>
         /// <param name="disposing">If <c>true</c> the managed resources will be disposed as well.</param>
         protected virtual void Dispose(bool disposing)

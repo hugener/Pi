@@ -8,7 +8,7 @@ namespace Pi.IO.Devices.Controllers.Tlc59711
     using Pi.IO.Devices.Controllers.Tlc59711.ExtensionMethods;
 
     /// <summary>
-    /// TLC59711 settings
+    /// TLC59711 settings.
     /// </summary>
     public class Tlc59711Settings : ITlc59711Settings
     {

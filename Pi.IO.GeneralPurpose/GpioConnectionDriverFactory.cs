@@ -5,9 +5,7 @@
 
 namespace Pi.IO.GeneralPurpose
 {
-    using Configuration;
-    using global::System;
-    using global::System.Configuration;
+    using global::System.Collections.Generic;
 
     /// <summary>
     /// Factory for creating <see cref="IGpioConnectionDriver"/> depending on the platform capabilities.
@@ -15,6 +13,41 @@ namespace Pi.IO.GeneralPurpose
     /// <seealso cref="Pi.IO.GeneralPurpose.IGpioConnectionDriverFactory" />
     public class GpioConnectionDriverFactory : IGpioConnectionDriverFactory
     {
+        private readonly LinkedList<IGpioConnectionDriver> gpioConnectionDrivers = new LinkedList<IGpioConnectionDriver>();
+        private readonly IGpioConnectionDriver gpioConnectionDriver;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GpioConnectionDriverFactory" /> class.
+        /// </summary>
+        public GpioConnectionDriverFactory()
+            : this(false)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GpioConnectionDriverFactory"/> class.
+        /// </summary>
+        /// <param name="useSingleton">if set to <c>true</c> [use singleton].</param>
+        public GpioConnectionDriverFactory(bool useSingleton)
+        {
+            if (useSingleton)
+            {
+                this.gpioConnectionDriver = GetBestDriver(Board.Current.IsRaspberryPi
+                    ? GpioConnectionDriverCapabilities.None
+                    : GpioConnectionDriverCapabilities.CanWorkOnThirdPartyComputers);
+                this.gpioConnectionDrivers.AddLast(this.gpioConnectionDriver);
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GpioConnectionDriverFactory"/> class.
+        /// </summary>
+        /// <param name="gpioConnectionDriver">The gpio connection driver.</param>
+        public GpioConnectionDriverFactory(IGpioConnectionDriver gpioConnectionDriver)
+        {
+            this.gpioConnectionDriver = gpioConnectionDriver;
+        }
+
         /// <summary>
         /// Gets the best driver for the specified capabilities.
         /// </summary>
@@ -52,17 +85,46 @@ namespace Pi.IO.GeneralPurpose
         }
 
         /// <summary>
-        /// Creates an <see cref="IGpioConnectionDriver" />.
+        /// Gets or creates an <see cref="IGpioConnectionDriver" />.
         /// </summary>
         /// <returns>
         /// A new <see cref="IGpioConnectionDriver" />.
         /// </returns>
-        public IGpioConnectionDriver Create()
+        public IGpioConnectionDriver Get()
         {
-            var configurationSection = ConfigurationManager.GetSection("gpioConnection") as GpioConnectionConfigurationSection;
-            return configurationSection != null && !string.IsNullOrEmpty(configurationSection.DriverTypeName)
-                ? (IGpioConnectionDriver)Activator.CreateInstance(Type.GetType(configurationSection.DriverTypeName, true))
-                : GetBestDriver(Board.Current.IsRaspberryPi ? GpioConnectionDriverCapabilities.None : GpioConnectionDriverCapabilities.CanWorkOnThirdPartyComputers);
+            if (this.gpioConnectionDriver != null)
+            {
+                return this.gpioConnectionDriver;
+            }
+
+            var driver = GetBestDriver(Board.Current.IsRaspberryPi ? GpioConnectionDriverCapabilities.None : GpioConnectionDriverCapabilities.CanWorkOnThirdPartyComputers);
+            this.gpioConnectionDrivers.AddLast(driver);
+            return driver;
+        }
+
+        /// <summary>
+        /// Disposes all the specified gpio connection drivers created by this factory.
+        /// </summary>
+        public void Dispose()
+        {
+            foreach (var gpioConnectionDriver in this.gpioConnectionDrivers)
+            {
+                gpioConnectionDriver.Dispose();
+            }
+
+            this.gpioConnectionDrivers.Clear();
+        }
+
+        /// <summary>
+        /// Disposes the specified gpio connection driver if created by the factory.
+        /// </summary>
+        /// <param name="gpioConnectionDriver">The gpio connection driver.</param>
+        public void Dispose(IGpioConnectionDriver gpioConnectionDriver)
+        {
+            if (this.gpioConnectionDrivers.Remove(gpioConnectionDriver))
+            {
+                gpioConnectionDriver.Dispose();
+            }
         }
     }
 }

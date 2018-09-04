@@ -7,7 +7,7 @@ namespace Pi.IO.SerialPeripheralInterface
 {
     using global::System;
     using global::System.Linq;
-    using IO.Interop;
+    using Pi.IO.Interop;
 
     /// <summary>
     /// Native SPI connection that communicates with Linux's userspace SPI driver (e.g. /dev/spidev0.0) using IOCTL.
@@ -80,12 +80,12 @@ namespace Pi.IO.SerialPeripheralInterface
         public uint MaxSpeed => this.maxSpeed;
 
         /// <summary>
-        /// Gets the SPI mode
+        /// Gets the SPI mode.
         /// </summary>
         public SpiMode Mode => (SpiMode)this.mode;
 
         /// <summary>
-        /// Gets the device's wordsize
+        /// Gets the device's wordsize.
         /// </summary>
         public byte BitsPerWord => this.bitsPerWord;
 
@@ -101,7 +101,7 @@ namespace Pi.IO.SerialPeripheralInterface
         /// <summary>
         /// Sets the maximum clock speed.
         /// </summary>
-        /// <param name="maxSpeedInHz">The speed in Hz</param>
+        /// <param name="maxSpeedInHz">The speed in Hz.</param>
         public void SetMaxSpeed(uint maxSpeedInHz)
         {
             this.maxSpeed = maxSpeedInHz;
@@ -114,7 +114,7 @@ namespace Pi.IO.SerialPeripheralInterface
         /// <summary>
         /// Sets the device's wordsize <see cref="BitsPerWord"/>.
         /// </summary>
-        /// <param name="wordSize">Bits per word</param>
+        /// <param name="wordSize">Bits per word.</param>
         public void SetBitsPerWord(byte wordSize)
         {
             this.bitsPerWord = wordSize;
@@ -127,7 +127,7 @@ namespace Pi.IO.SerialPeripheralInterface
         /// <summary>
         /// Sets the <see cref="SpiMode"/>.
         /// </summary>
-        /// <param name="spiMode">SPI mode</param>
+        /// <param name="spiMode">SPI mode.</param>
         public void SetSpiMode(SpiMode spiMode)
         {
             this.mode = (uint)spiMode;
@@ -230,7 +230,7 @@ namespace Pi.IO.SerialPeripheralInterface
         /// <summary>
         /// Disposes the instance.
         /// </summary>
-        /// <param name="disposing">If <c>true</c> all managed resources will be disposed</param>
+        /// <param name="disposing">If <c>true</c> all managed resources will be disposed.</param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)

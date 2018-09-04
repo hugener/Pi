@@ -19,28 +19,28 @@ namespace Pi.IO.Interop
         IntPtr Pointer { get; }
 
         /// <summary>
-        /// Gets the size in bytes
+        /// Gets the size in bytes.
         /// </summary>
         int Length { get; }
 
         /// <summary>
         /// Indexer, which will allow client code to use [] notation on the class instance itself.
         /// </summary>
-        /// <param name="index">Offset to memory</param>
+        /// <param name="index">Offset to memory.</param>
         /// <returns>Byte at/from the specified position <paramref name="index"/>.</returns>
         byte this[int index] { get; set; }
 
         /// <summary>
         /// Writes <paramref name="data"/> at <paramref name="offset"/>.
         /// </summary>
-        /// <param name="offset">Offset</param>
+        /// <param name="offset">Offset.</param>
         /// <param name="data">Data that shall be written.</param>
         void Write(int offset, byte data);
 
         /// <summary>
         /// Reads a byte at <paramref name="offset"/>.
         /// </summary>
-        /// <param name="offset">Offset</param>
+        /// <param name="offset">Offset.</param>
         /// <returns>The data.</returns>
         byte Read(int offset);
 

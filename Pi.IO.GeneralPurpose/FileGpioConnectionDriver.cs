@@ -94,7 +94,7 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         /// <param name="pin">The pin.</param>
         /// <param name="resistor">The resistor.</param>
-        /// <exception cref="NotSupportedException">Resistor are not supported by file GPIO connection driver</exception>
+        /// <exception cref="NotSupportedException">Resistor are not supported by file GPIO connection driver.</exception>
         public void SetPinResistor(ProcessorPin pin, PinResistor resistor)
         {
             throw new NotSupportedException("Resistor are not supported by file GPIO connection driver");
@@ -123,7 +123,7 @@ namespace Pi.IO.GeneralPurpose
         /// <remarks>
         /// If <c>timeout</c> is set to <see cref="TimeSpan.Zero" />, a 5 second timeout is used.
         /// </remarks>
-        public void Wait(ProcessorPin pin, bool waitForUp = true, TimeSpan timeout = default(TimeSpan))
+        public void Wait(ProcessorPin pin, bool waitForUp = true, TimeSpan timeout = default)
         {
             var startWait = DateTime.UtcNow;
             if (timeout == TimeSpan.Zero)

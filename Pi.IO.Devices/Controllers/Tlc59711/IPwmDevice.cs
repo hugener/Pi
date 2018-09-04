@@ -6,12 +6,12 @@
 namespace Pi.IO.Devices.Controllers.Tlc59711
 {
     /// <summary>
-    /// A pulse-width modulation (PWM) device
+    /// A pulse-width modulation (PWM) device.
     /// </summary>
     public interface IPwmDevice
     {
         /// <summary>
-        /// Gets the PWM channels
+        /// Gets the PWM channels.
         /// </summary>
         IPwmChannels Channels { get; }
     }

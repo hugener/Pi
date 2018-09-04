@@ -12,7 +12,7 @@ namespace Pi.IO.Devices.Converters.Mcp3208
     /// Represents a connection to MCP3204/3208 ADC converter.
     /// </summary>
     /// <remarks>
-    /// See specification at http://www.adafruit.com/datasheets/MCP3208.pdf
+    /// See specification at http://www.adafruit.com/datasheets/MCP3208.pdf.
     /// </remarks>
     public class Mcp3208Device : IDisposable
     {
@@ -42,7 +42,7 @@ namespace Pi.IO.Devices.Converters.Mcp3208
         /// Reads the specified channel.
         /// </summary>
         /// <param name="channel">The channel.</param>
-        /// <returns>The value</returns>
+        /// <returns>The value.</returns>
         public AnalogValue Read(Mcp3208Channel channel)
         {
             using (this.spiConnection.SelectSlave())

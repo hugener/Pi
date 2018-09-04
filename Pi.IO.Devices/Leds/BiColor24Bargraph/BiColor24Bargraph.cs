@@ -51,7 +51,7 @@ namespace Pi.IO.Devices.Leds.BiColor24Bargraph
         }
 
         /// <summary>
-        /// Sets the led (0 to 23)
+        /// Sets the led (0 to 23).
         /// </summary>
         /// <param name="ledNo">Led no.</param>
         /// <param name="state">State.</param>

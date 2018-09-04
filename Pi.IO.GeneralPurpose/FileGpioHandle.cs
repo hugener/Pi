@@ -8,7 +8,7 @@ namespace Pi.IO.GeneralPurpose
     using global::System.IO;
 
     /// <summary>
-    /// Represents a handle on a GPIO file
+    /// Represents a handle on a GPIO file.
     /// </summary>
     public class FileGpioHandle
     {

@@ -5,11 +5,11 @@
 
 namespace Pi.IO.InterIntegratedCircuit
 {
-    using System.Threading;
-    using GeneralPurpose;
     using global::System;
     using global::System.Globalization;
     using global::System.Runtime.InteropServices;
+    using Pi.IO.GeneralPurpose;
+    using Pi.System.Threading;
 
     /// <summary>
     /// Represents a driver for I2C devices.
@@ -36,7 +36,7 @@ namespace Pi.IO.InterIntegratedCircuit
         /// <param name="sdaPin">The SDA pin.</param>
         /// <param name="sclPin">The SCL pin.</param>
         /// <param name="threadFactory">The thread factory.</param>
-        /// <exception cref="InvalidOperationException">Unable to access device memory</exception>
+        /// <exception cref="InvalidOperationException">Unable to access device memory.</exception>
         public I2cDriver(ProcessorPin sdaPin, ProcessorPin sclPin, IThreadFactory threadFactory = null)
         {
             this.sdaPin = sdaPin;
@@ -116,7 +116,7 @@ namespace Pi.IO.InterIntegratedCircuit
         /// Connects the specified device address.
         /// </summary>
         /// <param name="deviceAddress">The device address.</param>
-        /// <returns>The device connection</returns>
+        /// <returns>The device connection.</returns>
         public I2cDeviceConnection Connect(int deviceAddress)
         {
             return new I2cDeviceConnection(this, deviceAddress);

@@ -6,7 +6,7 @@
 namespace Pi.IO.SerialPeripheralInterface
 {
     using global::System;
-    using IO.Interop;
+    using Pi.IO.Interop;
 
     /// <summary>
     /// A transfer buffer used to read from / write to the SPI bus.
@@ -44,11 +44,11 @@ namespace Pi.IO.SerialPeripheralInterface
                 this.rxBuf = new ManagedMemory(lengthInBytes);
             }
 
-            var txPtr = ReferenceEquals(this.Tx, null)
+            var txPtr = this.Tx is null
                 ? 0
                 : unchecked((ulong)this.Tx.Pointer.ToInt64());
 
-            var rxPtr = ReferenceEquals(this.Rx, null)
+            var rxPtr = this.Rx is null
                 ? 0
                 : unchecked((ulong)this.Rx.Pointer.ToInt64());
 
@@ -67,7 +67,7 @@ namespace Pi.IO.SerialPeripheralInterface
         }
 
         /// <summary>
-        /// Gets or sets the temporary override of the device's wordsize
+        /// Gets or sets the temporary override of the device's wordsize.
         /// </summary>
         public byte BitsPerWord
         {
@@ -76,7 +76,7 @@ namespace Pi.IO.SerialPeripheralInterface
         }
 
         /// <summary>
-        /// Gets or sets the temporary override of the device's bitrate (in Hz)
+        /// Gets or sets the temporary override of the device's bitrate (in Hz).
         /// </summary>
         public uint Speed
         {
@@ -114,27 +114,27 @@ namespace Pi.IO.SerialPeripheralInterface
         }
 
         /// <summary>
-        /// Gets the transfer mode (read and/or write). <see cref="SpiTransferMode"/>
+        /// Gets the transfer mode (read and/or write). <see cref="SpiTransferMode"/>.
         /// </summary>
         public SpiTransferMode TransferMode => this.mode;
 
         /// <summary>
-        /// Gets the length of <see cref="Tx"/> and <see cref="Rx"/> buffers, in bytes
+        /// Gets the length of <see cref="Tx"/> and <see cref="Rx"/> buffers, in bytes.
         /// </summary>
         public int Length => unchecked((int)this.control.Length);
 
         /// <summary>
-        /// Gets the pointer to userspace buffer with transmit data, or <c>null</c>. If no data is provided, zeroes are shifted out
+        /// Gets the pointer to userspace buffer with transmit data, or <c>null</c>. If no data is provided, zeroes are shifted out.
         /// </summary>
         public IMemory Tx => this.txBuf;
 
         /// <summary>
-        /// Gets the pointer to userspace buffer for receive data, or <c>null</c>
+        /// Gets the pointer to userspace buffer for receive data, or <c>null</c>.
         /// </summary>
         public IMemory Rx => this.rxBuf;
 
         /// <summary>
-        /// Gets the IOCTL structure that contains control information for a single SPI transfer
+        /// Gets the IOCTL structure that contains control information for a single SPI transfer.
         /// </summary>
         public SpiTransferControlStructure ControlStructure => this.control;
 
@@ -163,12 +163,12 @@ namespace Pi.IO.SerialPeripheralInterface
             this.control.Length = 0;
 
             // always free managed/unmanaged memory
-            if (!ReferenceEquals(this.txBuf, null))
+            if (!(this.txBuf is null))
             {
                 this.txBuf.Dispose();
             }
 
-            if (!ReferenceEquals(this.rxBuf, null))
+            if (!(this.rxBuf is null))
             {
                 this.rxBuf.Dispose();
             }

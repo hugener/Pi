@@ -17,7 +17,7 @@ namespace Pi.IO.Devices.Displays.Hd44780
     ///      and http://www.quinapalus.com/hd44780udg.html
     ///      and http://robo.fe.uni-lj.si/~kamnikr/sola/urac/vaja3_display/How%20to%20control%20HD44780%20display.pdf
     ///      and http://web.stanford.edu/class/ee281/handouts/lcd_tutorial.pdf
-    ///      and http://www.systronix.com/access/Systronix_20x4_lcd_brief_data.pdf
+    ///      and http://www.systronix.com/access/Systronix_20x4_lcd_brief_data.pdf.
     /// </summary>
     public class Hd44780LcdDevice : IDisposable
     {
@@ -25,7 +25,8 @@ namespace Pi.IO.Devices.Displays.Hd44780
         private const int MaxChar = 80;    // This allows for setups such as 40x2 or a 20x4
 
         private static readonly TimeSpan SyncDelay = TimeSpanUtility.FromMicroseconds(150);
-
+        private readonly IGpioConnectionDriverFactory gpioConnectionDriverFactory;
+        private readonly IGpioConnectionDriver gpioConnectionDriver;
         private readonly Hd44780Pins pins;
         private readonly IThread thread;
 
@@ -42,35 +43,33 @@ namespace Pi.IO.Devices.Displays.Hd44780
         private bool backlightEnabled;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Hd44780LcdDevice" /> class.
+        /// Initializes a new instance of the <see cref="Hd44780LcdDevice"/> class.
         /// </summary>
         /// <param name="settings">The settings.</param>
-        /// <param name="gpioConnectionDriver">The gpio connection driver.</param>
+        /// <param name="gpioConnectionDriverFactory">The gpio connection driver factory.</param>
         /// <param name="registerSelectPin">The register select pin.</param>
         /// <param name="clockPin">The clock pin.</param>
-        /// <param name="hd44780DataPins">The data pins.</param>
+        /// <param name="hd44780DataPins">The HD44780 data pins.</param>
         /// <param name="backlight">The backlight.</param>
         /// <param name="readWrite">The read write.</param>
         /// <param name="threadFactory">The thread factory.</param>
-        /// <exception cref="ArgumentOutOfRangeException">pins - There must be either 4 or 8 data pins
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// pins - There must be either 4 or 8 data pins
         /// or
         /// settings - ScreenHeight must be between 1 and 4 rows
         /// or
         /// settings - PatternWidth must be 5 pixels
         /// or
-        /// settings - PatternWidth must be either 7 or 10 pixels height</exception>
-        /// <exception cref="ArgumentException">At most 80 characters are allowed
+        /// settings - PatternWidth must be either 7 or 10 pixels height.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// At most 80 characters are allowed
         /// or
-        /// 10 pixels height pattern cannot be used with an even number of rows</exception>
-        /// <exception cref="ArgumentOutOfRangeException">pins - There must be either 4 or 8 data pins and
-        /// or settings - ScreenHeight must be between 1 and 4 rows
-        /// or settings - PatternWidth must be 5 pixels
-        /// or settings - PatternWidth must be either 7 or 10 pixels height</exception>
-        /// <exception cref="ArgumentException">At most 80 characters are allowed
-        /// or /// 10 pixels height pattern cannot be used with an even number of rows</exception>
+        /// 10 pixels height pattern cannot be used with an even number of rows.
+        /// </exception>
         public Hd44780LcdDevice(
             Hd44780LcdDeviceSettings settings,
-            IGpioConnectionDriver gpioConnectionDriver,
+            IGpioConnectionDriverFactory gpioConnectionDriverFactory,
             ConnectorPin registerSelectPin,
             ConnectorPin clockPin,
             Hd44780DataPins hd44780DataPins,
@@ -78,8 +77,10 @@ namespace Pi.IO.Devices.Displays.Hd44780
             ConnectorPin? readWrite = null,
             IThreadFactory threadFactory = null)
         {
+            this.gpioConnectionDriverFactory = GpioConnectionDriverFactory.EnsureGpioConnectionDriverFactory(gpioConnectionDriverFactory);
+            this.gpioConnectionDriver = gpioConnectionDriverFactory.Get();
             settings = settings ?? new Hd44780LcdDeviceSettings();
-            this.pins = new Hd44780Pins(gpioConnectionDriver, registerSelectPin, clockPin, backlight, readWrite, hd44780DataPins.ConnectorPins);
+            this.pins = new Hd44780Pins(this.gpioConnectionDriver, registerSelectPin, clockPin, backlight, readWrite, hd44780DataPins.ConnectorPins);
             this.thread = ThreadFactory.EnsureThreadFactory(threadFactory).Create();
 
             if (this.pins.Data.Length != 4 && this.pins.Data.Length != 8)
@@ -261,6 +262,7 @@ namespace Pi.IO.Devices.Displays.Hd44780
             this.Clear();
             this.pins.Dispose();
             this.thread.Dispose();
+            this.gpioConnectionDriverFactory.Dispose(this.gpioConnectionDriver);
         }
 
         void IDisposable.Dispose()
@@ -323,7 +325,7 @@ namespace Pi.IO.Devices.Displays.Hd44780
         }
 
         /// <summary>
-        /// Moves the cursor to the specified row and column
+        /// Moves the cursor to the specified row and column.
         /// </summary>
         /// <param name="position">The position.</param>
         public void SetCursorPosition(Hd44780Position position)
@@ -564,11 +566,11 @@ namespace Pi.IO.Devices.Displays.Hd44780
         }
 
         /// <summary>
-        /// Returns the Lcd Address for the given row
+        /// Returns the Lcd Address for the given row.
         /// </summary>
-        /// <param name="row">A zero based row position</param>
-        /// <returns>The Lcd Address as an int</returns>
-        /// <remarks>http://www.mikroe.com/forum/viewtopic.php?t=5149</remarks>
+        /// <param name="row">A zero based row position.</param>
+        /// <returns>The Lcd Address as an int.</returns>
+        /// <remarks>http://www.mikroe.com/forum/viewtopic.php?t=5149.</remarks>
         private int GetLcdAddressLocation(int row)
         {
             const int baseAddress = 128;

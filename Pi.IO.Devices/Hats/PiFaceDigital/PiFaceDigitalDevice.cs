@@ -13,7 +13,7 @@ namespace Pi.IO.Devices.Hats.PiFaceDigital
     /// Pins on the board have software counterparts to control or read state of the physical pins.
     /// Polling is required for the input pin values as the PiFace Digital has no interrupt support.
     ///
-    /// This driver uses a NativeSpiConnection which requires the native SPI driver be enabled
+    /// This driver uses a NativeSpiConnection which requires the native SPI driver be enabled.
     /// </summary>
     public class PiFaceDigitalDevice : IDisposable
     {
@@ -28,12 +28,12 @@ namespace Pi.IO.Devices.Hats.PiFaceDigital
         private INativeSpiConnection spiConnection = null;
 
         /// <summary>
-        /// Re-usable buffer for reading input pins state to reduce the polling overhead
+        /// Re-usable buffer for reading input pins state to reduce the polling overhead.
         /// </summary>
         private ISpiTransferBuffer inputPollBuffer;
 
         /// <summary>
-        /// Last known state of the inputs, used to optimize detecting changes
+        /// Last known state of the inputs, used to optimize detecting changes.
         /// </summary>
         private byte cachedInputState;
 
@@ -60,7 +60,7 @@ namespace Pi.IO.Devices.Hats.PiFaceDigital
         }
 
         /// <summary>
-        /// Registers on the MCP23S17 chip
+        /// Registers on the MCP23S17 chip.
         /// </summary>
         internal enum Mcp23S17Register
         {
@@ -73,17 +73,17 @@ namespace Pi.IO.Devices.Hats.PiFaceDigital
         }
 
         /// <summary>
-        /// Gets the software proxy for the input pins of the PiFace Digital Board
+        /// Gets the software proxy for the input pins of the PiFace Digital Board.
         /// </summary>
         public PiFaceInputPin[] InputPins { get; private set; }
 
         /// <summary>
-        /// Gets the software proxy for the output pins of the PiFace Digital Board
+        /// Gets the software proxy for the output pins of the PiFace Digital Board.
         /// </summary>
         public PiFaceOutputPin[] OutputPins { get; private set; }
 
         /// <summary>
-        /// Update PiFace board with the current vales of the software output pins
+        /// Update PiFace board with the current vales of the software output pins.
         /// </summary>
         public void UpdatePiFaceOutputPins()
         {
@@ -91,7 +91,7 @@ namespace Pi.IO.Devices.Hats.PiFaceDigital
         }
 
         /// <summary>
-        /// Configure the output pins with a byte that has one bit per pin and set the pins on the PiFaceDigital
+        /// Configure the output pins with a byte that has one bit per pin and set the pins on the PiFaceDigital.
         /// </summary>
         /// <param name="allPinsState">State of all pins.</param>
         public void SetAllOutputPins(byte allPinsState)
@@ -105,7 +105,7 @@ namespace Pi.IO.Devices.Hats.PiFaceDigital
         }
 
         /// <summary>
-        /// Read the state of the input pins. Will trigger any Onchanged events registered
+        /// Read the state of the input pins. Will trigger any Onchanged events registered.
         /// </summary>
         public void PollInputPins()
         {
@@ -161,7 +161,7 @@ namespace Pi.IO.Devices.Hats.PiFaceDigital
         }
 
         /// <summary>
-        /// Sets up the transfer buffer for reading input pins;
+        /// Sets up the transfer buffer for reading input pins;.
         /// </summary>
         private void CreateReusableBufferForInputPolling()
         {
@@ -172,7 +172,7 @@ namespace Pi.IO.Devices.Hats.PiFaceDigital
         }
 
         /// <summary>
-        /// Set up the MCP23S17 for the PiFace Digital board
+        /// Set up the MCP23S17 for the PiFace Digital board.
         /// </summary>
         private void InitPiFace()
         {

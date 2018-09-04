@@ -13,7 +13,7 @@ namespace Pi.IO.Devices.Displays.Sda5708
     public sealed class Sda5708Font
     {
         /// <summary>
-        /// The patterns
+        /// The patterns.
         /// </summary>
         public static readonly Dictionary<char, string[]> Patterns = new Dictionary<char, string[]>
         {

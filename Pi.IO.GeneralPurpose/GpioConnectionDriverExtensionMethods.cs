@@ -23,7 +23,7 @@ namespace Pi.IO.GeneralPurpose
         /// <returns>
         /// The time the pin remains up.
         /// </returns>
-        public static decimal Time(this IGpioConnectionDriver driver, ProcessorPin pin, bool waitForUp = true, TimeSpan phase1Timeout = default(TimeSpan), TimeSpan phase2Timeout = default(TimeSpan))
+        public static decimal Time(this IGpioConnectionDriver driver, ProcessorPin pin, bool waitForUp = true, TimeSpan phase1Timeout = default, TimeSpan phase2Timeout = default)
         {
             driver.Wait(pin, waitForUp, phase1Timeout);
 

@@ -6,7 +6,7 @@
 namespace Pi.IO.Devices.Hats.PiFaceDigital
 {
     /// <summary>
-    /// delgate for pin state changed events. The pin that changed is in the args
+    /// delgate for pin state changed events. The pin that changed is in the args.
     /// </summary>
     /// <param name="sender">The sender.</param>
     /// <param name="e">The e.</param>

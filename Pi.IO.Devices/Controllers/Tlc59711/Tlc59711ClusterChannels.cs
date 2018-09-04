@@ -9,7 +9,7 @@ namespace Pi.IO.Devices.Controllers.Tlc59711
     using global::System.Collections.Generic;
 
     /// <summary>
-    /// The PWM channels of a TLC59711 device cluster
+    /// The PWM channels of a TLC59711 device cluster.
     /// </summary>
     internal sealed class Tlc59711ClusterChannels : IPwmChannels
     {
@@ -19,7 +19,7 @@ namespace Pi.IO.Devices.Controllers.Tlc59711
         /// Initializes a new instance of the <see cref="Tlc59711ClusterChannels"/> class.
         /// </summary>
         /// <param name="devices">The devices.</param>
-        /// <exception cref="ArgumentNullException">devices</exception>
+        /// <exception cref="ArgumentNullException">devices.</exception>
         public Tlc59711ClusterChannels(IEnumerable<ITlc59711Device> devices)
         {
             if (devices == null)
@@ -49,8 +49,8 @@ namespace Pi.IO.Devices.Controllers.Tlc59711
         /// <summary>
         /// Indexer, which will allow client code to use [] notation on the class instance itself to modify PWM channel values.
         /// </summary>
-        /// <param name="index">channel index</param>
-        /// <returns>The current PWM value from <paramref name="index"/></returns>
+        /// <param name="index">channel index.</param>
+        /// <returns>The current PWM value from <paramref name="index"/>.</returns>
         public ushort this[int index]
         {
             get => this.Get(index);
@@ -60,8 +60,8 @@ namespace Pi.IO.Devices.Controllers.Tlc59711
         /// <summary>
         /// Returns the PWM value at the specified channel <paramref name="index"/>.
         /// </summary>
-        /// <param name="index">Channel index</param>
-        /// <returns>The PWM value at the specified channel <paramref name="index"/></returns>
+        /// <param name="index">Channel index.</param>
+        /// <returns>The PWM value at the specified channel <paramref name="index"/>.</returns>
         public ushort Get(int index)
         {
             var mapping = this.deviceMap[index];
@@ -71,8 +71,8 @@ namespace Pi.IO.Devices.Controllers.Tlc59711
         /// <summary>
         /// Sets the PWM value at channel <paramref name="index"/>.
         /// </summary>
-        /// <param name="index">Channel index</param>
-        /// <param name="value">The PWM value</param>
+        /// <param name="index">Channel index.</param>
+        /// <param name="value">The PWM value.</param>
         public void Set(int index, ushort value)
         {
             var mapping = this.deviceMap[index];

@@ -13,12 +13,12 @@ namespace Pi.IO.Interop
     public interface IFile : IDisposable
     {
         /// <summary>
-        /// Gets the file descriptor
+        /// Gets the file descriptor.
         /// </summary>
         int Descriptor { get; }
 
         /// <summary>
-        /// Gets the pathname to the file
+        /// Gets the pathname to the file.
         /// </summary>
         string Filename { get; }
     }

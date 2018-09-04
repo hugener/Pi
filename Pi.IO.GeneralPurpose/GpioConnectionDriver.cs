@@ -5,14 +5,14 @@
 
 namespace Pi.IO.GeneralPurpose
 {
-    using System.Threading;
     using global::System;
     using global::System.Collections.Generic;
     using global::System.Globalization;
     using global::System.IO;
     using global::System.Runtime.InteropServices;
-    using IO.Interop;
-    using Timers;
+    using Pi.IO.Interop;
+    using Pi.System.Threading;
+    using Pi.Timers;
 
     /// <summary>
     /// Represents the default connection driver that uses memory for accesses and files for edge detection.
@@ -20,7 +20,7 @@ namespace Pi.IO.GeneralPurpose
     public class GpioConnectionDriver : IGpioConnectionDriver
     {
         /// <summary>
-        /// The minimum timeout (1 milliseconds)
+        /// The minimum timeout (1 milliseconds).
         /// </summary>
         public static readonly TimeSpan MinimumTimeout = TimeSpan.FromMilliseconds(1);
 
@@ -204,7 +204,7 @@ namespace Pi.IO.GeneralPurpose
         /// <remarks>
         /// If <c>timeout</c> is set to <see cref="TimeSpan.Zero" />, a 5 seconds timeout is used.
         /// </remarks>
-        public void Wait(ProcessorPin pin, bool waitForUp = true, TimeSpan timeout = default(TimeSpan))
+        public void Wait(ProcessorPin pin, bool waitForUp = true, TimeSpan timeout = default)
         {
             var pinPoll = this.pinPolls[pin];
             if (this.Read(pin) == waitForUp)

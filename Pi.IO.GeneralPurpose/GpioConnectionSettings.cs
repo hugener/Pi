@@ -5,15 +5,18 @@
 
 namespace Pi.IO.GeneralPurpose
 {
-    using Configuration;
     using global::System;
-    using global::System.Configuration;
 
     /// <summary>
     /// Represents settings for <see cref="GpioConnection"/>.
     /// </summary>
     public class GpioConnectionSettings
     {
+        /// <summary>
+        /// The default poll interval.
+        /// </summary>
+        public static readonly TimeSpan DefaultPollInterval = TimeSpan.FromMilliseconds(50);
+
         /// <summary>
         /// Gets the default blink duration.
         /// </summary>
@@ -33,46 +36,12 @@ namespace Pi.IO.GeneralPurpose
         }
 
         /// <summary>
-        /// Gets the default poll interval.
-        /// </summary>
-        public static TimeSpan DefaultPollInterval
-        {
-            get
-            {
-                var configurationSection = ConfigurationManager.GetSection("gpioConnection") as GpioConnectionConfigurationSection;
-                return TimeSpan.FromMilliseconds(configurationSection != null
-                    ? (double)configurationSection.PollInterval
-                    : (double)GpioConnectionConfigurationSection.DefaultPollInterval);
-            }
-        }
-
-        /// <summary>
         /// Gets the board connector pinout.
         /// </summary>
         /// <value>
         /// The board connector pinout.
         /// </value>
-        public static ConnectorPinout ConnectorPinout
-        {
-            get
-            {
-                var configurationSection = ConfigurationManager.GetSection("gpioConnection") as GpioConnectionConfigurationSection;
-                if (configurationSection != null)
-                {
-                    switch (configurationSection.BoardConnectorRevision)
-                    {
-                        case 1:
-                            return ConnectorPinout.Rev1;
-                        case 2:
-                            return ConnectorPinout.Rev2;
-                        case 3:
-                            return ConnectorPinout.Plus;
-                    }
-                }
-
-                return Board.Current.ConnectorPinout;
-            }
-        }
+        public static ConnectorPinout ConnectorPinout => Board.Current.ConnectorPinout;
 
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="GpioConnectionSettings"/> is opened on initialization.

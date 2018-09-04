@@ -5,11 +5,11 @@
 
 namespace Pi.IO.GeneralPurpose
 {
-    using System.Threading;
     using global::System;
     using global::System.Collections.Generic;
     using global::System.Linq;
-    using Timers;
+    using Pi.System.Threading;
+    using Pi.Timers;
 
     /// <summary>
     /// Represents a connection to the GPIO pins.
@@ -20,6 +20,7 @@ namespace Pi.IO.GeneralPurpose
 
         private readonly Dictionary<ProcessorPin, PinConfiguration> pinConfigurations;
         private readonly Dictionary<string, PinConfiguration> namedPins;
+        private readonly IGpioConnectionDriverFactory gpioConnectionDriverFactory;
 
         private readonly ITimer timer;
         private readonly Dictionary<ProcessorPin, bool> pinValues = new Dictionary<ProcessorPin, bool>();
@@ -35,7 +36,7 @@ namespace Pi.IO.GeneralPurpose
         /// </summary>
         /// <param name="pins">The pins.</param>
         public GpioConnection(params PinConfiguration[] pins)
-            : this(null, pins)
+            : this(null, pins, null)
         {
         }
 
@@ -61,6 +62,37 @@ namespace Pi.IO.GeneralPurpose
         /// <summary>
         /// Initializes a new instance of the <see cref="GpioConnection" /> class.
         /// </summary>
+        /// <param name="gpioConnectionDriverFactory">The gpio connection driver factory.</param>
+        /// <param name="pins">The pins.</param>
+        public GpioConnection(IGpioConnectionDriverFactory gpioConnectionDriverFactory, params PinConfiguration[] pins)
+            : this(null, pins, gpioConnectionDriverFactory)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GpioConnection" /> class.
+        /// </summary>
+        /// <param name="gpioConnectionDriverFactory">The gpio connection driver factory.</param>
+        /// <param name="pins">The pins.</param>
+        public GpioConnection(IGpioConnectionDriverFactory gpioConnectionDriverFactory, IEnumerable<PinConfiguration> pins)
+            : this(null, pins, gpioConnectionDriverFactory)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GpioConnection" /> class.
+        /// </summary>
+        /// <param name="settings">The settings.</param>
+        /// <param name="gpioConnectionDriverFactory">The gpio connection driver factory.</param>
+        /// <param name="pins">The pins.</param>
+        public GpioConnection(GpioConnectionSettings settings, IGpioConnectionDriverFactory gpioConnectionDriverFactory, params PinConfiguration[] pins)
+            : this(settings, pins, gpioConnectionDriverFactory)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GpioConnection" /> class.
+        /// </summary>
         /// <param name="settings">The settings.</param>
         /// <param name="pins">The pins.</param>
         /// <param name="gpioConnectionDriverFactory">The gpio connection driver factory.</param>
@@ -68,8 +100,8 @@ namespace Pi.IO.GeneralPurpose
         public GpioConnection(GpioConnectionSettings settings, IEnumerable<PinConfiguration> pins, IGpioConnectionDriverFactory gpioConnectionDriverFactory = null, IThreadFactory threadFactory = null)
         {
             this.settings = settings ?? new GpioConnectionSettings();
-            this.gpioConnectionDriver = GpioConnectionDriverFactory
-                .EnsureGpioConnectionDriverFactory(gpioConnectionDriverFactory).Create();
+            this.gpioConnectionDriverFactory = GpioConnectionDriverFactory.EnsureGpioConnectionDriverFactory(gpioConnectionDriverFactory);
+            this.gpioConnectionDriver = this.gpioConnectionDriverFactory.Get();
             this.thread = ThreadFactory.EnsureThreadFactory(threadFactory).Create();
             this.Pins = new ConnectedPins(this);
 
@@ -190,7 +222,7 @@ namespace Pi.IO.GeneralPurpose
             this.Close();
             this.thread.Dispose();
             Timer.Dispose(this.timer);
-            this.gpioConnectionDriver.Dispose();
+            this.gpioConnectionDriverFactory.Dispose(this.gpioConnectionDriver);
         }
 
         /// <summary>
@@ -522,8 +554,7 @@ namespace Pi.IO.GeneralPurpose
             }
 
             this.gpioConnectionDriver.Allocate(configuration.Pin, configuration.Direction);
-            var outputConfiguration = configuration as OutputPinConfiguration;
-            if (outputConfiguration != null)
+            if (configuration is OutputPinConfiguration outputConfiguration)
             {
                 this[configuration.Pin] = outputConfiguration.Enabled;
             }
@@ -542,8 +573,7 @@ namespace Pi.IO.GeneralPurpose
                     this.gpioConnectionDriver.SetPinResistor(inputConfiguration.Pin, inputConfiguration.Resistor);
                 }
 
-                var switchConfiguration = inputConfiguration as SwitchInputPinConfiguration;
-                if (switchConfiguration != null)
+                if (inputConfiguration is SwitchInputPinConfiguration switchConfiguration)
                 {
                     this.pinValues[inputConfiguration.Pin] = switchConfiguration.Enabled;
                     this.OnPinStatusChanged(new PinStatusEventArgs { Configuration = inputConfiguration, Enabled = this.pinValues[inputConfiguration.Pin] });
@@ -593,9 +623,7 @@ namespace Pi.IO.GeneralPurpose
                 if (oldPinValue != newPinValue)
                 {
                     var pin = (InputPinConfiguration)this.pinConfigurations[np];
-                    var switchPin = pin as SwitchInputPinConfiguration;
-
-                    if (switchPin != null)
+                    if (pin is SwitchInputPinConfiguration)
                     {
                         if (pin.GetEffective(newPinValue))
                         {

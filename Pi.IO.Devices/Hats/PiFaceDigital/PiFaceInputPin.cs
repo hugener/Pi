@@ -16,7 +16,7 @@ namespace Pi.IO.Devices.Hats.PiFaceDigital
         /// <summary>
         /// Initializes a new instance of the <see cref="PiFaceInputPin" /> class.
         /// </summary>
-        /// <param name="pinNumber">Number of the pin in the range 0 to 7</param>
+        /// <param name="pinNumber">Number of the pin in the range 0 to 7.</param>
         internal PiFaceInputPin(int pinNumber)
             : base(pinNumber)
         {
@@ -33,7 +33,7 @@ namespace Pi.IO.Devices.Hats.PiFaceDigital
         public bool IsGrounded => !this.State;
 
         /// <summary>
-        /// helper to set the state of every pin in a collection
+        /// helper to set the state of every pin in a collection.
         /// </summary>
         /// <param name="inputPins">The input pins.</param>
         /// <param name="allPinState">State of all pin.</param>
@@ -46,9 +46,9 @@ namespace Pi.IO.Devices.Hats.PiFaceDigital
         }
 
         /// <summary>
-        /// Update the state of this pin based on a byte that contains the state of every pin
+        /// Update the state of this pin based on a byte that contains the state of every pin.
         /// </summary>
-        /// <param name="allPinState">byte with all pin values</param>
+        /// <param name="allPinState">byte with all pin values.</param>
         internal override void Update(byte allPinState)
         {
             var oldState = this.State;

@@ -6,14 +6,14 @@
 namespace Pi.IO.Devices.Hats.PiFaceDigital
 {
     /// <summary>
-    /// Derivative of PiFacePin that allows setting of the internal state
+    /// Derivative of PiFacePin that allows setting of the internal state.
     /// </summary>
     public class PiFaceOutputPin : PiFacePin
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="PiFaceOutputPin"/> class.
         /// </summary>
-        /// <param name="pinNumber">Number of the pin in the range 0 to 7</param>
+        /// <param name="pinNumber">Number of the pin in the range 0 to 7.</param>
         internal PiFaceOutputPin(int pinNumber)
             : base(pinNumber)
         {
@@ -21,7 +21,7 @@ namespace Pi.IO.Devices.Hats.PiFaceDigital
 
         /// <summary>
         /// Gets or sets a value indicating whether the pin is set in software but does not update the PiFaceDigital device
-        /// Allows individual pins to be modified then everything updated with a call to UpdatePiFaceOutputPins
+        /// Allows individual pins to be modified then everything updated with a call to UpdatePiFaceOutputPins.
         /// </summary>
         public new bool State
         {

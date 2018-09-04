@@ -14,7 +14,7 @@ namespace Pi.IO.Devices.Controllers.Pca9685
     /// Driver for Adafruit 16-channel PWM/Servo Shield which uses the
     /// NXP PCA9685 16-channel, 12-bit PWM Fm+ I2C-bus LED controller
     /// Ported from
-    /// https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code/blob/master/Adafruit_PWM_Servo_Driver/Adafruit_PWM_Servo_Driver.py
+    /// https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code/blob/master/Adafruit_PWM_Servo_Driver/Adafruit_PWM_Servo_Driver.py.
     /// </summary>
     public class Pca9685Device : IPwmDevice
     {
@@ -62,7 +62,7 @@ namespace Pi.IO.Devices.Controllers.Pca9685
         /// Sets the PWM update rate.
         /// </summary>
         /// <param name="frequency">The frequency, in hz.</param>
-        /// <remarks>Datasheet: 7.3.5 PWM frequency PRE_SCALE</remarks>
+        /// <remarks>Datasheet: 7.3.5 PWM frequency PRE_SCALE.</remarks>
         public void SetPwmUpdateRate(Frequency frequency)
         {
             var preScale = 25000000.0m; // 25MHz
@@ -92,7 +92,7 @@ namespace Pi.IO.Devices.Controllers.Pca9685
         }
 
         /// <summary>
-        /// Sets a single PWM channel
+        /// Sets a single PWM channel.
         /// </summary>
         /// <param name="channel">The channel.</param>
         /// <param name="on">The on values.</param>
@@ -106,7 +106,7 @@ namespace Pi.IO.Devices.Controllers.Pca9685
         }
 
         /// <summary>
-        /// Set a channel to fully on or off
+        /// Set a channel to fully on or off.
         /// </summary>
         /// <param name="channel">The channel.</param>
         /// <param name="fullOn">if set to <c>true</c>, all values are on; otherwise they are all off.</param>
