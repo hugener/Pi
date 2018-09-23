@@ -73,7 +73,7 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="waitForUp">if set to <c>true</c> waits for the pin to be up. Default value is <c>true</c>.</param>
         /// <param name="timeout">The timeout. Default value is <see cref="TimeSpan.Zero"/>.</param>
         /// <remarks>If <c>timeout</c> is set to <see cref="TimeSpan.Zero"/>, a default timeout is used instead.</remarks>
-        public void Wait(bool waitForUp = true, TimeSpan timeout = default(TimeSpan))
+        public void Wait(bool waitForUp = true, TimeSpan timeout = default)
         {
             this.SetDirection(PinDirection.Input);
             this.driver.Wait(this.pin, waitForUp, timeout);

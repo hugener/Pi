@@ -24,7 +24,7 @@ namespace Pi.IO.Devices.Displays.Hd44780
         private const int MaxHeight = 4;   // Allow for larger displays
         private const int MaxChar = 80;    // This allows for setups such as 40x2 or a 20x4
 
-        private static readonly TimeSpan SyncDelay = TimeSpanUtility.FromMicroseconds(150);
+        private readonly TimeSpan syncDelay;
         private readonly IGpioConnectionDriverFactory gpioConnectionDriverFactory;
         private readonly IGpioConnectionDriver gpioConnectionDriver;
         private readonly Hd44780Pins pins;
@@ -82,17 +82,18 @@ namespace Pi.IO.Devices.Displays.Hd44780
             settings = settings ?? new Hd44780LcdDeviceSettings();
             this.pins = new Hd44780Pins(this.gpioConnectionDriver, registerSelectPin, clockPin, backlight, readWrite, hd44780DataPins.ConnectorPins);
             this.thread = ThreadFactory.EnsureThreadFactory(threadFactory).Create();
+            this.syncDelay = settings.SyncDelay;
 
             if (this.pins.Data.Length != 4 && this.pins.Data.Length != 8)
             {
-                throw new ArgumentOutOfRangeException("pins", this.pins.Data.Length, "There must be either 4 or 8 data pins");
+                throw new ArgumentOutOfRangeException(nameof(hd44780DataPins), this.pins.Data.Length, "There must be either 4 or 8 data pins");
             }
 
             this.width = settings.ScreenWidth;
             this.height = settings.ScreenHeight;
             if (this.height < 1 || this.height > MaxHeight)
             {
-                throw new ArgumentOutOfRangeException("settings", this.height, "ScreenHeight must be between 1 and 4 rows");
+                throw new ArgumentOutOfRangeException(nameof(settings.ScreenHeight), this.height, "ScreenHeight must be between 1 and 4 rows");
             }
 
             if (this.width * this.height > MaxChar)
@@ -102,12 +103,12 @@ namespace Pi.IO.Devices.Displays.Hd44780
 
             if (settings.PatternWidth != 5)
             {
-                throw new ArgumentOutOfRangeException("settings", settings.PatternWidth, "PatternWidth must be 5 pixels");
+                throw new ArgumentOutOfRangeException(nameof(settings.PatternWidth), settings.PatternWidth, "PatternWidth must be 5 pixels");
             }
 
             if (settings.PatternHeight != 8 && settings.PatternHeight != 10)
             {
-                throw new ArgumentOutOfRangeException("settings", settings.PatternWidth, "PatternWidth must be either 7 or 10 pixels height");
+                throw new ArgumentOutOfRangeException(nameof(settings.PatternHeight), settings.PatternHeight, "PatternHeight must be either 7 or 10 pixels height");
             }
 
             if (settings.PatternHeight == 10 && this.height % 2 == 0)
@@ -154,6 +155,14 @@ namespace Pi.IO.Devices.Displays.Hd44780
         /// The cursor position.
         /// </value>
         public Hd44780Position CursorPosition => this.currentPosition;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this instance is clearing on close.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is clearing on close; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsClearingOnClose { get; set; } = true;
 
         /// <summary>
         /// Gets or sets a value indicating whether display is enabled.
@@ -259,7 +268,11 @@ namespace Pi.IO.Devices.Displays.Hd44780
         /// </summary>
         public void Close()
         {
-            this.Clear();
+            if (this.IsClearingOnClose)
+            {
+                this.Clear();
+            }
+
             this.pins.Dispose();
             this.thread.Dispose();
             this.gpioConnectionDriverFactory.Dispose(this.gpioConnectionDriver);
@@ -588,10 +601,10 @@ namespace Pi.IO.Devices.Displays.Hd44780
         private void Synchronize()
         {
             this.pins.Clock.Write(true);
-            this.thread.Sleep(SyncDelay); // 1 microsecond pause - enable pulse must be > 450ns
+            this.thread.Sleep(this.syncDelay); // 1 microsecond pause - enable pulse must be > 450ns
 
             this.pins.Clock.Write(false);
-            this.thread.Sleep(SyncDelay); // commands need > 37us to settle
+            this.thread.Sleep(this.syncDelay); // commands need > 37us to settle
         }
     }
 }

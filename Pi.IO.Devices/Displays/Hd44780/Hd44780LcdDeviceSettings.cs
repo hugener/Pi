@@ -5,7 +5,9 @@
 
 namespace Pi.IO.Devices.Displays.Hd44780
 {
+    using global::System;
     using global::System.Text;
+    using Pi.Timers;
 
     /// <summary>
     /// Settings for the <see cref="Hd44780LcdDevice"/>.
@@ -23,9 +25,19 @@ namespace Pi.IO.Devices.Displays.Hd44780
             this.PatternHeight = 8;
 
             this.Encoding = new Hd44780A00Encoding();
+            this.SyncDelay = TimeSpanUtility.FromMicroseconds(1);
 
             // RightToLeft = false;
         }
+
+        /// <summary>
+        /// Gets or sets the synchronize delay.
+        /// Might depend on the actual display.
+        /// </summary>
+        /// <value>
+        /// The synchronize delay.
+        /// </value>
+        public TimeSpan SyncDelay { get; set; }
 
         /// <summary>
         /// Gets or sets the width of the screen.
