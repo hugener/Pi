@@ -6,7 +6,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <NoWarn>NU1701</NoWarn>
     <PackageId>Pi.IO.Devices.SundewFork</PackageId>
-    <Version>0.0.3-pre006</Version>
+    <Version>0.0.3-pre008</Version>
     <Authors>Pi.IO.Devices</Authors>
     <Company>Pi.IO.Devices</Company>
     <Product>Pi.IO.Devices</Product>

@@ -10,12 +10,14 @@ namespace Pi.Timers
     using global::System.Threading;
     using global::System.Threading.Tasks;
     using Pi.System.Threading;
+    using Sundew.Base.Threading;
 
     /// <summary>
     /// Represents a high-resolution timer.
     /// </summary>
     public class HighResolutionTimer : ITimer
     {
+        private readonly object lockObject = new object();
         private readonly ManualResetEventSlim timerRunningEvent = new ManualResetEventSlim(false);
         private readonly ManualResetEventSlim timerStoppedEvent = new ManualResetEventSlim(false);
         private readonly AutoResetEvent sleepAutoResetEvent = new AutoResetEvent(false);
@@ -24,7 +26,7 @@ namespace Pi.Timers
         private readonly CancellationTokenSource disposeCancellationTokenSource = new CancellationTokenSource();
         private readonly BlockingCollection<Action> timerActions = new BlockingCollection<Action>(new ConcurrentQueue<Action>());
         private TimeSpan delay;
-        private EventHandler tick;
+        private TickEventHandler tick;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HighResolutionTimer" /> class.
@@ -43,36 +45,69 @@ namespace Pi.Timers
         /// <value>
         /// The action.
         /// </value>
-        public event EventHandler Tick
+        public event TickEventHandler Tick
         {
             add
             {
-                this.tick += value;
-                this.StopIfHandlerEmpty();
+                lock (this.lockObject)
+                {
+                    this.tick += value;
+                    this.StopIfHandlerEmpty();
+                }
             }
 
             remove
             {
-                this.tick -= value;
-                this.StopIfHandlerEmpty();
+                lock (this.lockObject)
+                {
+                    this.tick -= value;
+                    this.StopIfHandlerEmpty();
+                }
             }
         }
 
         /// <summary>
-        /// Gets or sets the interval.
+        /// Gets a value indicating whether this instance is running.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is running; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsEnabled => this.timerRunningEvent.IsSet;
+
+        /// <summary>
+        /// Gets the interval.
         /// </summary>
         /// <value>
         /// The interval.
         /// </value>
-        public TimeSpan Interval { get; set; }
+        public TimeSpan Interval { get; private set; }
+
+        public void StartOnce(TimeSpan startDelay)
+        {
+            lock (this.lockObject)
+            {
+                this.StartOrRestartUnsafe(startDelay, Timeout.InfiniteTimeSpan);
+            }
+        }
 
         /// <summary>
         /// Starts this instance.
         /// </summary>
-        /// <param name="startDelay">The delay before the first occurence, in milliseconds.</param>
-        public void Start(TimeSpan startDelay)
+        /// <param name="interval">The interval.</param>
+        public void Start(TimeSpan interval)
         {
-            this.timerActions.Add(() => this.StartTimer(startDelay));
+            lock (this.lockObject)
+            {
+                this.StartOrRestartUnsafe(interval, interval);
+            }
+        }
+
+        public void Start(TimeSpan startDelay, TimeSpan interval)
+        {
+            lock (this.lockObject)
+            {
+                this.StartOrRestartUnsafe(startDelay, interval);
+            }
         }
 
         /// <summary>
@@ -81,16 +116,6 @@ namespace Pi.Timers
         public void Stop()
         {
             this.timerActions.Add(this.StopTimer);
-        }
-
-        /// <summary>
-        /// Restarts the specified start delay.
-        /// </summary>
-        /// <param name="startDelay">The start delay.</param>
-        public void Restart(TimeSpan startDelay)
-        {
-            this.Stop();
-            this.Start(startDelay);
         }
 
         /// <inheritdoc />
@@ -137,7 +162,7 @@ namespace Pi.Timers
 
                         disposeCancellationToken.ThrowIfCancellationRequested();
 
-                        this.tick?.Invoke(this, EventArgs.Empty);
+                        this.tick?.Invoke(this);
 
                         if (!this.timerRunningEvent.IsSet)
                         {
@@ -179,6 +204,17 @@ namespace Pi.Timers
             catch (OperationCanceledException)
             {
             }
+        }
+
+        private void StartOrRestartUnsafe(TimeSpan startDelay, TimeSpan interval)
+        {
+            if (this.IsEnabled)
+            {
+                this.timerActions.Add(this.StopTimer);
+            }
+
+            this.Interval = interval;
+            this.timerActions.Add(() => this.StartTimer(startDelay));
         }
 
         private void StartTimer(TimeSpan startDelay)

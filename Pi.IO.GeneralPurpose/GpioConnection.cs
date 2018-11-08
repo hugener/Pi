@@ -9,12 +9,13 @@ namespace Pi.IO.GeneralPurpose
     using global::System.Collections.Generic;
     using global::System.Linq;
     using Pi.System.Threading;
-    using Pi.Timers;
+    using Sundew.Base.Threading;
+    using Timer = Pi.Timers.Timer;
 
     /// <summary>
     /// Represents a connection to the GPIO pins.
     /// </summary>
-    public class GpioConnection : IDisposable
+    public class GpioConnection : IGpioConnection
     {
         private readonly GpioConnectionSettings settings;
 
@@ -112,7 +113,6 @@ namespace Pi.IO.GeneralPurpose
 
             this.timer = Timer.Create();
 
-            this.timer.Interval = this.settings.PollInterval;
             this.timer.Tick += this.CheckInputPins;
 
             if (this.settings.Opened)
@@ -242,7 +242,7 @@ namespace Pi.IO.GeneralPurpose
                     this.Allocate(pin);
                 }
 
-                this.timer.Start(TimeSpan.FromMilliseconds(10));
+                this.timer.Start(TimeSpan.FromMilliseconds(10), this.settings.PollInterval);
                 this.IsOpened = true;
             }
         }
@@ -603,7 +603,7 @@ namespace Pi.IO.GeneralPurpose
             }
         }
 
-        private void CheckInputPins(object sender, EventArgs e)
+        private void CheckInputPins(ITimer timer)
         {
             var newPinValues = this.gpioConnectionDriver.Read(this.inputPins);
 

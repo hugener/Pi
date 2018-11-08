@@ -5,6 +5,8 @@
 
 namespace Pi.Timers
 {
+    using Sundew.Base.Threading;
+
     /// <summary>
     /// Provides access to timing features.
     /// </summary>
@@ -24,7 +26,7 @@ namespace Pi.Timers
         {
             return Board.Current.IsRaspberryPi
                        ? (ITimer)new HighResolutionTimer()
-                       : new StandardTimer();
+                       : new Sundew.Base.Threading.Timer();
         }
 
         /// <summary>

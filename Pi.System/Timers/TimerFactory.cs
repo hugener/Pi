@@ -5,21 +5,52 @@
 
 namespace Pi.Timers
 {
+    using Sundew.Base.Disposal;
+    using Sundew.Base.Threading;
+
     /// <summary>
     /// Factory for creating a timer.
     /// </summary>
-    /// <seealso cref="Pi.Timers.ITimerFactory" />
+    /// <seealso cref="ITimerFactory" />
     public class TimerFactory : ITimerFactory
     {
+        private readonly DisposingList<ITimerControl> timers = new DisposingList<ITimerControl>();
+
         /// <summary>
         /// Creates this instance.
         /// </summary>
-        /// <returns>
-        /// A new <see cref="T:Pi.Timers.ITimer" />.
-        /// </returns>
+        /// <returns>A new timer.</returns>
         public ITimer Create()
         {
-            return Timer.Create();
+            return this.timers.Add(Timer.Create());
+        }
+
+        /// <summary>
+        /// Creates the specified state.
+        /// </summary>
+        /// <typeparam name="TState">The type of the state.</typeparam>
+        /// <param name="state">The state.</param>
+        /// <returns>A new timer.</returns>
+        public ITimer<TState> Create<TState>(TState state)
+        {
+            return this.timers.Add(new Timer<TState>(state));
+        }
+
+        /// <summary>
+        /// Disposes the specified timer control.
+        /// </summary>
+        /// <param name="timerControl">The timer control.</param>
+        public void Dispose(ITimerControl timerControl)
+        {
+            this.timers.Dispose(timerControl);
+        }
+
+        /// <summary>
+        /// Releases unmanaged and - optionally - managed resources.
+        /// </summary>
+        public void Dispose()
+        {
+            this.timers.Dispose();
         }
     }
 }

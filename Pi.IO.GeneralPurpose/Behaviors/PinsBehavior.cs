@@ -9,7 +9,8 @@ namespace Pi.IO.GeneralPurpose.Behaviors
     using global::System.Collections.Generic;
     using global::System.Linq;
     using Pi.System.Threading;
-    using Pi.Timers;
+    using Sundew.Base.Threading;
+    using Timer = Pi.Timers.Timer;
 
     /// <summary>
     /// Represents the pins behavior base class.
@@ -19,6 +20,7 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         private readonly ITimer timer;
         private readonly IThread thread;
         private int currentStep;
+        private TimeSpan interval;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PinsBehavior" /> class.
@@ -31,7 +33,7 @@ namespace Pi.IO.GeneralPurpose.Behaviors
             this.thread = threadFactory.Create();
 
             this.timer = Timer.Create();
-            this.timer.Interval = TimeSpan.FromMilliseconds(250);
+            this.interval = TimeSpan.FromMilliseconds(250);
             this.timer.Tick += this.OnTimer;
         }
 
@@ -48,8 +50,19 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// </value>
         public TimeSpan Interval
         {
-            get => this.timer.Interval;
-            set => this.timer.Interval = value;
+            get => this.interval;
+
+            set
+            {
+                if (this.interval != value)
+                {
+                    this.interval = value;
+                    if (this.timer.IsEnabled)
+                    {
+                        this.timer.Start(this.interval);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -73,7 +86,7 @@ namespace Pi.IO.GeneralPurpose.Behaviors
             }
 
             this.currentStep = this.GetFirstStep();
-            this.timer.Start(TimeSpan.Zero);
+            this.timer.Start(this.Interval);
         }
 
         internal void Stop()
@@ -105,7 +118,7 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         /// <returns><c>true</c> if the behavior may continue; otherwise behavior will be stopped.</returns>
         protected abstract bool TryGetNextStep(ref int step);
 
-        private void OnTimer(object sender, EventArgs e)
+        private void OnTimer(ITimer timer)
         {
             this.ProcessStep(this.currentStep);
             if (!this.TryGetNextStep(ref this.currentStep))
