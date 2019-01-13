@@ -9,6 +9,7 @@ namespace Pi.IO.Devices.Leds.GroveRgb
     using global::Pi.Timers;
     using global::System;
     using global::System.Collections.Generic;
+    using Sundew.Base.Threading;
 
     /// <summary>
     /// Represents a connection with Grove Chainable RGB Led modules.
@@ -17,7 +18,7 @@ namespace Pi.IO.Devices.Leds.GroveRgb
     public class GroveRgbDevice : IDisposable
     {
         private static readonly TimeSpan Delay = TimeSpanUtility.FromMicroseconds(20);
-        private readonly IThread thread;
+        private readonly ICurrentThread thread;
         private readonly IOutputBinaryPin dataPin;
         private readonly IOutputBinaryPin clockPin;
         private readonly List<RgbColor> ledColors;
@@ -128,7 +129,6 @@ namespace Pi.IO.Devices.Leds.GroveRgb
         {
             this.dataPin.Dispose();
             this.clockPin.Dispose();
-            this.thread.Dispose();
         }
 
         private void SendByte(byte data)

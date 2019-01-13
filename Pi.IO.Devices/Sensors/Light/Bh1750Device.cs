@@ -6,22 +6,22 @@
 namespace Pi.IO.Devices.Sensors.Light
 {
     using Pi.IO.InterIntegratedCircuit;
-    using Pi.System.Threading;
     using Pi.Timers;
+    using Sundew.Base.Threading;
 
     /// <summary>
     /// Represents a connection to a Bh1750 light sensor.
     /// </summary>
     public class Bh1750Device
     {
-        private readonly IThread thread;
+        private readonly ICurrentThread thread;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Bh1750Device"/> class.
         /// </summary>
         /// <param name="connection">The connection.</param>
         /// <param name="thread">The thread.</param>
-        public Bh1750Device(I2cDeviceConnection connection, IThread thread)
+        public Bh1750Device(I2cDeviceConnection connection, ICurrentThread thread)
         {
             this.thread = thread;
             this.Connection = connection;

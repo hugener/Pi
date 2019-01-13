@@ -9,6 +9,7 @@ namespace Pi.IO.Devices.Sensors.Distance.HcSr04
     using global::Pi.Timers;
     using global::System;
     using global::UnitsNet;
+    using Sundew.Base.Threading;
 
     /// <summary>
     /// Represents a connection to HC-SR04 distance sensor.
@@ -30,7 +31,7 @@ namespace Pi.IO.Devices.Sensors.Distance.HcSr04
 
         private readonly IOutputBinaryPin triggerPin;
         private readonly IInputBinaryPin echoPin;
-        private readonly IThread thread;
+        private readonly ICurrentThread thread;
         private TimeSpan timeout;
 
         /// <summary>
@@ -62,7 +63,6 @@ namespace Pi.IO.Devices.Sensors.Distance.HcSr04
         void IDisposable.Dispose()
         {
             this.Close();
-            this.thread.Dispose();
         }
 
         /// <summary>

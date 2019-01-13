@@ -12,6 +12,7 @@ namespace Pi.IO.GeneralPurpose
     using Pi.IO.Interop;
     using Pi.System.Threading;
     using Pi.Timers;
+    using Sundew.Base.Threading;
 
     /// <summary>
     /// Represents a connection driver that uses memory.
@@ -26,7 +27,7 @@ namespace Pi.IO.GeneralPurpose
         private static readonly TimeSpan ResistorSetDelay = TimeSpanUtility.FromMicroseconds(5);
         private readonly IntPtr gpioAddress;
         private readonly Dictionary<ProcessorPin, PinResistor> pinResistors = new Dictionary<ProcessorPin, PinResistor>();
-        private readonly IThread thread;
+        private readonly ICurrentThread thread;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MemoryGpioConnectionDriver" /> class.
@@ -63,7 +64,6 @@ namespace Pi.IO.GeneralPurpose
         public void Dispose()
         {
             MemoryMap.Close(this.gpioAddress, Interop.Bcm2835BlockSize);
-            this.thread.Dispose();
         }
 
         /// <summary>

@@ -26,7 +26,7 @@ namespace Pi.IO.GeneralPurpose
         private readonly ITimer timer;
         private readonly Dictionary<ProcessorPin, bool> pinValues = new Dictionary<ProcessorPin, bool>();
         private readonly Dictionary<ProcessorPin, EventHandler<PinStatusEventArgs>> pinEvents = new Dictionary<ProcessorPin, EventHandler<PinStatusEventArgs>>();
-        private readonly IThread thread;
+        private readonly ICurrentThread thread;
         private readonly IGpioConnectionDriver gpioConnectionDriver;
 
         private ProcessorPins inputPins = ProcessorPins.None;
@@ -220,7 +220,6 @@ namespace Pi.IO.GeneralPurpose
         public void Dispose()
         {
             this.Close();
-            this.thread.Dispose();
             Timer.Dispose(this.timer);
             this.gpioConnectionDriverFactory.Dispose(this.gpioConnectionDriver);
         }

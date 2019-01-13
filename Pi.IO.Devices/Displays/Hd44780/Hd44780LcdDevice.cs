@@ -10,6 +10,7 @@ namespace Pi.IO.Devices.Displays.Hd44780
     using global::Pi.Timers;
     using global::System;
     using global::System.Text;
+    using Sundew.Base.Threading;
 
     /// <summary>
     /// Based on https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code/blob/master/Adafruit_CharLCD/Adafruit_CharLCD.py
@@ -28,7 +29,7 @@ namespace Pi.IO.Devices.Displays.Hd44780
         private readonly IGpioConnectionDriverFactory gpioConnectionDriverFactory;
         private readonly IGpioConnectionDriver gpioConnectionDriver;
         private readonly Hd44780Pins pins;
-        private readonly IThread thread;
+        private readonly ICurrentThread thread;
 
         private readonly int width;
         private readonly int height;
@@ -274,7 +275,6 @@ namespace Pi.IO.Devices.Displays.Hd44780
             }
 
             this.pins.Dispose();
-            this.thread.Dispose();
             this.gpioConnectionDriverFactory.Dispose(this.gpioConnectionDriver);
         }
 

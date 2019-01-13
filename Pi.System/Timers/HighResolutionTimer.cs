@@ -11,20 +11,21 @@ namespace Pi.Timers
     using global::System.Threading.Tasks;
     using Pi.System.Threading;
     using Sundew.Base.Threading;
+    using Sundew.Base.Threading.Jobs;
 
     /// <summary>
     /// Represents a high-resolution timer.
     /// </summary>
     public class HighResolutionTimer : ITimer
     {
+        private static readonly CurrentThread CurrentThread = new CurrentThread();
         private readonly object lockObject = new object();
         private readonly ManualResetEventSlim timerRunningEvent = new ManualResetEventSlim(false);
         private readonly ManualResetEventSlim timerStoppedEvent = new ManualResetEventSlim(false);
-        private readonly AutoResetEvent sleepAutoResetEvent = new AutoResetEvent(false);
-        private readonly Thread timerThread;
-        private readonly Thread timerActionThread;
-        private readonly CancellationTokenSource disposeCancellationTokenSource = new CancellationTokenSource();
-        private readonly BlockingCollection<Action> timerActions = new BlockingCollection<Action>(new ConcurrentQueue<Action>());
+        private readonly CancellableJob timerJob;
+        private readonly ContinuousJob<BlockingCollection<Action>> timerActionJob;
+        private readonly CancellationToken disposeCancellationToken;
+        private CancellationTokenSource sleepCancellationTokenSource;
         private TimeSpan delay;
         private TickEventHandler tick;
 
@@ -33,10 +34,10 @@ namespace Pi.Timers
         /// </summary>
         internal HighResolutionTimer()
         {
-            this.timerThread = new Thread(this.Timer);
-            this.timerActionThread = new Thread(this.TimerControl);
-            this.timerThread.Start();
-            this.timerActionThread.Start();
+            this.timerJob = new CancellableJob(this.Timer);
+            this.timerActionJob = new ContinuousJob<BlockingCollection<Action>>(this.TimerControl, new BlockingCollection<Action>(new ConcurrentQueue<Action>()));
+            this.disposeCancellationToken = this.timerJob.Start().Value;
+            this.timerActionJob.Start();
         }
 
         /// <summary>
@@ -115,106 +116,87 @@ namespace Pi.Timers
         /// </summary>
         public void Stop()
         {
-            this.timerActions.Add(this.StopTimer);
+            this.timerActionJob.State.Add(this.StopTimer);
         }
 
         /// <inheritdoc />
         public void Dispose()
         {
-            this.disposeCancellationTokenSource?.Cancel();
-            this.sleepAutoResetEvent.Set();
+            var timerJobCompletionTask = this.timerJob.StopAsync();
+            var timerActionJobCompletionTask = this.timerActionJob.StopAsync();
             Task.Run(() =>
             {
-                this.timerThread.Join();
-                this.timerActionThread.Join();
-                this.disposeCancellationTokenSource.Dispose();
+                Task.WaitAll(timerJobCompletionTask, timerActionJobCompletionTask);
                 this.timerRunningEvent.Dispose();
                 this.timerStoppedEvent.Dispose();
-                this.sleepAutoResetEvent.Dispose();
+                this.sleepCancellationTokenSource?.Dispose();
                 this.tick = null;
             });
         }
 
-        private void Timer()
+        private void Timer(CancellationToken cancellationToken)
         {
-            var disposeCancellationToken = this.disposeCancellationTokenSource.Token;
-            try
+            while (this.SetStoppedAndWaitForStart(cancellationToken))
             {
-                while (this.SetStoppedAndWaitForStart(disposeCancellationToken))
+                if (!this.timerRunningEvent.IsSet)
+                {
+                    continue;
+                }
+
+                if (!PiThread.Sleep(this.delay, CurrentThread, this.sleepCancellationTokenSource.Token))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    continue;
+                }
+
+                while (true)
                 {
                     if (!this.timerRunningEvent.IsSet)
                     {
-                        continue;
+                        break;
                     }
 
-                    if (!PiThread.Sleep(this.delay, this.sleepAutoResetEvent))
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    this.tick?.Invoke(this);
+
+                    if (!this.timerRunningEvent.IsSet)
                     {
-                        disposeCancellationToken.ThrowIfCancellationRequested();
-                        continue;
+                        break;
                     }
 
-                    while (true)
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    if (this.Interval == Timeout.InfiniteTimeSpan)
                     {
-                        if (!this.timerRunningEvent.IsSet)
-                        {
-                            break;
-                        }
+                        this.timerRunningEvent.Reset();
+                        break;
+                    }
 
-                        disposeCancellationToken.ThrowIfCancellationRequested();
-
-                        this.tick?.Invoke(this);
-
-                        if (!this.timerRunningEvent.IsSet)
-                        {
-                            break;
-                        }
-
-                        disposeCancellationToken.ThrowIfCancellationRequested();
-
-                        if (this.Interval == Timeout.InfiniteTimeSpan)
-                        {
-                            this.timerRunningEvent.Reset();
-                            break;
-                        }
-
-                        if (!PiThread.Sleep(this.Interval, this.sleepAutoResetEvent))
-                        {
-                            disposeCancellationToken.ThrowIfCancellationRequested();
-                            break;
-                        }
+                    if (!PiThread.Sleep(this.Interval, CurrentThread, this.sleepCancellationTokenSource.Token))
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        break;
                     }
                 }
-            }
-            catch (OperationCanceledException)
-            {
             }
         }
 
-        private void TimerControl()
+        private void TimerControl(BlockingCollection<Action> actions, CancellationToken cancellationToken)
         {
-            var cancellationToken = this.disposeCancellationTokenSource.Token;
-            try
-            {
-                while (!cancellationToken.IsCancellationRequested)
-                {
-                    var timerAction = this.timerActions.Take(cancellationToken);
-                    timerAction();
-                }
-            }
-            catch (OperationCanceledException)
-            {
-            }
+            var timerAction = actions.Take(cancellationToken);
+            timerAction();
         }
 
         private void StartOrRestartUnsafe(TimeSpan startDelay, TimeSpan interval)
         {
             if (this.IsEnabled)
             {
-                this.timerActions.Add(this.StopTimer);
+                this.timerActionJob.State.Add(this.StopTimer);
             }
 
             this.Interval = interval;
-            this.timerActions.Add(() => this.StartTimer(startDelay));
+            this.timerActionJob.State.Add(() => this.StartTimer(startDelay));
         }
 
         private void StartTimer(TimeSpan startDelay)
@@ -225,15 +207,16 @@ namespace Pi.Timers
             }
 
             this.delay = startDelay;
-            this.sleepAutoResetEvent.Reset();
+            this.sleepCancellationTokenSource?.Dispose();
+            this.sleepCancellationTokenSource = new CancellationTokenSource();
             this.timerRunningEvent.Set();
         }
 
         private void StopTimer()
         {
-            this.sleepAutoResetEvent.Set();
+            this.sleepCancellationTokenSource?.Cancel();
             this.timerRunningEvent.Reset();
-            this.timerStoppedEvent.Wait(this.disposeCancellationTokenSource.Token);
+            this.timerStoppedEvent.Wait(this.disposeCancellationToken);
         }
 
         private bool SetStoppedAndWaitForStart(CancellationToken disposeCancellationToken)

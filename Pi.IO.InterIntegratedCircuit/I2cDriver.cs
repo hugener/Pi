@@ -10,6 +10,7 @@ namespace Pi.IO.InterIntegratedCircuit
     using global::System.Runtime.InteropServices;
     using Pi.IO.GeneralPurpose;
     using Pi.System.Threading;
+    using Sundew.Base.Threading;
 
     /// <summary>
     /// Represents a driver for I2C devices.
@@ -20,7 +21,7 @@ namespace Pi.IO.InterIntegratedCircuit
 
         private readonly ProcessorPin sdaPin;
         private readonly ProcessorPin sclPin;
-        private readonly IThread thread;
+        private readonly ICurrentThread thread;
         private readonly bool wasSdaPinSet;
         private readonly bool wasSclPinSet;
 
@@ -140,7 +141,6 @@ namespace Pi.IO.InterIntegratedCircuit
 
             Interop.Munmap(this.gpioAddress, Interop.Bcm2835BlockSize);
             Interop.Munmap(this.bscAddress, Interop.Bcm2835BlockSize);
-            this.thread.Dispose();
         }
 
         /// <summary>

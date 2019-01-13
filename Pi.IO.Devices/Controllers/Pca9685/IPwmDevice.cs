@@ -5,13 +5,12 @@
 
 namespace Pi.IO.Devices.Controllers.Pca9685
 {
-    using global::System;
     using UnitsNet;
 
     /// <summary>
     /// Provides an interface for PWM devices.
     /// </summary>
-    public interface IPwmDevice : IDisposable
+    public interface IPwmDevice
     {
         /// <summary>
         /// Sets the PWM update rate.

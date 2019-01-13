@@ -6,6 +6,7 @@
 namespace Pi.System.Threading
 {
     using global::System;
+    using Sundew.Base.Threading;
 
     /// <summary>
     /// Factory for creating a thread.
@@ -13,7 +14,7 @@ namespace Pi.System.Threading
     public class ThreadFactory : IThreadFactory
     {
         private readonly Board board;
-        private readonly Lazy<IDisposableThread> cachedThread;
+        private readonly Lazy<ICurrentThread> cachedThread;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ThreadFactory"/> class.
@@ -25,7 +26,7 @@ namespace Pi.System.Threading
             this.board = board;
             if (isCaching)
             {
-                this.cachedThread = new Lazy<IDisposableThread>(this.CreateThread);
+                this.cachedThread = new Lazy<ICurrentThread>(this.CreateThread);
             }
         }
 
@@ -42,30 +43,25 @@ namespace Pi.System.Threading
         /// <summary>
         /// Creates this instance.
         /// </summary>
-        /// <returns>An <see cref="IThread"/>.</returns>
-        public IThread Create()
+        /// <returns>An <see cref="ICurrentThread"/>.</returns>
+        public ICurrentThread Create()
         {
             if (this.cachedThread != null)
             {
-                return new CachedThread(this, this.cachedThread.Value);
+                return this.cachedThread.Value;
             }
 
             return this.CreateThread();
         }
 
-        internal void Dispose(IDisposableThread disposableThread)
-        {
-            disposableThread.DisposeThread();
-        }
-
-        private IDisposableThread CreateThread()
+        private ICurrentThread CreateThread()
         {
             if (this.board.IsRaspberryPi)
             {
-                return new PiThread(this);
+                return new PiThread();
             }
 
-            return new StandardThread(this);
+            return new CurrentThread();
         }
     }
 }

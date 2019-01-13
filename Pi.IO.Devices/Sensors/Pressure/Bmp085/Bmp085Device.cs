@@ -8,6 +8,7 @@ namespace Pi.IO.Devices.Sensors.Pressure.Bmp085
     using global::System;
     using Pi.IO.InterIntegratedCircuit;
     using Pi.System.Threading;
+    using Sundew.Base.Threading;
 
     /// <summary>
     /// Represents an I2C connection to a BMP085 barometer / thermometer.
@@ -24,7 +25,7 @@ namespace Pi.IO.Devices.Sensors.Pressure.Bmp085
         private static readonly TimeSpan HighestDelay = TimeSpan.FromMilliseconds(26);
         private static readonly TimeSpan DefaultDelay = TimeSpan.FromMilliseconds(8);
         private readonly I2cDeviceConnection connection;
-        private readonly IThread thread;
+        private readonly ICurrentThread thread;
 
         private short ac1;
         private short ac2;
@@ -45,7 +46,7 @@ namespace Pi.IO.Devices.Sensors.Pressure.Bmp085
         /// </summary>
         /// <param name="connection">The connection.</param>
         /// <param name="thread">The thread.</param>
-        public Bmp085Device(I2cDeviceConnection connection, IThread thread)
+        public Bmp085Device(I2cDeviceConnection connection, ICurrentThread thread)
         {
             this.connection = connection;
             this.thread = thread;

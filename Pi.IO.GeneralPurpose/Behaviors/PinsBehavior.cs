@@ -18,7 +18,7 @@ namespace Pi.IO.GeneralPurpose.Behaviors
     public abstract class PinsBehavior : IDisposable
     {
         private readonly ITimer timer;
-        private readonly IThread thread;
+        private readonly ICurrentThread thread;
         private int currentStep;
         private TimeSpan interval;
 
@@ -74,7 +74,6 @@ namespace Pi.IO.GeneralPurpose.Behaviors
         public void Dispose()
         {
             Timer.Dispose(this.timer);
-            this.thread.Dispose();
         }
 
         internal void Start(GpioConnection connection)

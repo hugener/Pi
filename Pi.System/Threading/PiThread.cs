@@ -9,43 +9,115 @@ namespace Pi.System.Threading
     using global::System.Diagnostics;
     using global::System.Linq;
     using global::System.Threading;
+    using global::System.Threading.Tasks;
     using Pi.Timers;
+    using Sundew.Base.Threading;
 
-    internal class PiThread : IDisposableThread
+    internal class PiThread : ICurrentThread
     {
         private static readonly TimeSpan MinLongDelay = TimeSpan.FromMilliseconds(100);
         private static readonly TimeSpan MinNanoDelay = TimeSpan.FromTicks(4500);
         private static readonly long NanoSleepOffset = Calibrate();
-        private readonly AutoResetEvent sleepAutoResetEvent = new AutoResetEvent(false);
-        private readonly ThreadFactory threadFactory;
+        private static readonly CurrentThread CurrentThread = new CurrentThread();
 
-        public PiThread(ThreadFactory threadFactory)
-        {
-            this.threadFactory = threadFactory;
-        }
+        /// <summary>
+        /// Gets the managed thread identifier.
+        /// </summary>
+        /// <value>
+        /// The managed thread identifier.
+        /// </value>
+        public int ManagedThreadId => Environment.CurrentManagedThreadId;
 
+        /// <summary>
+        /// Sleeps the specified delay.
+        /// </summary>
+        /// <param name="delay">The delay.</param>
         public void Sleep(TimeSpan delay)
         {
-            Sleep(delay, this.sleepAutoResetEvent);
+            Sleep(delay, CurrentThread, CancellationToken.None);
         }
 
-        public void Dispose()
+        /// <summary>
+        /// Sleeps the specified milliseconds.
+        /// </summary>
+        /// <param name="milliseconds">The milliseconds.</param>
+        public void Sleep(int milliseconds)
         {
-            this.threadFactory.Dispose(this);
+            this.Sleep(TimeSpan.FromMilliseconds(milliseconds));
         }
 
-        void IDisposableThread.DisposeThread()
+        /// <summary>
+        /// Delays the specified time span.
+        /// </summary>
+        /// <param name="timeSpan">The time span.</param>
+        /// <returns>An async task.</returns>
+        public Task Delay(TimeSpan timeSpan)
         {
-            this.sleepAutoResetEvent.Dispose();
+            return CurrentThread.Delay(timeSpan);
+        }
+
+        /// <summary>
+        /// Delays the specified milliseconds.
+        /// </summary>
+        /// <param name="milliseconds">The milliseconds.</param>
+        /// <returns>An async task.</returns>
+        public Task Delay(int milliseconds)
+        {
+            return CurrentThread.Delay(milliseconds);
         }
 
         /// <summary>
         /// Sleeps the specified delay.
         /// </summary>
         /// <param name="delay">The delay.</param>
-        /// <param name="sleepAutoResetEvent">The sleep automatic reset event.</param>
-        /// <returns><c>true</c>, if the thread slept for the specified delay otherwise <c>false</c>.</returns>
-        internal static bool Sleep(TimeSpan delay, AutoResetEvent sleepAutoResetEvent)
+        /// <param name="cancellationToken">The cancellation token.</param>
+        public void Sleep(TimeSpan delay, CancellationToken cancellationToken)
+        {
+            Sleep(delay, CurrentThread, cancellationToken);
+        }
+
+        /// <summary>
+        /// Sleeps the specified milliseconds.
+        /// </summary>
+        /// <param name="milliseconds">The milliseconds.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        public void Sleep(int milliseconds, CancellationToken cancellationToken)
+        {
+            Sleep(TimeSpan.FromMilliseconds(milliseconds), CurrentThread, cancellationToken);
+        }
+
+        /// <summary>
+        /// Delays the specified time span.
+        /// </summary>
+        /// <param name="timeSpan">The time span.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>An async task.</returns>
+        public Task Delay(TimeSpan timeSpan, CancellationToken cancellationToken)
+        {
+            return CurrentThread.Delay(timeSpan, cancellationToken);
+        }
+
+        /// <summary>
+        /// Delays the specified milliseconds.
+        /// </summary>
+        /// <param name="milliseconds">The milliseconds.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>An async task.</returns>
+        public Task Delay(int milliseconds, CancellationToken cancellationToken)
+        {
+            return CurrentThread.Delay(milliseconds, cancellationToken);
+        }
+
+        /// <summary>
+        /// Sleeps the specified delay.
+        /// </summary>
+        /// <param name="delay">The delay.</param>
+        /// <param name="currentThread">The current thread.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        ///   <c>true</c>, if the thread slept for the specified delay otherwise <c>false</c>.
+        /// </returns>
+        internal static bool Sleep(TimeSpan delay, ICurrentThread currentThread, CancellationToken cancellationToken)
         {
             // Based on [BCM2835 C library](http://www.open.com.au/mikem/bcm2835/)
 
@@ -55,7 +127,8 @@ namespace Pi.System.Threading
             if (delay >= MinLongDelay || delay == Timeout.InfiniteTimeSpan)
             {
                 // Do not use high resolution timer for long interval (>= 100ms)
-                return !sleepAutoResetEvent.WaitOne(delay);
+                currentThread.Sleep(delay, cancellationToken);
+                return !cancellationToken.IsCancellationRequested;
             }
 
             if (delay > MinNanoDelay)

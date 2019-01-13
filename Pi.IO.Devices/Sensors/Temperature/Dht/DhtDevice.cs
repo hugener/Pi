@@ -8,6 +8,7 @@ namespace Pi.IO.Devices.Sensors.Temperature.Dht
     using global::Pi.IO.GeneralPurpose;
     using global::Pi.System.Threading;
     using global::System;
+    using Sundew.Base.Threading;
 
     /// <summary>
     /// Represents a base class for connections to a DHT-11 or DHT-22 humidity / temperature sensor.
@@ -24,7 +25,7 @@ namespace Pi.IO.Devices.Sensors.Temperature.Dht
 
         private readonly IInputOutputBinaryPin pin;
         private readonly IDhtDeviceReporter dhtDeviceReporter;
-        private readonly IThread thread;
+        private readonly ICurrentThread thread;
         private TimeSpan samplingInterval;
         private DateTime previousRead;
         private bool started;
@@ -149,7 +150,6 @@ namespace Pi.IO.Devices.Sensors.Temperature.Dht
         {
             GC.SuppressFinalize(this);
             this.pin.Dispose();
-            this.thread.Dispose();
         }
 
         /// <summary>

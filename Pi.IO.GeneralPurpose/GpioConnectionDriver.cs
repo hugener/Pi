@@ -13,6 +13,7 @@ namespace Pi.IO.GeneralPurpose
     using Pi.IO.Interop;
     using Pi.System.Threading;
     using Pi.Timers;
+    using Sundew.Base.Threading;
 
     /// <summary>
     /// Represents the default connection driver that uses memory for accesses and files for edge detection.
@@ -36,7 +37,7 @@ namespace Pi.IO.GeneralPurpose
         private readonly IntPtr gpioAddress;
         private readonly Dictionary<ProcessorPin, PinResistor> pinResistors = new Dictionary<ProcessorPin, PinResistor>();
         private readonly Dictionary<ProcessorPin, PinPoll> pinPolls = new Dictionary<ProcessorPin, PinPoll>();
-        private readonly IThread thread;
+        private readonly ICurrentThread thread;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GpioConnectionDriver" /> class.
@@ -72,7 +73,6 @@ namespace Pi.IO.GeneralPurpose
         public void Dispose()
         {
             MemoryMap.Close(this.gpioAddress, Interop.Bcm2835BlockSize);
-            this.thread.Dispose();
         }
 
         /// <summary>

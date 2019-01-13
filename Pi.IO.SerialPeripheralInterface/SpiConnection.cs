@@ -7,6 +7,7 @@ namespace Pi.IO.SerialPeripheralInterface
 {
     using global::System;
     using Pi.System.Threading;
+    using Sundew.Base.Threading;
 
     /// <summary>
     /// Represents a connection to a SPI device.
@@ -20,7 +21,7 @@ namespace Pi.IO.SerialPeripheralInterface
         private readonly IInputBinaryPin misoPin;
         private readonly IOutputBinaryPin mosiPin;
         private readonly Endianness endianness;
-        private readonly IThread thread;
+        private readonly ICurrentThread thread;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SpiConnection" /> class.
@@ -58,7 +59,6 @@ namespace Pi.IO.SerialPeripheralInterface
         void IDisposable.Dispose()
         {
             this.Close();
-            this.thread.Dispose();
         }
 
         /// <summary>

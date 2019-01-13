@@ -9,6 +9,7 @@ namespace Pi.IO.Devices.Controllers.Pca9685
     using global::Pi.System.Threading;
     using global::System;
     using global::UnitsNet;
+    using Sundew.Base.Threading;
 
     /// <summary>
     /// Driver for Adafruit 16-channel PWM/Servo Shield which uses the
@@ -22,7 +23,7 @@ namespace Pi.IO.Devices.Controllers.Pca9685
 
         private readonly I2cDeviceConnection connection;
         private readonly IPca9685DeviceReporter pca9685DeviceReporter;
-        private readonly IThread thread;
+        private readonly ICurrentThread thread;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Pca9685Device" /> class.
@@ -120,12 +121,6 @@ namespace Pi.IO.Devices.Controllers.Pca9685
             {
                 this.SetFullOff(channel);
             }
-        }
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            this.thread.Dispose();
         }
 
         private void SetFullOn(PwmChannel channel)

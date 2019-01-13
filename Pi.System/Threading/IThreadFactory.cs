@@ -5,6 +5,8 @@
 
 namespace Pi.System.Threading
 {
+    using Sundew.Base.Threading;
+
     /// <summary>
     /// Interface for implementing a thread factory.
     /// </summary>
@@ -13,7 +15,7 @@ namespace Pi.System.Threading
         /// <summary>
         /// Creates this instance.
         /// </summary>
-        /// <returns>An <see cref="IThread"/>.</returns>
-        IThread Create();
+        /// <returns>An <see cref="ICurrentThread"/>.</returns>
+        ICurrentThread Create();
     }
 }

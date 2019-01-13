@@ -8,6 +8,7 @@ namespace Pi.IO.Devices.Leds.GroveBar
     using global::Pi.System.Threading;
     using global::System;
     using global::System.Text;
+    using Sundew.Base.Threading;
 
     /// <summary>
     /// Represents a connection with Grove Led Bar module.
@@ -20,7 +21,7 @@ namespace Pi.IO.Devices.Leds.GroveBar
 
         private readonly IOutputBinaryPin dataPin;
         private readonly IInputOutputBinaryPin clockPin;
-        private readonly IThread thread;
+        private readonly ICurrentThread thread;
         private string currentLedsStatus = "0000000000";
 
         /// <summary>
@@ -136,7 +137,6 @@ namespace Pi.IO.Devices.Leds.GroveBar
         {
             this.dataPin.Dispose();
             this.clockPin.Dispose();
-            this.thread.Dispose();
         }
 
         private void Initialize()
