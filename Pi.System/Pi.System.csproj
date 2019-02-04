@@ -5,7 +5,7 @@
 	<LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>Pi.System.SundewFork</PackageId>
-    <Version>0.0.3-pre013</Version>
+    <Version>0.0.3-pre014</Version>
     <AssemblyVersion>0.0.3.0</AssemblyVersion>
     <FileVersion>0.0.3.0</FileVersion>
     <Authors>Pi.System</Authors>
@@ -34,7 +34,7 @@
 
   <ItemGroup>
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.0-beta008" />
-    <PackageReference Include="Sundew.Base" Version="3.3.0" />
+    <PackageReference Include="Sundew.Base" Version="3.3.8" />
   </ItemGroup>
 
 </Project>
