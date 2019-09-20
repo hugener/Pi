@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
 	<LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>0.0.3-pre015</Version>
+    <Version>0.0.3-pre016</Version>
     <PackageId>Pi.IO.InterIntegratedCircuit.SundewFork</PackageId>
     <AssemblyVersion>0.0.3.0</AssemblyVersion>
     <FileVersion>0.0.3.0</FileVersion>
