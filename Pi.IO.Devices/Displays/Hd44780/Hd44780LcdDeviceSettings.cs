@@ -3,11 +3,12 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using Pi.Core.Timers;
+
 namespace Pi.IO.Devices.Displays.Hd44780
 {
     using global::System;
     using global::System.Text;
-    using Pi.Timers;
 
     /// <summary>
     /// Settings for the <see cref="Hd44780LcdDevice"/>.

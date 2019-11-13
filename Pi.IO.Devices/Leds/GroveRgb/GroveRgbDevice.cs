@@ -3,10 +3,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using Pi.Core.Threading;
+using Pi.Core.Timers;
+
 namespace Pi.IO.Devices.Leds.GroveRgb
 {
-    using global::Pi.System.Threading;
-    using global::Pi.Timers;
     using global::System;
     using global::System.Collections.Generic;
     using Sundew.Base.Threading;

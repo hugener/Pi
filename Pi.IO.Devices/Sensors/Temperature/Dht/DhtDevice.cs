@@ -3,10 +3,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using Pi.Core.Threading;
+
 namespace Pi.IO.Devices.Sensors.Temperature.Dht
 {
     using global::Pi.IO.GeneralPurpose;
-    using global::Pi.System.Threading;
     using global::System;
     using Sundew.Base.Threading;
 

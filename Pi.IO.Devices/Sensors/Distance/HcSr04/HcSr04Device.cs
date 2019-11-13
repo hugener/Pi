@@ -3,10 +3,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using Pi.Core.Threading;
+using Pi.Core.Timers;
+
 namespace Pi.IO.Devices.Sensors.Distance.HcSr04
 {
-    using global::Pi.System.Threading;
-    using global::Pi.Timers;
     using global::System;
     using global::UnitsNet;
     using Sundew.Base.Threading;

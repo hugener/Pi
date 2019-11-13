@@ -3,9 +3,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using Pi.Core.Threading;
+
 namespace Pi.IO.Devices.Leds.GroveBar
 {
-    using global::Pi.System.Threading;
     using global::System;
     using global::System.Text;
     using Sundew.Base.Threading;

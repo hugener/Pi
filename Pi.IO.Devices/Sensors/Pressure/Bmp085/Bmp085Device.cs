@@ -7,7 +7,6 @@ namespace Pi.IO.Devices.Sensors.Pressure.Bmp085
 {
     using global::System;
     using Pi.IO.InterIntegratedCircuit;
-    using Pi.System.Threading;
     using Sundew.Base.Threading;
 
     /// <summary>

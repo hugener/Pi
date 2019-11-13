@@ -3,10 +3,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using Pi.Core.Timers;
+
 namespace Pi.IO.Devices.Sensors.Light
 {
     using Pi.IO.InterIntegratedCircuit;
-    using Pi.Timers;
     using Sundew.Base.Threading;
 
     /// <summary>

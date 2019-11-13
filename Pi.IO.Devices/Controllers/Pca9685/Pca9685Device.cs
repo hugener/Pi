@@ -3,10 +3,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using Pi.Core.Threading;
+
 namespace Pi.IO.Devices.Controllers.Pca9685
 {
     using global::Pi.IO.InterIntegratedCircuit;
-    using global::Pi.System.Threading;
     using global::System;
     using global::UnitsNet;
     using Sundew.Base.Threading;

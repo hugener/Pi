@@ -2,14 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-	<LangVersion>latest</LangVersion>
+	  <LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <NoWarn>NU1701</NoWarn>
-    <PackageId>Pi.IO.Devices.SundewFork</PackageId>
     <Version>0.1.0</Version>
-    <Authors>Pi.IO.Devices</Authors>
-    <Company>Pi.IO.Devices</Company>
-    <Product>Pi.IO.Devices</Product>
+    <PackageId>Pi.SundewFork</PackageId>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
     <Configurations>Debug;Release;Release-Stable</Configurations>
@@ -18,21 +14,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
-    <DocumentationFile>bin\Release\netstandard2.0\Pi.IO.Devices.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\netstandard2.0\Pi.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
-    <DocumentationFile>bin\Debug\netstandard2.0\Pi.IO.Devices.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netstandard2.0\Pi.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Stable|AnyCPU'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
-    <DocumentationFile>bin\Release\netstandard2.0\Pi.IO.Devices.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\netstandard2.0\Pi.xml</DocumentationFile>
     <SbpSourceName>local-stable</SbpSourceName>
   </PropertyGroup>
+
 
   <ItemGroup>
     <None Remove="stylecop.json" />
@@ -43,15 +40,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Sundew.Base" Version="4.0.0" />
     <PackageReference Include="Sundew.Build.Publish" Version="1.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="UnitsNet" Version="4.37.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Pi\Pi.csproj" />
-  </ItemGroup>
-  
 </Project>
