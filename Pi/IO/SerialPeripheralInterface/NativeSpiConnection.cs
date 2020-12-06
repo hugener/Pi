@@ -182,7 +182,7 @@ namespace Pi.IO.SerialPeripheralInterface
         {
             if (buffer == null)
             {
-                throw new ArgumentNullException("buffer");
+                throw new ArgumentNullException(nameof(buffer));
             }
 
             var request = Interop.GetSpiMessageRequest(1);
@@ -203,7 +203,7 @@ namespace Pi.IO.SerialPeripheralInterface
         {
             if (transferBuffers == null)
             {
-                throw new ArgumentNullException("transferBuffers");
+                throw new ArgumentNullException(nameof(transferBuffers));
             }
 
             var request = Interop.GetSpiMessageRequest(transferBuffers.Length);

@@ -14,11 +14,15 @@ namespace Pi.IO.InterIntegratedCircuit
     {
         private readonly I2cDriver driver;
         private readonly int deviceAddress;
+        private readonly II2cDeviceConnectionReporter i2cDeviceConnectionReporter;
 
-        internal I2cDeviceConnection(I2cDriver driver, int deviceAddress)
+        internal I2cDeviceConnection(I2cDriver driver, int deviceAddress, II2cDeviceConnectionReporter i2CDeviceConnectionReporter = null)
         {
             this.driver = driver;
             this.deviceAddress = deviceAddress;
+            this.i2cDeviceConnectionReporter = i2CDeviceConnectionReporter;
+            this.i2cDeviceConnectionReporter?.SetSource(typeof(II2cDeviceConnectionReporter), this);
+            this.i2cDeviceConnectionReporter?.Connect(deviceAddress);
         }
 
         /// <summary>
@@ -37,7 +41,7 @@ namespace Pi.IO.InterIntegratedCircuit
         {
             if (transaction == null)
             {
-                throw new ArgumentNullException("transaction");
+                throw new ArgumentNullException(nameof(transaction));
             }
 
             this.driver.Execute(this.deviceAddress, transaction);
@@ -52,10 +56,11 @@ namespace Pi.IO.InterIntegratedCircuit
             try
             {
                 this.Execute(new I2CTransaction(new I2CWriteAction(buffer)));
+                this.i2cDeviceConnectionReporter?.Wrote(buffer);
             }
             catch (Exception e)
             {
-                Console.WriteLine("Execute error {0}", e.Message);
+                this.i2cDeviceConnectionReporter?.WriteError(e, buffer);
             }
         }
 
@@ -63,15 +68,18 @@ namespace Pi.IO.InterIntegratedCircuit
         /// Writes the specified byte.
         /// </summary>
         /// <param name="value">The value.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("StyleCop.CSharp.LayoutRules", "SA1500:Braces for multi-line statements should not share line", Justification = "False positive.")]
         public void WriteByte(byte value)
         {
+            Span<byte> values = stackalloc byte[] { value };
             try
             {
                 this.Execute(new I2CTransaction(new I2CWriteAction(value)));
+                this.i2cDeviceConnectionReporter?.Wrote(values);
             }
             catch (Exception e)
             {
-                Console.WriteLine("Execute error WriteByte {0}", e.Message);
+                this.i2cDeviceConnectionReporter?.WriteError(e, values);
             }
         }
 
@@ -84,6 +92,7 @@ namespace Pi.IO.InterIntegratedCircuit
         {
             var readAction = new I2CReadAction(new byte[byteCount]);
             this.Execute(new I2CTransaction(readAction));
+            this.i2cDeviceConnectionReporter?.Read(readAction.Buffer);
 
             return readAction.Buffer;
         }

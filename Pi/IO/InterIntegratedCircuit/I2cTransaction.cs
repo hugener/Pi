@@ -18,7 +18,7 @@ namespace Pi.IO.InterIntegratedCircuit
         /// <param name="actions">The actions which should be performed within the transaction.</param>
         public I2CTransaction(params I2CAction[] actions)
         {
-            this.Actions = actions ?? throw new ArgumentNullException("actions");
+            this.Actions = actions ?? throw new ArgumentNullException(nameof(actions));
         }
 
         /// <summary>

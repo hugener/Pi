@@ -116,7 +116,7 @@ namespace Pi.IO.SerialPeripheralInterface
         {
             if (bitCount > 8)
             {
-                throw new ArgumentOutOfRangeException("bitCount", bitCount, "byte data cannot contain more than 8 bits");
+                throw new ArgumentOutOfRangeException(nameof(bitCount), bitCount, "byte data cannot contain more than 8 bits");
             }
 
             this.SafeWrite(data, bitCount);
@@ -131,7 +131,7 @@ namespace Pi.IO.SerialPeripheralInterface
         {
             if (bitCount > 16)
             {
-                throw new ArgumentOutOfRangeException("bitCount", bitCount, "ushort data cannot contain more than 16 bits");
+                throw new ArgumentOutOfRangeException(nameof(bitCount), bitCount, "ushort data cannot contain more than 16 bits");
             }
 
             this.SafeWrite(data, bitCount);
@@ -146,7 +146,7 @@ namespace Pi.IO.SerialPeripheralInterface
         {
             if (bitCount > 32)
             {
-                throw new ArgumentOutOfRangeException("bitCount", bitCount, "uint data cannot contain more than 32 bits");
+                throw new ArgumentOutOfRangeException(nameof(bitCount), bitCount, "uint data cannot contain more than 32 bits");
             }
 
             this.SafeWrite(data, bitCount);
@@ -161,7 +161,7 @@ namespace Pi.IO.SerialPeripheralInterface
         {
             if (bitCount > 64)
             {
-                throw new ArgumentOutOfRangeException("bitCount", bitCount, "ulong data cannot contain more than 64 bits");
+                throw new ArgumentOutOfRangeException(nameof(bitCount), bitCount, "ulong data cannot contain more than 64 bits");
             }
 
             this.SafeWrite(data, bitCount);
@@ -191,7 +191,7 @@ namespace Pi.IO.SerialPeripheralInterface
         {
             if (bitCount > 64)
             {
-                throw new ArgumentOutOfRangeException("bitCount", bitCount, "ulong data cannot contain more than 64 bits");
+                throw new ArgumentOutOfRangeException(nameof(bitCount), bitCount, "ulong data cannot contain more than 64 bits");
             }
 
             ulong data = 0;

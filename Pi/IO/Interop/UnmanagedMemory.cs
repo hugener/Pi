@@ -114,7 +114,7 @@ namespace Pi.IO.Interop
 
             if (offset < 0 || offset >= this.length)
             {
-                throw new ArgumentOutOfRangeException("offset");
+                throw new ArgumentOutOfRangeException(nameof(offset));
             }
 
             Marshal.WriteByte(this.memoryPointer, offset, data);
@@ -134,7 +134,7 @@ namespace Pi.IO.Interop
 
             if (offset < 0 || offset >= this.length)
             {
-                throw new ArgumentOutOfRangeException("offset");
+                throw new ArgumentOutOfRangeException(nameof(offset));
             }
 
             return Marshal.ReadByte(this.memoryPointer, offset);
@@ -156,12 +156,12 @@ namespace Pi.IO.Interop
 
             if (destinationIndex < 0 || destinationIndex >= this.length)
             {
-                throw new ArgumentOutOfRangeException("destinationIndex");
+                throw new ArgumentOutOfRangeException(nameof(destinationIndex));
             }
 
             if (lengthInBytes < 0 || destinationIndex + lengthInBytes > this.length)
             {
-                throw new ArgumentOutOfRangeException("lengthInBytes");
+                throw new ArgumentOutOfRangeException(nameof(lengthInBytes));
             }
 
             Marshal.Copy(source, sourceIndex, this.memoryPointer + destinationIndex, lengthInBytes);
@@ -183,12 +183,12 @@ namespace Pi.IO.Interop
 
             if (sourceIndex < 0 || sourceIndex >= this.length)
             {
-                throw new ArgumentOutOfRangeException("sourceIndex");
+                throw new ArgumentOutOfRangeException(nameof(sourceIndex));
             }
 
             if (sourceIndex + lengthInBytes >= this.length)
             {
-                throw new ArgumentOutOfRangeException("lengthInBytes");
+                throw new ArgumentOutOfRangeException(nameof(lengthInBytes));
             }
 
             Marshal.Copy(this.memoryPointer + sourceIndex, destination, destinationIndex, lengthInBytes);

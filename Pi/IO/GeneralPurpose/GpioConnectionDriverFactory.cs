@@ -5,6 +5,7 @@
 
 namespace Pi.IO.GeneralPurpose
 {
+    using System;
     using global::System.Collections.Generic;
     using Pi.Core;
     using Pi.IO.GeneralPurpose.Internal;
@@ -28,16 +29,15 @@ namespace Pi.IO.GeneralPurpose
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="GpioConnectionDriverFactory"/> class.
+        /// Initializes a new instance of the <see cref="GpioConnectionDriverFactory" /> class.
         /// </summary>
         /// <param name="useSingleton">if set to <c>true</c> [use singleton].</param>
         public GpioConnectionDriverFactory(bool useSingleton)
         {
             if (useSingleton)
             {
-                this.gpioConnectionDriver = GetBestDriver(Board.Current.IsRaspberryPi
-                    ? GpioConnectionDriverCapabilities.None
-                    : GpioConnectionDriverCapabilities.CanWorkOnThirdPartyComputers);
+                this.gpioConnectionDriver = GetBestDriver(
+                    Board.Current.IsRaspberryPi ? GpioConnectionDriverCapabilities.None : GpioConnectionDriverCapabilities.CanWorkOnThirdPartyComputers);
             }
 
             this.shouldDisposeDriver = true;
@@ -56,7 +56,9 @@ namespace Pi.IO.GeneralPurpose
         /// Gets the best driver for the specified capabilities.
         /// </summary>
         /// <param name="capabilities">The capabilities.</param>
-        /// <returns>The best driver, if found; otherwise, <c>null</c>.</returns>
+        /// <returns>
+        /// The best driver, if found; otherwise, <c>null</c>.
+        /// </returns>
         public static IGpioConnectionDriver GetBestDriver(GpioConnectionDriverCapabilities capabilities)
         {
             if ((GpioConnectionDriver.GetCapabilities() & capabilities) == capabilities)
@@ -77,9 +79,13 @@ namespace Pi.IO.GeneralPurpose
             return null;
         }
 
-        /// <summary>Ensures the gpio connection driver factory.</summary>
+        /// <summary>
+        /// Ensures the gpio connection driver factory.
+        /// </summary>
         /// <param name="gpioConnectionDriverFactory">The gpio connection driver factory.</param>
-        /// <returns>A <see cref="IGpioConnectionDriverFactory"/>.</returns>
+        /// <returns>
+        /// A <see cref="IGpioConnectionDriverFactory" />.
+        /// </returns>
         public static IGpioConnectionDriverFactory EnsureGpioConnectionDriverFactory(
             IGpioConnectionDriverFactory gpioConnectionDriverFactory)
         {
@@ -122,7 +128,7 @@ namespace Pi.IO.GeneralPurpose
             this.gpioConnectionDrivers.Clear();
             if (this.shouldDisposeDriver)
             {
-                this.gpioConnectionDriver.Dispose();
+                this.gpioConnectionDriver?.Dispose();
             }
         }
 

@@ -32,18 +32,18 @@ namespace Pi.IO.Interop
         {
             if (memoryBlock is null)
             {
-                throw new ArgumentNullException("memoryBlock");
+                throw new ArgumentNullException(nameof(memoryBlock));
             }
 
             if (startOffset < 0 || startOffset > memoryBlock.Length)
             {
                 var message = string.Format("The offset must be between 0 and {0}", memoryBlock.Length);
-                throw new ArgumentOutOfRangeException("startOffset", startOffset, message);
+                throw new ArgumentOutOfRangeException(nameof(startOffset), startOffset, message);
             }
 
             if (length < 0 || startOffset + length > memoryBlock.Length)
             {
-                throw new ArgumentOutOfRangeException("length", length, "Invalid size");
+                throw new ArgumentOutOfRangeException(nameof(length), length, "Invalid size");
             }
 
             this.memory = memoryBlock;
@@ -118,7 +118,7 @@ namespace Pi.IO.Interop
         {
             if (offset < 0 || offset >= this.memoryLength)
             {
-                throw new ArgumentOutOfRangeException("offset", offset, "invalid offset");
+                throw new ArgumentOutOfRangeException(nameof(offset), offset, "invalid offset");
             }
 
             this.memory.Write(this.memoryOffset + offset, data);
@@ -133,7 +133,7 @@ namespace Pi.IO.Interop
         {
             if (offset < 0 || offset >= this.memoryLength)
             {
-                throw new ArgumentOutOfRangeException("offset", offset, "invalid offset");
+                throw new ArgumentOutOfRangeException(nameof(offset), offset, "invalid offset");
             }
 
             return this.memory.Read(this.memoryOffset + offset);
@@ -152,14 +152,14 @@ namespace Pi.IO.Interop
             {
                 var message = string.Format("destination index must be greater than 0 and lower or equal to {0}", this.memoryLength);
                 throw new ArgumentOutOfRangeException(
-                    "destinationIndex",
+                    nameof(destinationIndex),
                     destinationIndex,
                     message);
             }
 
             if (destinationIndex + length > this.memoryLength)
             {
-                throw new ArgumentOutOfRangeException("length", length, "invalid length");
+                throw new ArgumentOutOfRangeException(nameof(length), length, "invalid length");
             }
 
             this.memory.Copy(source, sourceIndex, this.memoryOffset + destinationIndex, length);
@@ -177,12 +177,12 @@ namespace Pi.IO.Interop
             if (sourceIndex < 0 || sourceIndex > this.memoryLength)
             {
                 var message = string.Format("source index must be greater than 0 and lower or equal to {0}", this.memoryLength);
-                throw new ArgumentOutOfRangeException("sourceIndex", sourceIndex, message);
+                throw new ArgumentOutOfRangeException(nameof(sourceIndex), sourceIndex, message);
             }
 
             if (sourceIndex + length > this.memoryLength)
             {
-                throw new ArgumentOutOfRangeException("length", length, "invalid length");
+                throw new ArgumentOutOfRangeException(nameof(length), length, "invalid length");
             }
 
             this.memory.Copy(this.memoryOffset + sourceIndex, destination, destinationIndex, length);

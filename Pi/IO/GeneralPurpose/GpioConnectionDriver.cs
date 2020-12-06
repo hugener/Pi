@@ -168,7 +168,7 @@ namespace Pi.IO.GeneralPurpose
                     break;
 
                 default:
-                    throw new ArgumentOutOfRangeException("resistor", resistor, string.Format(CultureInfo.InvariantCulture, "{0} is not a valid value for pin resistor", resistor));
+                    throw new ArgumentOutOfRangeException(nameof(resistor), resistor, string.Format(CultureInfo.InvariantCulture, "{0} is not a valid value for pin resistor", resistor));
             }
 
             this.WriteResistor(pud);
@@ -202,6 +202,8 @@ namespace Pi.IO.GeneralPurpose
         /// <param name="pin">The pin.</param>
         /// <param name="waitForUp">if set to <c>true</c> waits for the pin to be up. Default value is <c>true</c>.</param>
         /// <param name="timeout">The timeout. Default value is <see cref="TimeSpan.Zero" />.</param>
+        /// <exception cref="TimeoutException">Thrown if waiting times out.</exception>
+        /// <exception cref="IOException">Call to epoll_wait API failed.</exception>
         /// <remarks>
         /// If <c>timeout</c> is set to <see cref="TimeSpan.Zero" />, a 5 seconds timeout is used.
         /// </remarks>
@@ -284,7 +286,8 @@ namespace Pi.IO.GeneralPurpose
             var pinGroupAddress = this.gpioAddress + (int)(Interop.Bcm2835Gplev0 + offset);
             var value = SafeReadUInt32(pinGroupAddress);
 
-            return (value & (1 << shift)) != 0;
+            var pinValue = (value & (1 << shift)) != 0;
+            return pinValue;
         }
 
         /// <summary>
@@ -314,7 +317,7 @@ namespace Pi.IO.GeneralPurpose
                     return Interop.Bcm2836GpioBase;
 
                 default:
-                    throw new ArgumentOutOfRangeException("processor");
+                    throw new ArgumentOutOfRangeException(nameof(processor));
             }
         }
 
@@ -387,7 +390,7 @@ namespace Pi.IO.GeneralPurpose
                 case PinDetectedEdges.None:
                     return "none";
                 default:
-                    throw new ArgumentOutOfRangeException("edges", edges, string.Format(CultureInfo.InvariantCulture, "{0} is not a valid value for edge detection", edges));
+                    throw new ArgumentOutOfRangeException(nameof(edges), edges, string.Format(CultureInfo.InvariantCulture, "{0} is not a valid value for edge detection", edges));
             }
         }
 

@@ -3,7 +3,9 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // </copyright>
 
+using System.Diagnostics;
 using Pi.Core.Threading;
+using Pi.Core.Timers;
 
 namespace Pi.IO.Devices.Displays.Hd44780
 {
@@ -80,7 +82,6 @@ namespace Pi.IO.Devices.Displays.Hd44780
         {
             this.gpioConnectionDriverFactory = GpioConnectionDriverFactory.EnsureGpioConnectionDriverFactory(gpioConnectionDriverFactory);
             this.gpioConnectionDriver = gpioConnectionDriverFactory.Get();
-            settings = settings ?? new Hd44780LcdDeviceSettings();
             this.pins = new Hd44780Pins(this.gpioConnectionDriver, registerSelectPin, clockPin, backlight, readWrite, hd44780DataPins.ConnectorPins);
             this.thread = ThreadFactory.EnsureThreadFactory(threadFactory).Create();
             this.syncDelay = settings.SyncDelay;
@@ -284,13 +285,71 @@ namespace Pi.IO.Devices.Displays.Hd44780
         }
 
         /// <summary>
+        /// Resets this instance.
+        /// </summary>
+        public void Reset()
+        {
+            var oneMillisecond = TimeSpan.FromMilliseconds(2);
+            this.pins.RegisterSelect.Write(false);
+
+            this.pins.Data[0].Write(true);
+            this.pins.Data[1].Write(true);
+            this.pins.Data[2].Write(false);
+            this.pins.Data[3].Write(false);
+
+            var stopwatch = Stopwatch.StartNew();
+            this.Synchronize(TimeSpan.FromMilliseconds(20), oneMillisecond);
+            stopwatch.Stop();
+            Console.WriteLine(stopwatch.Elapsed);
+
+            this.pins.Data[0].Write(true);
+            this.pins.Data[1].Write(true);
+            this.pins.Data[2].Write(false);
+            this.pins.Data[3].Write(false);
+
+            stopwatch.Restart();
+            this.Synchronize(oneMillisecond, oneMillisecond);
+            stopwatch.Stop();
+            Console.WriteLine(stopwatch.Elapsed);
+
+            this.pins.Data[0].Write(true);
+            this.pins.Data[1].Write(true);
+            this.pins.Data[2].Write(false);
+            this.pins.Data[3].Write(false);
+
+            stopwatch.Restart();
+            this.Synchronize(oneMillisecond, oneMillisecond);
+            stopwatch.Stop();
+            Console.WriteLine(stopwatch.Elapsed);
+
+            if (pins.Data.Length == 4)
+            {
+                this.pins.Data[0].Write(false);
+                this.pins.Data[1].Write(true);
+                this.pins.Data[2].Write(false);
+                this.pins.Data[3].Write(false);
+            }
+
+            stopwatch.Restart();
+            this.Synchronize(oneMillisecond, oneMillisecond);
+            stopwatch.Stop();
+            Console.WriteLine(stopwatch.Elapsed);
+
+            this.WriteCommand(Command.SetFunctions, (int)this.functions);
+            this.WriteCommand(Command.SetDisplayFlags, (int)this.displayFlags);
+            this.WriteCommand(Command.SetEntryModeFlags, (int)this.entryModeFlags);
+
+            this.Clear();
+        }
+
+        /// <summary>
         /// Set cursor to top left corner.
         /// </summary>
         public void Home()
         {
             this.WriteCommand(Command.ReturnHome);
             this.currentPosition = Hd44780Position.Zero;
-            this.thread.Sleep(TimeSpan.FromMilliseconds(3));
+            this.thread.Sleep(TimeSpan.FromMilliseconds(6));
         }
 
         /// <summary>
@@ -301,7 +360,7 @@ namespace Pi.IO.Devices.Displays.Hd44780
             this.WriteCommand(Command.ClearDisplay);
             this.currentPosition = Hd44780Position.Zero;
 
-            this.thread.Sleep(TimeSpan.FromMilliseconds(3)); // Clearing the display takes a long time
+            this.thread.Sleep(TimeSpan.FromMilliseconds(6)); // Clearing the display takes a long time
         }
 
         /// <summary>
@@ -509,12 +568,12 @@ namespace Pi.IO.Devices.Displays.Hd44780
         {
             if (character > 7 || (character & 0x1) != 0x1)
             {
-                throw new ArgumentOutOfRangeException("character", character, "character must be lower or equal to 7, and not an odd number");
+                throw new ArgumentOutOfRangeException(nameof(character), character, "character must be lower or equal to 7, and not an odd number");
             }
 
             if (pattern.Length != 10)
             {
-                throw new ArgumentOutOfRangeException("pattern", pattern, "pattern must be 10 rows long");
+                throw new ArgumentOutOfRangeException(nameof(pattern), pattern, "pattern must be 10 rows long");
             }
 
             this.WriteCommand(Command.SetCgRamAddr, character << 3);
@@ -530,12 +589,12 @@ namespace Pi.IO.Devices.Displays.Hd44780
         {
             if (character > 7)
             {
-                throw new ArgumentOutOfRangeException("character", character, "character must be lower or equal to 7");
+                throw new ArgumentOutOfRangeException(nameof(character), character, "character must be lower or equal to 7");
             }
 
             if (pattern.Length != 7)
             {
-                throw new ArgumentOutOfRangeException("pattern", pattern, "pattern must be 7 rows long");
+                throw new ArgumentOutOfRangeException(nameof(pattern), pattern, "pattern must be 7 rows long");
             }
 
             this.WriteCommand(Command.SetCgRamAddr, character << 3);
@@ -568,14 +627,14 @@ namespace Pi.IO.Devices.Displays.Hd44780
             this.pins.Data[2].Write((bits & 0x40) != 0);
             this.pins.Data[3].Write((bits & 0x80) != 0);
 
-            this.Synchronize();
+            this.Synchronize(this.syncDelay, this.syncDelay);
 
             this.pins.Data[0].Write((bits & 0x01) != 0);
             this.pins.Data[1].Write((bits & 0x02) != 0);
             this.pins.Data[2].Write((bits & 0x04) != 0);
             this.pins.Data[3].Write((bits & 0x08) != 0);
 
-            this.Synchronize();
+            this.Synchronize(this.syncDelay, this.syncDelay);
         }
 
         /// <summary>
@@ -598,13 +657,13 @@ namespace Pi.IO.Devices.Displays.Hd44780
             }
         }
 
-        private void Synchronize()
+        private void Synchronize(TimeSpan syncDelay, TimeSpan postDelay)
         {
             this.pins.Clock.Write(true);
-            this.thread.Sleep(this.syncDelay); // 1 microsecond pause - enable pulse must be > 450ns
+            this.thread.Sleep(syncDelay); // 1 microsecond pause - enable pulse must be > 450ns
 
             this.pins.Clock.Write(false);
-            this.thread.Sleep(this.syncDelay); // commands need > 37us to settle
+            this.thread.Sleep(postDelay); // commands need > 37us to settle
         }
     }
 }

@@ -118,10 +118,13 @@ namespace Pi.IO.InterIntegratedCircuit
         /// Connects the specified device address.
         /// </summary>
         /// <param name="deviceAddress">The device address.</param>
-        /// <returns>The device connection.</returns>
-        public I2cDeviceConnection Connect(int deviceAddress)
+        /// <param name="i2CDeviceConnectionReporter">The i2 c device connection reporter.</param>
+        /// <returns>
+        /// The device connection.
+        /// </returns>
+        public I2cDeviceConnection Connect(int deviceAddress, II2cDeviceConnectionReporter i2CDeviceConnectionReporter = null)
         {
-            return new I2cDeviceConnection(this, deviceAddress);
+            return new I2cDeviceConnection(this, deviceAddress, i2CDeviceConnectionReporter);
         }
 
         /// <summary>
@@ -187,7 +190,7 @@ namespace Pi.IO.InterIntegratedCircuit
                     return Interop.Bcm2836Bsc1Base;
 
                 default:
-                    throw new ArgumentOutOfRangeException("processor");
+                    throw new ArgumentOutOfRangeException(nameof(processor));
             }
         }
 
@@ -203,7 +206,7 @@ namespace Pi.IO.InterIntegratedCircuit
                     return Interop.Bcm2836GpioBase;
 
                 default:
-                    throw new ArgumentOutOfRangeException("processor");
+                    throw new ArgumentOutOfRangeException(nameof(processor));
             }
         }
 

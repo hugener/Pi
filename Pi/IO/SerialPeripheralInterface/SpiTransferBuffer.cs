@@ -29,7 +29,7 @@ namespace Pi.IO.SerialPeripheralInterface
         {
             if (transferMode == 0)
             {
-                throw new ArgumentException("An appropriate transfer mode must be specified (read/write)", "transferMode");
+                throw new ArgumentException("An appropriate transfer mode must be specified (read/write)", nameof(transferMode));
             }
 
             this.mode = transferMode;

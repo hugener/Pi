@@ -43,7 +43,7 @@ namespace Pi.Core
                     return "Raspberry Pi 3 Model B";
 
                 default:
-                    throw new ArgumentOutOfRangeException("model");
+                    throw new ArgumentOutOfRangeException(nameof(model));
             }
         }
     }

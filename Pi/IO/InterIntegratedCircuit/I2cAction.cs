@@ -18,7 +18,7 @@ namespace Pi.IO.InterIntegratedCircuit
         /// <param name="buffer">The buffer.</param>
         protected I2CAction(byte[] buffer)
         {
-            this.Buffer = buffer ?? throw new ArgumentNullException("buffer");
+            this.Buffer = buffer ?? throw new ArgumentNullException(nameof(buffer));
         }
 
         /// <summary>

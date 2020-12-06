@@ -133,7 +133,7 @@ namespace Pi.IO.GeneralPurpose
                     break;
 
                 default:
-                    throw new ArgumentOutOfRangeException("resistor", resistor, string.Format(CultureInfo.InvariantCulture, "{0} is not a valid value for pin resistor", resistor));
+                    throw new ArgumentOutOfRangeException(nameof(resistor), resistor, string.Format(CultureInfo.InvariantCulture, "{0} is not a valid value for pin resistor", resistor));
             }
 
             this.WriteResistor(pud);
@@ -292,7 +292,7 @@ namespace Pi.IO.GeneralPurpose
                     return Interop.Bcm2836GpioBase;
 
                 default:
-                    throw new ArgumentOutOfRangeException("processor");
+                    throw new ArgumentOutOfRangeException(nameof(processor));
             }
         }
 

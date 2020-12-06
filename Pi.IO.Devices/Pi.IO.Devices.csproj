@@ -2,35 +2,30 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-	<LangVersion>latest</LangVersion>
+	  <LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <NoWarn>NU1701</NoWarn>
     <PackageId>Pi.IO.Devices.SundewFork</PackageId>
-    <Version>0.1.0</Version>
     <Authors>Pi.IO.Devices</Authors>
     <Company>Pi.IO.Devices</Company>
     <Product>Pi.IO.Devices</Product>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
     <Configurations>Debug;Release;Release-Stable</Configurations>
+    <DocumentationFile>$(OutputPath)\Pi.IO.Devices.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
-    <DocumentationFile>bin\Release\netstandard2.0\Pi.IO.Devices.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
-    <DocumentationFile>bin\Debug\netstandard2.0\Pi.IO.Devices.xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release-Stable|AnyCPU'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
-    <DocumentationFile>bin\Release\netstandard2.0\Pi.IO.Devices.xml</DocumentationFile>
     <SbpSourceName>local-stable</SbpSourceName>
   </PropertyGroup>
 
@@ -43,11 +38,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Sundew.Build.Publish" Version="1.0.2">
+    <PackageReference Include="Sundew.Build.Publish" Version="2.2.8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="UnitsNet" Version="4.37.0" />
+    <PackageReference Include="UnitsNet" Version="4.74.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -28,7 +28,7 @@ namespace Pi.IO.SerialPeripheralInterface
         {
             if (numberOfMessages <= 0)
             {
-                throw new ArgumentOutOfRangeException("numberOfMessages", numberOfMessages, string.Format(CultureInfo.InvariantCulture, "{0} is not a valid number of messages", numberOfMessages));
+                throw new ArgumentOutOfRangeException(nameof(numberOfMessages), numberOfMessages, string.Format(CultureInfo.InvariantCulture, "{0} is not a valid number of messages", numberOfMessages));
             }
 
             this.transferBuffers = new ISpiTransferBuffer[numberOfMessages];
