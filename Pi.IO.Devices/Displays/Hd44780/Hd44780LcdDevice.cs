@@ -359,7 +359,6 @@ namespace Pi.IO.Devices.Displays.Hd44780
         {
             this.WriteCommand(Command.ClearDisplay);
             this.currentPosition = Hd44780Position.Zero;
-
             this.thread.Sleep(TimeSpan.FromMilliseconds(6)); // Clearing the display takes a long time
         }
 
