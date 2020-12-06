@@ -142,6 +142,8 @@ namespace Pi.IO.Devices.Displays.Hd44780
             this.WriteByte(0x33, false); // Initialize
             this.WriteByte(0x32, false);
 
+            this.thread.Sleep(TimeSpanUtility.FromMicroseconds(50));
+
             this.WriteCommand(Command.SetFunctions, (int)this.functions);
             this.WriteCommand(Command.SetDisplayFlags, (int)this.displayFlags);
             this.WriteCommand(Command.SetEntryModeFlags, (int)this.entryModeFlags);
@@ -282,64 +284,6 @@ namespace Pi.IO.Devices.Displays.Hd44780
         void IDisposable.Dispose()
         {
             this.Close();
-        }
-
-        /// <summary>
-        /// Resets this instance.
-        /// </summary>
-        public void Reset()
-        {
-            var oneMillisecond = TimeSpan.FromMilliseconds(2);
-            this.pins.RegisterSelect.Write(false);
-
-            this.pins.Data[0].Write(true);
-            this.pins.Data[1].Write(true);
-            this.pins.Data[2].Write(false);
-            this.pins.Data[3].Write(false);
-
-            var stopwatch = Stopwatch.StartNew();
-            this.Synchronize(TimeSpan.FromMilliseconds(20), oneMillisecond);
-            stopwatch.Stop();
-            Console.WriteLine(stopwatch.Elapsed);
-
-            this.pins.Data[0].Write(true);
-            this.pins.Data[1].Write(true);
-            this.pins.Data[2].Write(false);
-            this.pins.Data[3].Write(false);
-
-            stopwatch.Restart();
-            this.Synchronize(oneMillisecond, oneMillisecond);
-            stopwatch.Stop();
-            Console.WriteLine(stopwatch.Elapsed);
-
-            this.pins.Data[0].Write(true);
-            this.pins.Data[1].Write(true);
-            this.pins.Data[2].Write(false);
-            this.pins.Data[3].Write(false);
-
-            stopwatch.Restart();
-            this.Synchronize(oneMillisecond, oneMillisecond);
-            stopwatch.Stop();
-            Console.WriteLine(stopwatch.Elapsed);
-
-            if (pins.Data.Length == 4)
-            {
-                this.pins.Data[0].Write(false);
-                this.pins.Data[1].Write(true);
-                this.pins.Data[2].Write(false);
-                this.pins.Data[3].Write(false);
-            }
-
-            stopwatch.Restart();
-            this.Synchronize(oneMillisecond, oneMillisecond);
-            stopwatch.Stop();
-            Console.WriteLine(stopwatch.Elapsed);
-
-            this.WriteCommand(Command.SetFunctions, (int)this.functions);
-            this.WriteCommand(Command.SetDisplayFlags, (int)this.displayFlags);
-            this.WriteCommand(Command.SetEntryModeFlags, (int)this.entryModeFlags);
-
-            this.Clear();
         }
 
         /// <summary>
