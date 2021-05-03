@@ -39,12 +39,12 @@ namespace Pi.IO.SerialPeripheralInterface
         ThreeWire = Interop.Spi3Wire,
 
         /// <summary>
-        /// Three-wire serial buses
+        /// Three-wire serial buses.
         /// </summary>
         SlaveInOutShared = Interop.Spi3Wire,
 
         /// <summary>
-        /// Loopback
+        /// Loopback.
         /// </summary>
         Loopback = Interop.SpiLoop,
 
@@ -64,22 +64,22 @@ namespace Pi.IO.SerialPeripheralInterface
         SlavePullsLowToPause = Interop.SpiReady,
 
         /// <summary>
-        /// CPOL=0, CPHA=0
+        /// CPOL=0, CPHA=0.
         /// </summary>
         Mode0 = Interop.SpiMode0,
 
         /// <summary>
-        /// CPOL=0, CPHA=1
+        /// CPOL=0, CPHA=1.
         /// </summary>
         Mode1 = Interop.SpiMode1,
 
         /// <summary>
-        /// CPOL =1, CPHA=0
+        /// CPOL =1, CPHA=0.
         /// </summary>
         Mode2 = Interop.SpiMode2,
 
         /// <summary>
-        /// CPOL=1, CPHA=1
+        /// CPOL=1, CPHA=1.
         /// </summary>
         Mode3 = Interop.SpiMode3,
     }

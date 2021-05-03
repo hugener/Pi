@@ -9,8 +9,8 @@ namespace Pi.IO.GeneralPurpose.Behaviors
     using global::System.Collections.Generic;
     using global::System.Linq;
     using Pi.Core.Threading;
-    using Pi.Core.Timers;
     using Sundew.Base.Threading;
+    using Sundew.Base.Timers;
     using Timer = Pi.Core.Timers.Timer;
 
     /// <summary>

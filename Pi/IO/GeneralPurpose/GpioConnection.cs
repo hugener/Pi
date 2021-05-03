@@ -11,6 +11,7 @@ namespace Pi.IO.GeneralPurpose
     using Pi.Core.Threading;
     using Pi.Core.Timers;
     using Sundew.Base.Threading;
+    using Sundew.Base.Timers;
 
     /// <summary>
     /// Represents a connection to the GPIO pins.

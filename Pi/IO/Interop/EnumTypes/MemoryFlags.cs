@@ -14,12 +14,12 @@ namespace Pi.IO.Interop
     public enum MemoryFlags
     {
         /// <summary>
-        /// The none
+        /// The none.
         /// </summary>
         None = 0,
 
         /// <summary>
-        /// The shared
+        /// The shared.
         /// </summary>
         Shared = 1,
     }

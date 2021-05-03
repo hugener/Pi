@@ -6,7 +6,7 @@
 namespace Pi.Core.Timers
 {
     using Sundew.Base.Disposal;
-    using Sundew.Base.Threading;
+    using Sundew.Base.Timers;
 
     /// <summary>
     /// Factory for creating a timer.
@@ -33,7 +33,7 @@ namespace Pi.Core.Timers
         /// <returns>A new timer.</returns>
         public ITimer<TState> Create<TState>(TState state)
         {
-            return this.timers.Add(new Timer<TState>(state));
+            return this.timers.Add(Timer.Create(state));
         }
 
         /// <summary>

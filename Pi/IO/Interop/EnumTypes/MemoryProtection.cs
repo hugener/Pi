@@ -14,22 +14,22 @@ namespace Pi.IO.Interop
     public enum MemoryProtection
     {
         /// <summary>
-        /// The none
+        /// The none.
         /// </summary>
         None = 0,
 
         /// <summary>
-        /// The read
+        /// The read.
         /// </summary>
         Read = 1,
 
         /// <summary>
-        /// The write
+        /// The write.
         /// </summary>
         Write = 2,
 
         /// <summary>
-        /// The read write
+        /// The read write.
         /// </summary>
         ReadWrite = Read | Write,
     }

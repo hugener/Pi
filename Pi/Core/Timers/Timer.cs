@@ -5,7 +5,7 @@
 
 namespace Pi.Core.Timers
 {
-    using Sundew.Base.Threading;
+    using Sundew.Base.Timers;
 
     /// <summary>
     /// Provides access to timing features.
@@ -26,7 +26,26 @@ namespace Pi.Core.Timers
         {
             return Board.Current.IsRaspberryPi
                        ? (ITimer)new HighResolutionTimer()
-                       : new Sundew.Base.Threading.Timer();
+                       : new Sundew.Base.Timers.Timer();
+        }
+
+        /// <summary>
+        /// Creates a timer.
+        /// </summary>
+        /// <typeparam name="TState">The type of the state.</typeparam>
+        /// <param name="state">The state.</param>
+        /// <param name="name">The name.</param>
+        /// <returns>
+        /// The timer.
+        /// </returns>
+        /// <remarks>
+        /// The created timer is the most suitable for the current platform.
+        /// </remarks>
+        public static ITimer<TState> Create<TState>(TState state, string name = null)
+        {
+            return Board.Current.IsRaspberryPi
+                ? new HighResolutionTimer<TState>(state)
+                : new Sundew.Base.Timers.Timer<TState>(state);
         }
 
         /// <summary>

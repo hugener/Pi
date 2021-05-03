@@ -221,7 +221,7 @@ namespace Pi.IO.GeneralPurpose
         Pin31 = 31,
 
         /// <summary>
-        /// Pin 32. (added for CubieTruck/CubieBoard3 compatibility
+        /// Pin 32. (added for CubieTruck/CubieBoard3 compatibility.
         /// </summary>
         Pin32 = 32,
     }

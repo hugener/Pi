@@ -19,12 +19,12 @@ namespace Pi.IO.GeneralPurpose
         None = 0,
 
         /// <summary>
-        /// The driver can set pin resistor
+        /// The driver can set pin resistor.
         /// </summary>
         CanSetPinResistor = 1,
 
         /// <summary>
-        /// The driver can set pin detected edges
+        /// The driver can set pin detected edges.
         /// </summary>
         CanSetPinDetectedEdges = 2,
 
@@ -34,7 +34,7 @@ namespace Pi.IO.GeneralPurpose
         CanChangePinDirectionRapidly = 4,
 
         /// <summary>
-        /// The driver can work on third-party computers (not only Raspberry Pi)
+        /// The driver can work on third-party computers (not only Raspberry Pi).
         /// </summary>
         CanWorkOnThirdPartyComputers = 8,
     }

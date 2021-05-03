@@ -1,4 +1,4 @@
-// <copyright file="HighResolutionTimer.cs" company="Pi">
+// <copyright file="HighResolutionTimer{TState}.cs" company="Pi">
 // Copyright (c) Pi. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // </copyright>
@@ -17,9 +17,10 @@ namespace Pi.Core.Timers
     /// <summary>
     /// Represents a high-resolution timer.
     /// </summary>
-    public class HighResolutionTimer : ITimer
+    public class HighResolutionTimer<TState> : ITimer<TState>
     {
         private static readonly CurrentThread CurrentThread = new CurrentThread();
+        private readonly TState state;
         private readonly object lockObject = new object();
         private readonly ManualResetEventSlim timerRunningEvent = new ManualResetEventSlim(false);
         private readonly ManualResetEventSlim timerStoppedEvent = new ManualResetEventSlim(false);
@@ -28,13 +29,14 @@ namespace Pi.Core.Timers
         private readonly CancellationToken disposeCancellationToken;
         private CancellationTokenSource sleepCancellationTokenSource;
         private TimeSpan delay;
-        private TickEventHandler tick;
+        private TickEventHandler<TState> tick;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HighResolutionTimer" /> class.
+        /// Initializes a new instance of the <see cref="HighResolutionTimer{TState}" /> class.
         /// </summary>
-        internal HighResolutionTimer()
+        internal HighResolutionTimer(TState state)
         {
+            this.state = state;
             this.timerJob = new CancellableJob(this.Timer);
             this.timerActionJob = new ContinuousJob<BlockingCollection<Action>>(this.TimerControl, new BlockingCollection<Action>(new ConcurrentQueue<Action>()));
             this.disposeCancellationToken = this.timerJob.Start().Value;
@@ -47,7 +49,7 @@ namespace Pi.Core.Timers
         /// <value>
         /// The action.
         /// </value>
-        public event TickEventHandler Tick
+        public event TickEventHandler<TState> Tick
         {
             add
             {
@@ -170,7 +172,7 @@ namespace Pi.Core.Timers
 
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    this.tick?.Invoke(this);
+                    this.tick?.Invoke(this, this.state);
 
                     if (!this.timerRunningEvent.IsSet)
                     {
